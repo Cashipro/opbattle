@@ -140,7 +140,7 @@ export class PlayersService {
 
   async addWinnings(uid: string, amount: number): Promise<Player> {
     const player = await this.findByUid(uid);
-    player.total_winnings += amount;
+    player.total_winnings = Number(player.total_winnings) + amount;
     return this.playerRepository.save(player);
   }
 }
