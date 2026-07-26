@@ -12,9 +12,12 @@ async function bootstrap() {
   }));
   
   app.setGlobalPrefix('api/v1');
+  
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     transform: true,
+    forbidNonWhitelisted: false,
+    disableErrorMessages: false,
   }));
   
   const port = process.env.PORT || 3000;
