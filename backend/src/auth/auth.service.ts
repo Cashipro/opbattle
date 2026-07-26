@@ -37,8 +37,11 @@ export class AuthService {
       role: user.role,
     });
 
+    // Remove password from response
+    const { password_hash, ...userWithoutPassword } = user;
+
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: userWithoutPassword,
       access_token: token,
     };
   }
@@ -56,14 +59,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Update last login
+    await this.userRepository.update(user.id, { last_login: new Date() });
+
     const token = this.jwtService.sign({
       sub: user.id,
       email: user.email,
       role: user.role,
     });
 
+    const { password_hash, ...userWithoutPassword } = user;
+
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: userWithoutPassword,
       access_token: token,
     };
   }
