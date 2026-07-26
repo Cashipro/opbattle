@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Check, X, Search, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
-import Image from 'next/image'
 
 interface Player {
   id: string
@@ -143,7 +142,11 @@ export default function AdminVerifications() {
 
               {player.verification_screenshot_url && (
                 <button
-                  onClick={() => window.open(player.verification_screenshot_url, '_blank')}
+                  onClick={() => {
+                    if (player.verification_screenshot_url) {
+                      window.open(player.verification_screenshot_url, '_blank')
+                    }
+                  }}
                   className="w-full py-2 mb-3 bg-white/5 hover:bg-white/10 rounded-lg text-sm flex items-center justify-center gap-2 transition"
                 >
                   <Eye className="w-4 h-4" />
