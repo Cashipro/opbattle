@@ -50,7 +50,6 @@ export class AdminService {
 
   // ========== Dashboard ==========
   async getDashboard(adminId: string): Promise<any> {
-    // Check if admin
     const admin = await this.usersService.findById(adminId);
     if (admin.role !== 'admin' && admin.role !== 'super_admin') {
       throw new ForbiddenException('Admin access required');
@@ -78,13 +77,11 @@ export class AdminService {
       this.tournamentRepository.count({ where: { status: 'LIVE' } }),
     ]);
 
-    // Recent transactions
     const recentTransactions = await this.transactionRepository.find({
       order: { created_at: 'DESC' },
       take: 10,
     });
 
-    // Recent users
     const recentUsers = await this.userRepository.find({
       order: { created_at: 'DESC' },
       take: 10,
@@ -152,9 +149,6 @@ export class AdminService {
     const { page = 1, limit = 20, search, role } = query;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
-    if (role) where.role = role;
-
     const qb = this.userRepository.createQueryBuilder('user');
 
     if (search) {
@@ -186,7 +180,6 @@ export class AdminService {
     user.is_active = false;
     await this.userRepository.save(user);
 
-    // Ban player if exists
     const player = await this.playerRepository.findOne({ where: { user_id: id } });
     if (player) {
       player.is_banned = true;
@@ -194,7 +187,6 @@ export class AdminService {
       await this.playerRepository.save(player);
     }
 
-    // Notify user
     await this.notificationsService.createNotification({
       user_id: id,
       type: 'ACCOUNT_BANNED',
@@ -244,10 +236,6 @@ export class AdminService {
   async getPlayers(query: any): Promise<{ players: Player[]; total: number }> {
     const { page = 1, limit = 20, status, search, country } = query;
     const skip = (page - 1) * limit;
-
-    const where: any = {};
-    if (status) where.verification_status = status;
-    if (country) where.country_id = country;
 
     const qb = this.playerRepository.createQueryBuilder('player');
 
@@ -310,7 +298,7 @@ export class AdminService {
   }
 
   async banPlayer(uid: string, reason: string): Promise<Player> {
-    return this.playersService.banPlayer(uid, null, reason);
+    return this.playersService.banPlayer(uid, reason);
   }
 
   async unbanPlayer(uid: string): Promise<Player> {
@@ -420,7 +408,6 @@ export class AdminService {
   async completeWithdrawal(id: string, adminId: string): Promise<Withdrawal> {
     const withdrawal = await this.walletService.completeWithdrawal(id, adminId);
 
-    // Notify user
     await this.notificationsService.sendWithdrawalStatus(withdrawal.user_id, withdrawal);
 
     return withdrawal;
@@ -429,7 +416,6 @@ export class AdminService {
   async rejectWithdrawal(id: string, adminId: string, reason: string): Promise<Withdrawal> {
     const withdrawal = await this.walletService.rejectWithdrawal(id, adminId, reason);
 
-    // Notify user
     await this.notificationsService.sendWithdrawalStatus(withdrawal.user_id, withdrawal);
 
     return withdrawal;
