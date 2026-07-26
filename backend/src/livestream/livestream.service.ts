@@ -37,7 +37,7 @@ export class LiveStreamService {
       status: 'SCHEDULED',
     });
 
-    return await this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream) as any;
   }
 
   async findAll(query: any): Promise<{ streams: LiveStream[]; total: number }> {
@@ -83,7 +83,7 @@ export class LiveStreamService {
     }
 
     Object.assign(stream, data);
-    return await this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream) as any;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -114,7 +114,7 @@ export class LiveStreamService {
     stream.status = 'LIVE';
     stream.started_at = new Date();
 
-    return await this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream) as any;
   }
 
   async endStream(id: string, userId: string): Promise<LiveStream> {
@@ -131,7 +131,7 @@ export class LiveStreamService {
     stream.status = 'FINISHED';
     stream.ended_at = new Date();
 
-    return await this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream) as any;
   }
 
   async toggleFeature(id: string, userId: string): Promise<LiveStream> {
@@ -142,7 +142,7 @@ export class LiveStreamService {
     }
 
     stream.is_featured = !stream.is_featured;
-    return await this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream) as any;
   }
 
   async getLiveStreams(): Promise<LiveStream[]> {
