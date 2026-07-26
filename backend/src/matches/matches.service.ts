@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
@@ -30,12 +29,10 @@ export class MatchesService {
   async create(userId: string, data: any): Promise<Match> {
     const tournament = await this.tournamentsService.findById(data.tournament_id, userId);
     
-    // Check if tournament is live or upcoming
     if (tournament.status !== 'LIVE' && tournament.status !== 'UPCOMING') {
       throw new BadRequestException('Tournament is not active');
     }
 
-    // Get match count for this tournament
     const matchCount = await this.matchRepository.count({
       where: { tournament_id: data.tournament_id },
     });
@@ -46,7 +43,7 @@ export class MatchesService {
       status: 'SCHEDULED',
     });
 
-    return this.matchRepository.save(match);
+    return await this.matchRepository.save(match);
   }
 
   async findAll(query: any): Promise<{ matches: Match[]; total: number }> {
@@ -69,7 +66,7 @@ export class MatchesService {
   }
 
   async findByTournament(tournamentId: string): Promise<Match[]> {
-    return this.matchRepository.find({
+    return await this.matchRepository.find({
       where: { tournament_id: tournamentId },
       order: { match_number: 'ASC' },
       relations: ['results'],
@@ -102,7 +99,7 @@ export class MatchesService {
     }
 
     Object.assign(match, data);
-    return this.matchRepository.save(match);
+    return await this.matchRepository.save(match);
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -133,7 +130,7 @@ export class MatchesService {
     if (data.map_name) match.map_name = data.map_name;
     if (data.perspective) match.perspective = data.perspective;
 
-    return this.matchRepository.save(match);
+    return await this.matchRepository.save(match);
   }
 
   async startMatch(id: string, userId: string): Promise<Match> {
@@ -155,7 +152,7 @@ export class MatchesService {
     match.status = 'LIVE';
     match.started_at = new Date();
 
-    return this.matchRepository.save(match);
+    return await this.matchRepository.save(match);
   }
 
   async completeMatch(id: string, userId: string): Promise<Match> {
@@ -173,7 +170,7 @@ export class MatchesService {
     match.status = 'COMPLETED';
     match.completed_at = new Date();
 
-    return this.matchRepository.save(match);
+    return await this.matchRepository.save(match);
   }
 
   async addResults(id: string, userId: string, results: any[]): Promise<Match> {
@@ -188,10 +185,8 @@ export class MatchesService {
       throw new BadRequestException('Match must be completed first');
     }
 
-    // Clear existing results
     await this.resultRepository.delete({ match_id: id });
 
-    // Add new results
     for (const result of results) {
       const matchResult = this.resultRepository.create({
         match_id: id,
@@ -205,7 +200,6 @@ export class MatchesService {
       });
       await this.resultRepository.save(matchResult);
 
-      // Update team stats
       if (result.position === 1) {
         await this.teamsService.updateStats(result.team_id, { wins: 1 });
       } else {
@@ -213,7 +207,7 @@ export class MatchesService {
       }
     }
 
-    return this.findById(id);
+    return await this.findById(id);
   }
 
   async verifyResult(matchId: string, resultId: string, userId: string): Promise<MatchResult> {
@@ -236,7 +230,6 @@ export class MatchesService {
     result.verified_by = userId;
     result.verified_at = new Date();
 
-    // If prize amount, distribute to team members
     if (result.prize_amount > 0 && result.verified) {
       const team = await this.teamsService.findById(result.team_id);
       const members = team.members || [];
@@ -248,12 +241,12 @@ export class MatchesService {
       }
     }
 
-    return this.resultRepository.save(result);
+    return await this.resultRepository.save(result);
   }
 
   async getResults(matchId: string): Promise<MatchResult[]> {
     const match = await this.findById(matchId);
-    return this.resultRepository.find({
+    return await this.resultRepository.find({
       where: { match_id: matchId },
       order: { position: 'ASC' },
     });
@@ -266,7 +259,6 @@ export class MatchesService {
       throw new BadRequestException('Match is not active');
     }
 
-    // Get registered teams for this tournament
     const registrations = await this.tournamentsService['registrationRepository'].find({
       where: { tournament_id: match.tournament_id, status: 'APPROVED' },
     });
