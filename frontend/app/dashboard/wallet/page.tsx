@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Wallet, ArrowDown, ArrowUp, History, Copy, Check, Eye, EyeOff } from 'lucide-react'
+import { Wallet, ArrowDown, ArrowUp, History, Copy, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Transaction {
@@ -148,13 +148,13 @@ export default function WalletPage() {
   }
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       PENDING: 'text-yellow-500 bg-yellow-500/10',
       COMPLETED: 'text-green-500 bg-green-500/10',
       FAILED: 'text-red-500 bg-red-500/10',
       CANCELLED: 'text-gray-500 bg-gray-500/10',
     }
-    return colors[status] || 'text-gray-400 bg-gray-500/10'
+    return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-500/10'
   }
 
   if (loading) {
@@ -174,7 +174,6 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Balance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="glass-card p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF4655]/5 rounded-full blur-2xl"></div>
@@ -203,7 +202,6 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 mb-8">
         <button
           onClick={() => setShowDepositModal(true)}
@@ -228,7 +226,6 @@ export default function WalletPage() {
         </button>
       </div>
 
-      {/* Transaction History */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-heading font-bold flex items-center gap-2">
