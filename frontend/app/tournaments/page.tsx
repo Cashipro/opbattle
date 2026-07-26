@@ -16,6 +16,7 @@ import {
   X,
   Clock,
   AlertCircle,
+  CheckCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -148,7 +149,7 @@ export default function TournamentsPage() {
       COMPLETED: 'text-blue-500 bg-blue-500/10',
       CANCELLED: 'text-red-500 bg-red-500/10',
     }
-    return colors[status] || 'text-gray-400 bg-gray-500/10'
+    return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-500/10'
   }
 
   const getStatusBadge = (status: string) => {
@@ -158,7 +159,7 @@ export default function TournamentsPage() {
       COMPLETED: '✅ Completed',
       CANCELLED: '❌ Cancelled',
     }
-    return labels[status] || status
+    return labels[status as keyof typeof labels] || status
   }
 
   const getProgressColor = (current: number, max: number) => {
@@ -168,8 +169,8 @@ export default function TournamentsPage() {
     return 'bg-green-500'
   }
 
-  const uniqueGames = [...new Set(tournaments.map((t) => t.game))]
-  const uniqueCountries = [...new Set(tournaments.map((t) => t.country))]
+  const uniqueGames = Array.from(new Set(tournaments.map((t) => t.game)))
+  const uniqueCountries = Array.from(new Set(tournaments.map((t) => t.country)))
 
   if (loading) {
     return (
@@ -181,7 +182,6 @@ export default function TournamentsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/80 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -221,7 +221,6 @@ export default function TournamentsPage() {
             </div>
           </div>
 
-          {/* Filters */}
           {showFilters && (
             <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -314,7 +313,6 @@ export default function TournamentsPage() {
         </div>
       </div>
 
-      {/* Tournament Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {filteredTournaments.length === 0 ? (
           <div className="glass-card p-12 text-center">
@@ -340,7 +338,6 @@ export default function TournamentsPage() {
                   href={`/tournaments/${tournament.id}`}
                   className="glass-card p-6 hover:border-[#FF4655]/30 transition group block"
                 >
-                  {/* Status Badge */}
                   <div className="flex items-center justify-between mb-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -354,7 +351,6 @@ export default function TournamentsPage() {
                     </span>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="w-full h-1 bg-white/10 rounded-full mb-3 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${getProgressColor(
@@ -365,12 +361,10 @@ export default function TournamentsPage() {
                     />
                   </div>
 
-                  {/* Title */}
                   <h3 className="text-xl font-heading font-bold mb-2 group-hover:text-[#FF4655] transition line-clamp-1">
                     {tournament.title}
                   </h3>
 
-                  {/* Meta */}
                   <div className="flex flex-wrap gap-3 text-sm text-gray-400 mb-4">
                     <span className="flex items-center gap-1">
                       <Gamepad2 className="w-4 h-4" />
@@ -386,14 +380,12 @@ export default function TournamentsPage() {
                     </span>
                   </div>
 
-                  {/* Description */}
                   {tournament.description && (
                     <p className="text-sm text-gray-400 line-clamp-2 mb-4">
                       {tournament.description}
                     </p>
                   )}
 
-                  {/* Prize & Fee */}
                   <div className="flex items-center justify-between border-t border-white/10 pt-4">
                     <div>
                       <p className="text-xs text-gray-400">Prize Pool</p>
@@ -409,7 +401,6 @@ export default function TournamentsPage() {
                     </div>
                   </div>
 
-                  {/* Registration Status */}
                   <div className="mt-3">
                     {tournament.status === 'UPCOMING' && (
                       <div className="flex items-center gap-2 text-xs">
