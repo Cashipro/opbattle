@@ -54,7 +54,7 @@ export class Player {
   total_winnings: number;
 
   @Column({ name: 'verification_status', default: 'PENDING' })
-  verification_status: string; // PENDING, APPROVED, REJECTED
+  verification_status: string;
 
   @Column({ name: 'verification_screenshot_url', nullable: true })
   verification_screenshot_url: string;
