@@ -32,7 +32,7 @@ export class TournamentsService {
       status: 'UPCOMING',
     });
 
-    return this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament);
   }
 
   async findAll(query: any): Promise<{ tournaments: Tournament[]; total: number }> {
@@ -63,7 +63,6 @@ export class TournamentsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    // Get registrations with team details
     const registrations = await this.registrationRepository.find({
       where: { tournament_id: id },
     });
@@ -83,7 +82,6 @@ export class TournamentsService {
       }),
     );
 
-    // Check if user is registered
     let isRegistered = false;
     if (userId) {
       const player = await this.playersService.findByUserId(userId);
@@ -91,7 +89,6 @@ export class TournamentsService {
       isRegistered = registrations.some((reg) => reg.team_id === userTeam.id);
     }
 
-    // Check if user can register
     const canRegister =
       tournament.status === 'UPCOMING' &&
       new Date() < tournament.registration_deadline &&
@@ -114,7 +111,6 @@ export class TournamentsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    // Only creator can update
     if (tournament.created_by !== userId) {
       throw new ForbiddenException('Only tournament creator can update');
     }
@@ -124,7 +120,7 @@ export class TournamentsService {
     }
 
     Object.assign(tournament, data);
-    return this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament);
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -165,13 +161,8 @@ export class TournamentsService {
       throw new BadRequestException('Tournament is full');
     }
 
-    // Get user's team
     const team = await this.teamsService.findByPlayerId(userId);
-    
-    // Check if team has minimum players (4 for squad)
-    // This will be handled by team service
 
-    // Check if team is already registered
     const existing = await this.registrationRepository.findOne({
       where: { tournament_id: tournamentId, team_id: team.id },
     });
@@ -180,12 +171,10 @@ export class TournamentsService {
       throw new ConflictException('Team already registered');
     }
 
-    // Deduct entry fee from wallet
     if (tournament.entry_fee > 0) {
       await this.walletService.deductFee(userId, tournament.entry_fee, `Tournament entry: ${tournament.title}`);
     }
 
-    // Create registration
     const registration = this.registrationRepository.create({
       tournament_id: tournamentId,
       team_id: team.id,
@@ -195,7 +184,6 @@ export class TournamentsService {
 
     await this.registrationRepository.save(registration);
 
-    // Update tournament current teams
     tournament.current_teams += 1;
     await this.tournamentRepository.save(tournament);
 
@@ -229,13 +217,11 @@ export class TournamentsService {
     registration.status = 'REJECTED';
     await this.registrationRepository.save(registration);
 
-    // Refund entry fee if paid
     if (registration.entry_fee_paid > 0) {
       const team = await this.teamsService.findById(registration.team_id);
       await this.walletService.refund(team.captain_id, registration.entry_fee_paid);
     }
 
-    // Decrease tournament current teams
     const tournament = await this.tournamentRepository.findOne({
       where: { id: tournamentId },
     });
@@ -263,7 +249,7 @@ export class TournamentsService {
     }
 
     tournament.status = 'LIVE';
-    return this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament);
   }
 
   async cancelTournament(id: string, userId: string): Promise<Tournament> {
@@ -282,7 +268,6 @@ export class TournamentsService {
     tournament.status = 'CANCELLED';
     await this.tournamentRepository.save(tournament);
 
-    // Refund all registered teams
     const registrations = await this.registrationRepository.find({
       where: { tournament_id: id, status: 'APPROVED' },
     });
@@ -298,7 +283,7 @@ export class TournamentsService {
   }
 
   async getUpcoming(): Promise<Tournament[]> {
-    return this.tournamentRepository.find({
+    return await this.tournamentRepository.find({
       where: { status: 'UPCOMING', is_active: true },
       order: { start_date: 'ASC' },
       take: 10,
@@ -306,14 +291,14 @@ export class TournamentsService {
   }
 
   async getLive(): Promise<Tournament[]> {
-    return this.tournamentRepository.find({
+    return await this.tournamentRepository.find({
       where: { status: 'LIVE', is_active: true },
       order: { start_date: 'ASC' },
     });
   }
 
   async getCompleted(): Promise<Tournament[]> {
-    return this.tournamentRepository.find({
+    return await this.tournamentRepository.find({
       where: { status: 'COMPLETED', is_active: true },
       order: { end_date: 'DESC' },
       take: 10,
@@ -374,7 +359,6 @@ export class TournamentsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    // Update results
     for (const result of results) {
       await this.registrationRepository.update(
         { tournament_id: id, team_id: result.team_id },
@@ -384,10 +368,8 @@ export class TournamentsService {
         },
       );
 
-      // Add prize to team members
       if (result.prize_amount > 0) {
         const team = await this.teamsService.findById(result.team_id);
-        // Distribute prize to team members
         const members = team.members || [];
         const prizePerMember = result.prize_amount / members.length;
         for (const member of members) {
@@ -399,6 +381,6 @@ export class TournamentsService {
 
     tournament.status = 'COMPLETED';
     tournament.end_date = new Date();
-    return this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament);
   }
 }
