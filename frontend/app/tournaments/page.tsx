@@ -14,6 +14,8 @@ import {
   MapPin,
   ChevronDown,
   X,
+  Clock,
+  AlertCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -31,6 +33,7 @@ interface Tournament {
   start_date: string
   status: 'UPCOMING' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
   is_registered: boolean
+  registration_deadline: string
 }
 
 export default function TournamentsPage() {
@@ -79,7 +82,6 @@ export default function TournamentsPage() {
   useEffect(() => {
     let filtered = tournaments
 
-    // Search
     if (searchQuery) {
       filtered = filtered.filter(
         (t) =>
@@ -88,7 +90,6 @@ export default function TournamentsPage() {
       )
     }
 
-    // Filters
     if (filters.game) {
       filtered = filtered.filter((t) => t.game === filters.game)
     }
@@ -141,7 +142,7 @@ export default function TournamentsPage() {
   }
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       UPCOMING: 'text-yellow-500 bg-yellow-500/10',
       LIVE: 'text-green-500 bg-green-500/10 animate-pulse',
       COMPLETED: 'text-blue-500 bg-blue-500/10',
@@ -151,13 +152,20 @@ export default function TournamentsPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const labels = {
-      UPCOMING: 'Upcoming',
+    const labels: Record<string, string> = {
+      UPCOMING: '📅 Upcoming',
       LIVE: '🔴 LIVE',
-      COMPLETED: 'Completed',
-      CANCELLED: 'Cancelled',
+      COMPLETED: '✅ Completed',
+      CANCELLED: '❌ Cancelled',
     }
     return labels[status] || status
+  }
+
+  const getProgressColor = (current: number, max: number) => {
+    const percent = (current / max) * 100
+    if (percent >= 90) return 'bg-red-500'
+    if (percent >= 70) return 'bg-yellow-500'
+    return 'bg-green-500'
   }
 
   const uniqueGames = [...new Set(tournaments.map((t) => t.game))]
@@ -180,6 +188,9 @@ export default function TournamentsPage() {
             <div className="flex items-center gap-2">
               <Trophy className="w-8 h-8 text-[#FF4655]" />
               <h1 className="text-2xl font-heading font-bold">Tournaments</h1>
+              <span className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded-full">
+                {filteredTournaments.length} tournaments
+              </span>
             </div>
 
             <div className="flex-1 flex gap-2">
@@ -195,7 +206,9 @@ export default function TournamentsPage() {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition flex items-center gap-2"
+                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
+                  showFilters ? 'bg-[#FF4655]/20 text-[#FF4655]' : 'bg-white/5 hover:bg-white/10'
+                }`}
               >
                 <Filter className="w-4 h-4" />
                 <span className="hidden sm:inline">Filters</span>
@@ -252,9 +265,9 @@ export default function TournamentsPage() {
                     className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition text-sm"
                   >
                     <option value="">All Status</option>
-                    <option value="UPCOMING">Upcoming</option>
-                    <option value="LIVE">Live</option>
-                    <option value="COMPLETED">Completed</option>
+                    <option value="UPCOMING">📅 Upcoming</option>
+                    <option value="LIVE">🔴 Live</option>
+                    <option value="COMPLETED">✅ Completed</option>
                   </select>
                 </div>
 
@@ -291,8 +304,9 @@ export default function TournamentsPage() {
                     maxFee: '',
                   })
                 }
-                className="mt-3 text-sm text-[#FF4655] hover:underline"
+                className="mt-3 text-sm text-[#FF4655] hover:underline flex items-center gap-1"
               >
+                <X className="w-3 h-3" />
                 Clear Filters
               </button>
             </div>
@@ -314,111 +328,124 @@ export default function TournamentsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredTournaments.map((tournament) => (
-              <div
-                key={tournament.id}
-                className="glass-card p-6 hover:border-[#FF4655]/30 transition group"
-              >
-                {/* Status Badge */}
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      tournament.status
-                    )}`}
-                  >
-                    {getStatusBadge(tournament.status)}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {tournament.current_teams}/{tournament.max_teams} Teams
-                  </span>
-                </div>
+            {filteredTournaments.map((tournament) => {
+              const progress = (tournament.current_teams / tournament.max_teams) * 100
+              const isFull = tournament.current_teams >= tournament.max_teams
+              const isRegistrationOpen = tournament.status === 'UPCOMING' && 
+                new Date() < new Date(tournament.registration_deadline)
 
-                {/* Title */}
-                <Link href={`/tournaments/${tournament.id}`}>
-                  <h3 className="text-xl font-heading font-bold mb-2 hover:text-[#FF4655] transition line-clamp-1">
+              return (
+                <Link
+                  key={tournament.id}
+                  href={`/tournaments/${tournament.id}`}
+                  className="glass-card p-6 hover:border-[#FF4655]/30 transition group block"
+                >
+                  {/* Status Badge */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        tournament.status
+                      )}`}
+                    >
+                      {getStatusBadge(tournament.status)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {tournament.current_teams}/{tournament.max_teams} Teams
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full h-1 bg-white/10 rounded-full mb-3 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${getProgressColor(
+                        tournament.current_teams,
+                        tournament.max_teams
+                      )}`}
+                      style={{ width: `${Math.min(progress, 100)}%` }}
+                    />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-heading font-bold mb-2 group-hover:text-[#FF4655] transition line-clamp-1">
                     {tournament.title}
                   </h3>
+
+                  {/* Meta */}
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-400 mb-4">
+                    <span className="flex items-center gap-1">
+                      <Gamepad2 className="w-4 h-4" />
+                      {tournament.game}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {tournament.country || 'Global'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(tournament.start_date).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  {tournament.description && (
+                    <p className="text-sm text-gray-400 line-clamp-2 mb-4">
+                      {tournament.description}
+                    </p>
+                  )}
+
+                  {/* Prize & Fee */}
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                    <div>
+                      <p className="text-xs text-gray-400">Prize Pool</p>
+                      <p className="text-lg font-bold text-yellow-500">
+                        ${tournament.prize_pool}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Entry Fee</p>
+                      <p className="text-lg font-bold text-[#FF4655]">
+                        ${tournament.entry_fee}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Registration Status */}
+                  <div className="mt-3">
+                    {tournament.status === 'UPCOMING' && (
+                      <div className="flex items-center gap-2 text-xs">
+                        {isRegistrationOpen ? (
+                          <>
+                            <Clock className="w-3 h-3 text-yellow-500" />
+                            <span className="text-yellow-500">
+                              Registration closes {new Date(tournament.registration_deadline).toLocaleDateString()}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-red-500">Registration closed</span>
+                        )}
+                        {isFull && (
+                          <span className="text-red-500 bg-red-500/20 px-2 py-0.5 rounded-full ml-2">
+                            FULL
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {tournament.status === 'LIVE' && (
+                      <div className="flex items-center gap-2 text-xs text-green-500">
+                        <AlertCircle className="w-3 h-3 animate-pulse" />
+                        <span>Live now!</span>
+                      </div>
+                    )}
+                    {tournament.is_registered && (
+                      <div className="flex items-center gap-2 text-xs text-green-500 mt-1">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>You are registered!</span>
+                      </div>
+                    )}
+                  </div>
                 </Link>
-
-                {/* Meta */}
-                <div className="flex flex-wrap gap-3 text-sm text-gray-400 mb-4">
-                  <span className="flex items-center gap-1">
-                    <Gamepad2 className="w-4 h-4" />
-                    {tournament.game}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {tournament.country || 'Global'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(tournament.start_date).toLocaleDateString()}
-                  </span>
-                </div>
-
-                {/* Description */}
-                {tournament.description && (
-                  <p className="text-sm text-gray-400 line-clamp-2 mb-4">
-                    {tournament.description}
-                  </p>
-                )}
-
-                {/* Prize & Fee */}
-                <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                  <div>
-                    <p className="text-xs text-gray-400">Prize Pool</p>
-                    <p className="text-lg font-bold text-yellow-500">
-                      ${tournament.prize_pool}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-400">Entry Fee</p>
-                    <p className="text-lg font-bold text-[#FF4655]">
-                      ${tournament.entry_fee}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Action */}
-                <div className="mt-4">
-                  {tournament.status === 'UPCOMING' && (
-                    <>
-                      {tournament.is_registered ? (
-                        <button
-                          disabled
-                          className="w-full py-2 bg-green-500/20 text-green-500 rounded-lg font-medium cursor-not-allowed"
-                        >
-                          ✓ Registered
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleJoinTournament(tournament.id)}
-                          className="w-full py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition"
-                        >
-                          Join Tournament
-                        </button>
-                      )}
-                    </>
-                  )}
-                  {tournament.status === 'LIVE' && (
-                    <button
-                      disabled
-                      className="w-full py-2 bg-green-500/20 text-green-500 rounded-lg font-medium cursor-not-allowed animate-pulse"
-                    >
-                      🔴 LIVE
-                    </button>
-                  )}
-                  {tournament.status === 'COMPLETED' && (
-                    <Link
-                      href={`/tournaments/${tournament.id}`}
-                      className="block w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition text-center"
-                    >
-                      View Results
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
