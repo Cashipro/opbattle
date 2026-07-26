@@ -1,11 +1,15 @@
 {
   "name": "opbattle-backend",
   "version": "1.0.0",
+  "description": "OpBattle Backend API - NestJS",
+  "private": true,
   "scripts": {
     "build": "npx nest build",
     "start": "node dist/main",
     "start:dev": "npx nest start --watch",
-    "start:prod": "node dist/main"
+    "start:prod": "node dist/main",
+    "migration:run": "npx typeorm migration:run -d dist/config/database.config.js",
+    "seed": "npx ts-node src/seeders/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
@@ -34,5 +38,9 @@
     "@types/passport-jwt": "^4.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
