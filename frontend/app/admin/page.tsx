@@ -16,18 +16,18 @@ import {
 
 interface DashboardStats {
   stats: {
-    totalUsers: number
-    totalPlayers: number
-    totalTeams: number
-    totalTournaments: number
-    totalMatches: number
-    totalTransactions: number
-    pendingWithdrawals: number
-    pendingVerifications: number
-    liveTournaments: number
-  }
-  recentTransactions: any[]
-  recentUsers: any[]
+    totalUsers: number;
+    totalPlayers: number;
+    totalTeams: number;
+    totalTournaments: number;
+    totalMatches: number;
+    totalTransactions: number;
+    pendingWithdrawals: number;
+    pendingVerifications: number;
+    liveTournaments: number;
+  };
+  recentTransactions: any[];
+  recentUsers: any[];
 }
 
 export default function AdminDashboard() {
@@ -61,15 +61,25 @@ export default function AdminDashboard() {
     )
   }
 
-  const { stats } = data || { stats: {} }
+  const stats = data?.stats || {
+    totalUsers: 0,
+    totalPlayers: 0,
+    totalTeams: 0,
+    totalTournaments: 0,
+    totalMatches: 0,
+    totalTransactions: 0,
+    pendingWithdrawals: 0,
+    pendingVerifications: 0,
+    liveTournaments: 0,
+  }
 
   const statCards = [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'text-blue-500' },
-    { label: 'Total Players', value: stats?.totalPlayers || 0, icon: UserCheck, color: 'text-green-500' },
-    { label: 'Tournaments', value: stats?.totalTournaments || 0, icon: Trophy, color: 'text-yellow-500' },
-    { label: 'Live Now', value: stats?.liveTournaments || 0, icon: Clock, color: 'text-red-500' },
-    { label: 'Pending Verifications', value: stats?.pendingVerifications || 0, icon: Shield, color: 'text-orange-500' },
-    { label: 'Pending Withdrawals', value: stats?.pendingWithdrawals || 0, icon: DollarSign, color: 'text-purple-500' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-blue-500' },
+    { label: 'Total Players', value: stats.totalPlayers, icon: UserCheck, color: 'text-green-500' },
+    { label: 'Tournaments', value: stats.totalTournaments, icon: Trophy, color: 'text-yellow-500' },
+    { label: 'Live Now', value: stats.liveTournaments, icon: Clock, color: 'text-red-500' },
+    { label: 'Pending Verifications', value: stats.pendingVerifications, icon: Shield, color: 'text-orange-500' },
+    { label: 'Pending Withdrawals', value: stats.pendingWithdrawals, icon: DollarSign, color: 'text-purple-500' },
   ]
 
   return (
@@ -79,7 +89,6 @@ export default function AdminDashboard() {
         <p className="text-gray-400">Overview of your platform</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {statCards.map((card) => {
           const Icon = card.icon
@@ -95,9 +104,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Users */}
         <div className="glass-card p-6">
           <h2 className="text-lg font-heading font-bold mb-4">Recent Users</h2>
           {data?.recentUsers?.length ? (
@@ -119,7 +126,6 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Recent Transactions */}
         <div className="glass-card p-6">
           <h2 className="text-lg font-heading font-bold mb-4">Recent Transactions</h2>
           {data?.recentTransactions?.length ? (
