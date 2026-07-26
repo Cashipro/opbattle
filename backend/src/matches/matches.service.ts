@@ -43,7 +43,7 @@ export class MatchesService {
       status: 'SCHEDULED',
     });
 
-    return await this.matchRepository.save(match);
+    return await this.matchRepository.save(match) as any;
   }
 
   async findAll(query: any): Promise<{ matches: Match[]; total: number }> {
@@ -99,7 +99,7 @@ export class MatchesService {
     }
 
     Object.assign(match, data);
-    return await this.matchRepository.save(match);
+    return await this.matchRepository.save(match) as any;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -130,7 +130,7 @@ export class MatchesService {
     if (data.map_name) match.map_name = data.map_name;
     if (data.perspective) match.perspective = data.perspective;
 
-    return await this.matchRepository.save(match);
+    return await this.matchRepository.save(match) as any;
   }
 
   async startMatch(id: string, userId: string): Promise<Match> {
@@ -152,7 +152,7 @@ export class MatchesService {
     match.status = 'LIVE';
     match.started_at = new Date();
 
-    return await this.matchRepository.save(match);
+    return await this.matchRepository.save(match) as any;
   }
 
   async completeMatch(id: string, userId: string): Promise<Match> {
@@ -170,7 +170,7 @@ export class MatchesService {
     match.status = 'COMPLETED';
     match.completed_at = new Date();
 
-    return await this.matchRepository.save(match);
+    return await this.matchRepository.save(match) as any;
   }
 
   async addResults(id: string, userId: string, results: any[]): Promise<Match> {
@@ -241,7 +241,7 @@ export class MatchesService {
       }
     }
 
-    return await this.resultRepository.save(result);
+    return await this.resultRepository.save(result) as any;
   }
 
   async getResults(matchId: string): Promise<MatchResult[]> {
