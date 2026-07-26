@@ -13,6 +13,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LiveStreamModule } from './livestream/livestream.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { LiveStreamModule } from './livestream/livestream.module';
     LeaderboardModule,
     NotificationsModule,
     LiveStreamModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
