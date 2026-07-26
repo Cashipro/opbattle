@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LiveStream } from './livestream.entity';
 import { TournamentsService } from '../tournaments/tournaments.service';
-import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class LiveStreamService {
@@ -16,11 +15,9 @@ export class LiveStreamService {
     @InjectRepository(LiveStream)
     private liveStreamRepository: Repository<LiveStream>,
     private tournamentsService: TournamentsService,
-    private usersService: UsersService,
   ) {}
 
   async create(userId: string, data: any): Promise<LiveStream> {
-    // Validate tournament if provided
     if (data.tournament_id) {
       const tournament = await this.tournamentsService.findById(data.tournament_id, userId);
       if (!tournament) {
@@ -28,7 +25,6 @@ export class LiveStreamService {
       }
     }
 
-    // Extract YouTube embed URL from URL
     let youtubeEmbedUrl = data.youtube_url;
     if (youtubeEmbedUrl) {
       youtubeEmbedUrl = this.getYouTubeEmbedUrl(youtubeEmbedUrl);
@@ -41,7 +37,7 @@ export class LiveStreamService {
       status: 'SCHEDULED',
     });
 
-    return this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream);
   }
 
   async findAll(query: any): Promise<{ streams: LiveStream[]; total: number }> {
@@ -78,24 +74,21 @@ export class LiveStreamService {
   async update(id: string, userId: string, data: any): Promise<LiveStream> {
     const stream = await this.findById(id);
 
-    // Only creator can update
     if (stream.created_by !== userId) {
       throw new ForbiddenException('Only stream creator can update');
     }
 
-    // Update YouTube embed URL if youtube_url is provided
     if (data.youtube_url) {
       data.youtube_embed_url = this.getYouTubeEmbedUrl(data.youtube_url);
     }
 
     Object.assign(stream, data);
-    return this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream);
   }
 
   async delete(id: string, userId: string): Promise<void> {
     const stream = await this.findById(id);
 
-    // Only creator can delete
     if (stream.created_by !== userId) {
       throw new ForbiddenException('Only stream creator can delete');
     }
@@ -106,7 +99,6 @@ export class LiveStreamService {
   async startStream(id: string, userId: string): Promise<LiveStream> {
     const stream = await this.findById(id);
 
-    // Only creator can start
     if (stream.created_by !== userId) {
       throw new ForbiddenException('Only stream creator can start');
     }
@@ -122,13 +114,12 @@ export class LiveStreamService {
     stream.status = 'LIVE';
     stream.started_at = new Date();
 
-    return this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream);
   }
 
   async endStream(id: string, userId: string): Promise<LiveStream> {
     const stream = await this.findById(id);
 
-    // Only creator can end
     if (stream.created_by !== userId) {
       throw new ForbiddenException('Only stream creator can end');
     }
@@ -140,23 +131,22 @@ export class LiveStreamService {
     stream.status = 'FINISHED';
     stream.ended_at = new Date();
 
-    return this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream);
   }
 
   async toggleFeature(id: string, userId: string): Promise<LiveStream> {
     const stream = await this.findById(id);
 
-    // Only creator can toggle feature
     if (stream.created_by !== userId) {
       throw new ForbiddenException('Only stream creator can toggle feature');
     }
 
     stream.is_featured = !stream.is_featured;
-    return this.liveStreamRepository.save(stream);
+    return await this.liveStreamRepository.save(stream);
   }
 
   async getLiveStreams(): Promise<LiveStream[]> {
-    return this.liveStreamRepository.find({
+    return await this.liveStreamRepository.find({
       where: { status: 'LIVE' },
       order: { started_at: 'DESC' },
       take: 10,
@@ -164,7 +154,7 @@ export class LiveStreamService {
   }
 
   async getUpcomingStreams(): Promise<LiveStream[]> {
-    return this.liveStreamRepository.find({
+    return await this.liveStreamRepository.find({
       where: { status: 'SCHEDULED' },
       order: { scheduled_at: 'ASC' },
       take: 10,
@@ -172,7 +162,7 @@ export class LiveStreamService {
   }
 
   async getFeaturedStreams(): Promise<LiveStream[]> {
-    return this.liveStreamRepository.find({
+    return await this.liveStreamRepository.find({
       where: { is_featured: true },
       order: { created_at: 'DESC' },
       take: 5,
@@ -180,14 +170,14 @@ export class LiveStreamService {
   }
 
   async findByTournament(tournamentId: string): Promise<LiveStream[]> {
-    return this.liveStreamRepository.find({
+    return await this.liveStreamRepository.find({
       where: { tournament_id: tournamentId },
       order: { created_at: 'DESC' },
     });
   }
 
   async findByGame(gameId: string): Promise<LiveStream[]> {
-    return this.liveStreamRepository.find({
+    return await this.liveStreamRepository.find({
       where: { game_id: gameId },
       order: { created_at: 'DESC' },
     });
@@ -200,7 +190,6 @@ export class LiveStreamService {
     return { viewer_count: stream.viewer_count };
   }
 
-  // Helper: Extract YouTube Embed URL
   private getYouTubeEmbedUrl(url: string): string {
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/,
@@ -215,12 +204,10 @@ export class LiveStreamService {
       }
     }
 
-    // If it's already an embed URL, return as is
     if (url.includes('youtube.com/embed')) {
       return url;
     }
 
-    // If it's a channel or user URL, return the original
     return url;
   }
 
@@ -229,15 +216,8 @@ export class LiveStreamService {
     const live = await this.liveStreamRepository.count({ where: { status: 'LIVE' } });
     const scheduled = await this.liveStreamRepository.count({ where: { status: 'SCHEDULED' } });
     const finished = await this.liveStreamRepository.count({ where: { status: 'FINISHED' } });
-    
     const featured = await this.liveStreamRepository.count({ where: { is_featured: true } });
 
-    return {
-      total,
-      live,
-      scheduled,
-      finished,
-      featured,
-    };
+    return { total, live, scheduled, finished, featured };
   }
 }
