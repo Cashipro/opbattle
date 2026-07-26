@@ -1,47 +1,124 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Gamepad2 } from 'lucide-react'
 
+interface Country {
+  id: string
+  name: string
+  code: string
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [countries, setCountries] = useState<Country[]>([])
+  const [loadingCountries, setLoadingCountries] = useState(true)
   const [form, setForm] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     country_id: '',
+    pubg_uid: '',
+    player_name: '',
   })
+
+  // Fetch countries on load
+  useEffect(() => {
+    fetchCountries()
+  }, [])
+
+  const fetchCountries = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries`)
+      const data = await res.json()
+      setCountries(data)
+    } catch (error) {
+      console.error('Failed to fetch countries:', error)
+      // Fallback countries
+      setCountries([
+        { id: '1', name: 'Pakistan', code: 'PK' },
+        { id: '2', name: 'Saudi Arabia', code: 'SA' },
+        { id: '3', name: 'Oman', code: 'OM' },
+        { id: '4', name: 'Qatar', code: 'QA' },
+        { id: '5', name: 'Bangladesh', code: 'BD' },
+        { id: '6', name: 'India', code: 'IN' },
+        { id: '7', name: 'USA', code: 'US' },
+        { id: '8', name: 'UK', code: 'UK' },
+      ])
+    } finally {
+      setLoadingCountries(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validation
+    if (form.password.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+
     if (form.password !== form.confirmPassword) {
       toast.error('Passwords do not match')
+      return
+    }
+
+    if (!form.country_id) {
+      toast.error('Please select your country')
       return
     }
 
     setLoading(true)
     
     try {
+      // 1. Register user
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email,
           password: form.password,
-          country_id: form.country_id || undefined,
+          country_id: form.country_id,
         }),
       })
       
       const data = await res.json()
       
-      if (!res.ok) throw new Error(data.message || 'Registration failed')
+      if (!res.ok) {
+        throw new Error(data.message || 'Registration failed')
+      }
       
+      // Save token
       localStorage.setItem('token', data.access_token)
+
+      // 2. Create player profile with PUBG UID
+      if (form.pubg_uid) {
+        const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${data.access_token}`,
+          },
+          body: JSON.stringify({
+            pubg_uid: form.pubg_uid,
+            player_name: form.player_name || form.email.split('@')[0],
+            country_id: form.country_id,
+          }),
+        })
+
+        if (!playerRes.ok) {
+          const playerData = await playerRes.json()
+          toast.warning(`User created but player profile issue: ${playerData.message || 'Please add PUBG UID later'}`)
+        } else {
+          toast.success('Player profile created! 🎮')
+        }
+      }
+
       toast.success('Account created! 🎉')
       router.push('/dashboard')
     } catch (error: any) {
@@ -63,6 +140,7 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5">
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-2">Email</label>
             <input
@@ -75,18 +153,22 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label className="block text-sm font-medium mb-2">Password</label>
             <input
               type="password"
               required
+              minLength={6}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-              placeholder="Create a password"
+              placeholder="Create a password (min 6 characters)"
             />
+            <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium mb-2">Confirm Password</label>
             <input
@@ -99,14 +181,54 @@ export default function RegisterPage() {
             />
           </div>
 
+          {/* Country Dropdown */}
           <div>
-            <label className="block text-sm font-medium mb-2">Country (Optional)</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium mb-2">
+              Country <span className="text-[#FF4655]">*</span>
+            </label>
+            <select
+              required
               value={form.country_id}
               onChange={(e) => setForm({ ...form, country_id: e.target.value })}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-              placeholder="e.g., Pakistan, Saudi Arabia"
+            >
+              <option value="">Select your country</option>
+              {loadingCountries ? (
+                <option value="" disabled>Loading countries...</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.id} value={country.id}>
+                    {country.name} ({country.code})
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          {/* PUBG UID */}
+          <div>
+            <label className="block text-sm font-medium mb-2">PUBG UID</label>
+            <input
+              type="text"
+              value={form.pubg_uid}
+              onChange={(e) => setForm({ ...form, pubg_uid: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+              placeholder="Enter your PUBG UID (optional)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              You can add your PUBG UID later from profile settings
+            </p>
+          </div>
+
+          {/* Player Name */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Player Name</label>
+            <input
+              type="text"
+              value={form.player_name}
+              onChange={(e) => setForm({ ...form, player_name: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+              placeholder="Your in-game name (optional)"
             />
           </div>
 
