@@ -12,6 +12,7 @@ import { MatchesModule } from './matches/matches.module';
 import { WalletModule } from './wallet/wallet.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { LiveStreamModule } from './livestream/livestream.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     WalletModule,
     LeaderboardModule,
     NotificationsModule,
+    LiveStreamModule,
   ],
   controllers: [AppController],
   providers: [AppService],
