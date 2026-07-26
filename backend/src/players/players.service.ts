@@ -104,29 +104,21 @@ export class PlayersService {
     });
   }
 
-  async verifyPlayer(
-    uid: string,
-    adminId: string,
-    data: { screenshot_url?: string; stats?: any },
-  ): Promise<Player> {
+  async verifyPlayer(uid: string, adminId: string, data: any): Promise<Player> {
     const player = await this.findByUid(uid);
-
     player.verification_status = 'APPROVED';
     player.verified_by = adminId;
     player.verified_at = new Date();
-
     if (data.screenshot_url) {
       player.verification_screenshot_url = data.screenshot_url;
     }
-
     if (data.stats) {
       Object.assign(player, data.stats);
     }
-
     return this.playerRepository.save(player);
   }
 
-  async banPlayer(uid: string, adminId: string, reason: string): Promise<Player> {
+  async banPlayer(uid: string, reason: string): Promise<Player> {
     const player = await this.findByUid(uid);
     player.is_banned = true;
     player.ban_reason = reason;
@@ -140,34 +132,9 @@ export class PlayersService {
     return this.playerRepository.save(player);
   }
 
-  async getTopPlayers(limit: number = 10): Promise<Player[]> {
-    return this.playerRepository.find({
-      where: { verification_status: 'APPROVED', is_banned: false },
-      order: {
-        wins: 'DESC',
-        kills: 'DESC',
-        kd_ratio: 'DESC',
-      },
-      take: limit,
-    });
-  }
-
   async updateStats(uid: string, stats: any): Promise<Player> {
     const player = await this.findByUid(uid);
     Object.assign(player, stats);
-    return this.playerRepository.save(player);
-  }
-
-  async addTournamentWin(uid: string): Promise<Player> {
-    const player = await this.findByUid(uid);
-    player.tournament_wins += 1;
-    player.tournament_played += 1;
-    return this.playerRepository.save(player);
-  }
-
-  async addTournamentPlayed(uid: string): Promise<Player> {
-    const player = await this.findByUid(uid);
-    player.tournament_played += 1;
     return this.playerRepository.save(player);
   }
 
