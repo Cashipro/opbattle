@@ -47,32 +47,4 @@ export class PlayersController {
   async search(@Param('query') query: string) {
     return this.playersService.search(query);
   }
-
-  @Put(':uid/verify')
-  async verifyPlayer(
-    @Param('uid') uid: string,
-    @Request() req,
-    @Body() body: { screenshot_url?: string; stats?: any },
-  ) {
-    return this.playersService.verifyPlayer(uid, req.user.id, body);
-  }
-
-  @Put(':uid/ban')
-  async banPlayer(
-    @Param('uid') uid: string,
-    @Body() body: { reason: string },
-    @Request() req,
-  ) {
-    return this.playersService.banPlayer(uid, req.user.id, body.reason);
-  }
-
-  @Put(':uid/unban')
-  async unbanPlayer(@Param('uid') uid: string) {
-    return this.playersService.unbanPlayer(uid);
-  }
-
-  @Get('top/:limit')
-  async getTopPlayers(@Param('limit') limit: number) {
-    return this.playersService.getTopPlayers(limit);
-  }
 }
