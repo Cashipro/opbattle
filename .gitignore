@@ -1,28 +1,208 @@
-# Environment files (MOST IMPORTANT!)
+# ============================================
+# 🔴 MOST IMPORTANT - NEVER COMMIT THESE!
+# ============================================
+
+# Environment variables (CONTAINS SECRETS!)
 .env
 .env.local
 .env.production
 .env.development
 .env.test
+.env.staging
+.env.*.local
+*.env
+*.env.local
+*.env.production
 
-# Dependencies
+# ============================================
+# 📦 Dependencies
+# ============================================
+
+# Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Build files
+# ============================================
+# 🏗️ Build Outputs
+# ============================================
+
+# Backend (NestJS)
 dist/
 build/
-.next/
 out/
+*.tsbuildinfo
 
-# Logs
+# Frontend (Next.js)
+.next/
+.vercel/
+out/
+build/
+
+# ============================================
+# 🗄️ Database
+# ============================================
+
+*.sqlite
+*.db
+*.db-journal
+*.sqlite3
+
+# ============================================
+# 📝 Logs
+# ============================================
+
+logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# OS files
-.DS_Store
-Thumbs.db
+# ============================================
+# 💻 IDE / Editor
+# ============================================
 
-# IDE files
-.idea/
+# VS Code
 .vscode/
+*.code-workspace
+
+# IntelliJ / WebStorm
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
 *.swp
+*.swo
+*~
+
+# ============================================
+# 🖥️ OS Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============================================
+# ☁️ Deployment
+# ============================================
+
+# Railway
+.railway/
+
+# Vercel
+.vercel/
+
+# Netlify
+.netlify/
+
+# ============================================
+# 🔐 Security / Secrets
+# ============================================
+
+*.pem
+*.p12
+*.pfx
+*.key
+*.crt
+*.csr
+*.cer
+*.p8
+*.p7b
+*.der
+
+# ============================================
+# 📦 Package Manager
+# ============================================
+
+# npm
+package-lock.json
+
+# yarn
+yarn.lock
+
+# pnpm
+pnpm-lock.yaml
+
+# ============================================
+# 🧪 Testing
+# ============================================
+
+coverage/
+.nyc_output/
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+
+# ============================================
+# 📁 Misc
+# ============================================
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Docker
+*.dockerignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# ============================================
+# 📂 Project Specific
+# ============================================
+
+# Uploads / Media
+uploads/
+media/
+temp/
+tmp/
+
+# Backup
+backup/
+*.backup
+
+# Database migrations (if using TypeORM)
+src/migrations/*.ts
+!src/migrations/.gitkeep
+
+# Seeders
+src/seeders/*.ts
+!src/seeders/.gitkeep
+
+# ============================================
+# 📄 Documentation (Optional)
+# ============================================
+
+# Generated docs
+docs/_build/
+docs/api/
