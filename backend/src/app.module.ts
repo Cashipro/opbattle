@@ -11,6 +11,7 @@ import { TournamentsModule } from './tournaments/tournaments.module';
 import { MatchesModule } from './matches/matches.module';
 import { WalletModule } from './wallet/wallet.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
     MatchesModule,
     WalletModule,
     LeaderboardModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
