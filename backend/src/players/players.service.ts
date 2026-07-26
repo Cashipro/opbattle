@@ -33,7 +33,7 @@ export class PlayersService {
       ...data,
     });
 
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async findByUserId(userId: string): Promise<Player> {
@@ -73,7 +73,7 @@ export class PlayersService {
     }
 
     Object.assign(player, data);
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async findAll(query: any): Promise<{ players: Player[]; total: number }> {
@@ -95,7 +95,7 @@ export class PlayersService {
   }
 
   async search(query: string): Promise<Player[]> {
-    return this.playerRepository.find({
+    return await this.playerRepository.find({
       where: [
         { player_name: Like(`%${query}%`) },
         { pubg_uid: Like(`%${query}%`) },
@@ -115,32 +115,32 @@ export class PlayersService {
     if (data.stats) {
       Object.assign(player, data.stats);
     }
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async banPlayer(uid: string, reason: string): Promise<Player> {
     const player = await this.findByUid(uid);
     player.is_banned = true;
     player.ban_reason = reason;
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async unbanPlayer(uid: string): Promise<Player> {
     const player = await this.findByUid(uid);
     player.is_banned = false;
     player.ban_reason = null;
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async updateStats(uid: string, stats: any): Promise<Player> {
     const player = await this.findByUid(uid);
     Object.assign(player, stats);
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 
   async addWinnings(uid: string, amount: number): Promise<Player> {
     const player = await this.findByUid(uid);
     player.total_winnings = Number(player.total_winnings) + amount;
-    return this.playerRepository.save(player);
+    return await this.playerRepository.save(player);
   }
 }
