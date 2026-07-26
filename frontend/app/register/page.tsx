@@ -26,7 +26,6 @@ export default function RegisterPage() {
     player_name: '',
   })
 
-  // Fetch countries on load
   useEffect(() => {
     fetchCountries()
   }, [])
@@ -38,7 +37,6 @@ export default function RegisterPage() {
       setCountries(data)
     } catch (error) {
       console.error('Failed to fetch countries:', error)
-      // Fallback countries
       setCountries([
         { id: '1', name: 'Pakistan', code: 'PK' },
         { id: '2', name: 'Saudi Arabia', code: 'SA' },
@@ -57,7 +55,6 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validation
     if (form.password.length < 6) {
       toast.error('Password must be at least 6 characters')
       return
@@ -76,7 +73,6 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
-      // 1. Register user
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,10 +89,8 @@ export default function RegisterPage() {
         throw new Error(data.message || 'Registration failed')
       }
       
-      // Save token
       localStorage.setItem('token', data.access_token)
 
-      // 2. Create player profile with PUBG UID
       if (form.pubg_uid) {
         const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players`, {
           method: 'POST',
@@ -113,7 +107,7 @@ export default function RegisterPage() {
 
         if (!playerRes.ok) {
           const playerData = await playerRes.json()
-          toast.warning(`User created but player profile issue: ${playerData.message || 'Please add PUBG UID later'}`)
+          toast.error(`User created but player profile issue: ${playerData.message || 'Please add PUBG UID later'}`)
         } else {
           toast.success('Player profile created! 🎮')
         }
@@ -140,7 +134,6 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5">
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-2">Email</label>
             <input
@@ -153,7 +146,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-medium mb-2">Password</label>
             <input
@@ -168,7 +160,6 @@ export default function RegisterPage() {
             <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium mb-2">Confirm Password</label>
             <input
@@ -181,7 +172,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Country Dropdown */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Country <span className="text-[#FF4655]">*</span>
@@ -205,7 +195,6 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {/* PUBG UID */}
           <div>
             <label className="block text-sm font-medium mb-2">PUBG UID</label>
             <input
@@ -220,7 +209,6 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Player Name */}
           <div>
             <label className="block text-sm font-medium mb-2">Player Name</label>
             <input
