@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'  // ✅ IMPORT ADD KARO
 import {
   Trophy,
   Calendar,
@@ -102,7 +103,6 @@ export default function TournamentDetailsPage() {
     fetchTournament()
   }, [params.id])
 
-  // Auto-refresh every 30 seconds for live tournaments
   useEffect(() => {
     if (tournament?.status === 'LIVE') {
       const interval = setInterval(() => {
@@ -187,7 +187,7 @@ export default function TournamentDetailsPage() {
       CANCELLED: 'text-red-500 bg-red-500/10',
       SCHEDULED: 'text-gray-400 bg-gray-500/10',
     }
-    return colors[status] || 'text-gray-400 bg-gray-500/10'
+    return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-500/10'
   }
 
   const getStatusBadge = (status: string) => {
@@ -198,7 +198,7 @@ export default function TournamentDetailsPage() {
       CANCELLED: '❌ Cancelled',
       SCHEDULED: '⏳ Scheduled',
     }
-    return labels[status] || status
+    return labels[status as keyof typeof labels] || status
   }
 
   const getMatchStatusBadge = (status: string) => {
@@ -208,7 +208,7 @@ export default function TournamentDetailsPage() {
       COMPLETED: 'bg-blue-500/20 text-blue-500',
       CANCELLED: 'bg-red-500/20 text-red-500',
     }
-    return colors[status] || 'bg-gray-500/20 text-gray-400'
+    return colors[status as keyof typeof colors] || 'bg-gray-500/20 text-gray-400'
   }
 
   const getRegistrationStatus = (status: string) => {
@@ -218,7 +218,7 @@ export default function TournamentDetailsPage() {
       REJECTED: 'bg-red-500/20 text-red-500',
       CANCELLED: 'bg-gray-500/20 text-gray-400',
     }
-    return colors[status] || 'bg-gray-500/20 text-gray-400'
+    return colors[status as keyof typeof colors] || 'bg-gray-500/20 text-gray-400'
   }
 
   if (loading) {
@@ -249,7 +249,6 @@ export default function TournamentDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
-      {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <Link
           href="/tournaments"
@@ -260,12 +259,9 @@ export default function TournamentDetailsPage() {
         </Link>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left - Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header */}
             <div className="glass-card p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex-1">
@@ -315,7 +311,6 @@ export default function TournamentDetailsPage() {
               </div>
             </div>
 
-            {/* Description */}
             {tournament.description && (
               <div className="glass-card p-6">
                 <h3 className="text-lg font-heading font-bold mb-2">About</h3>
@@ -323,7 +318,6 @@ export default function TournamentDetailsPage() {
               </div>
             )}
 
-            {/* Teams Section */}
             <div className="glass-card p-6">
               <button
                 onClick={() => setShowTeams(!showTeams)}
@@ -381,7 +375,6 @@ export default function TournamentDetailsPage() {
                           </span>
                         </div>
 
-                        {/* Team Members */}
                         {team.members && team.members.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
                             {team.members.map((member) => (
@@ -411,7 +404,6 @@ export default function TournamentDetailsPage() {
               )}
             </div>
 
-            {/* Matches Section */}
             {tournament.matches && tournament.matches.length > 0 && (
               <div className="glass-card p-6">
                 <button
@@ -464,7 +456,6 @@ export default function TournamentDetailsPage() {
                           </div>
                         </div>
 
-                        {/* Match Results */}
                         {match.results && match.results.length > 0 && (
                           <div className="mt-3 space-y-1">
                             {match.results
@@ -503,7 +494,6 @@ export default function TournamentDetailsPage() {
               </div>
             )}
 
-            {/* Rules */}
             {tournament.rules && (
               <div className="glass-card p-6">
                 <button
@@ -525,7 +515,6 @@ export default function TournamentDetailsPage() {
               </div>
             )}
 
-            {/* Prize Distribution */}
             {tournament.prize_distribution && (
               <div className="glass-card p-6">
                 <h3 className="text-lg font-heading font-bold mb-2 flex items-center gap-2">
@@ -539,9 +528,7 @@ export default function TournamentDetailsPage() {
             )}
           </div>
 
-          {/* Right - Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Tournament Card */}
             <div className="glass-card p-6 sticky top-24">
               <div className="text-center mb-6">
                 <p className="text-sm text-gray-400">Prize Pool</p>
@@ -588,7 +575,6 @@ export default function TournamentDetailsPage() {
                 </span>
               </div>
 
-              {/* Join Button */}
               <div className="mt-6">
                 {tournament.status === 'UPCOMING' && tournament.can_register && (
                   <>
