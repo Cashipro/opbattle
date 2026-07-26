@@ -32,7 +32,7 @@ export class TournamentsService {
       status: 'UPCOMING',
     });
 
-    return await this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament) as any;
   }
 
   async findAll(query: any): Promise<{ tournaments: Tournament[]; total: number }> {
@@ -84,9 +84,12 @@ export class TournamentsService {
 
     let isRegistered = false;
     if (userId) {
-      const player = await this.playersService.findByUserId(userId);
-      const userTeam = await this.teamsService.findByPlayerId(userId);
-      isRegistered = registrations.some((reg) => reg.team_id === userTeam.id);
+      try {
+        const userTeam = await this.teamsService.findByPlayerId(userId);
+        isRegistered = registrations.some((reg) => reg.team_id === userTeam.id);
+      } catch {
+        // User is not in a team
+      }
     }
 
     const canRegister =
@@ -120,7 +123,7 @@ export class TournamentsService {
     }
 
     Object.assign(tournament, data);
-    return await this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament) as any;
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -249,7 +252,7 @@ export class TournamentsService {
     }
 
     tournament.status = 'LIVE';
-    return await this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament) as any;
   }
 
   async cancelTournament(id: string, userId: string): Promise<Tournament> {
@@ -306,7 +309,6 @@ export class TournamentsService {
   }
 
   async getMyTournaments(userId: string): Promise<any[]> {
-    const player = await this.playersService.findByUserId(userId);
     const team = await this.teamsService.findByPlayerId(userId);
 
     const registrations = await this.registrationRepository.find({
@@ -381,6 +383,6 @@ export class TournamentsService {
 
     tournament.status = 'COMPLETED';
     tournament.end_date = new Date();
-    return await this.tournamentRepository.save(tournament);
+    return await this.tournamentRepository.save(tournament) as any;
   }
 }
