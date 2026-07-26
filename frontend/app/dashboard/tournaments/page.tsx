@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Trophy, Calendar, Users, DollarSign } from 'lucide-react'
+import { Trophy, Calendar, Users, DollarSign, Gamepad2 } from 'lucide-react'
 
 interface Tournament {
   id: string
@@ -42,13 +42,13 @@ export default function MyTournamentsPage() {
   }
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       UPCOMING: 'text-yellow-500 bg-yellow-500/10',
       LIVE: 'text-green-500 bg-green-500/10 animate-pulse',
       COMPLETED: 'text-blue-500 bg-blue-500/10',
       CANCELLED: 'text-red-500 bg-red-500/10',
     }
-    return colors[status] || 'text-gray-400 bg-gray-500/10'
+    return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-500/10'
   }
 
   if (loading) {
