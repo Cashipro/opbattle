@@ -158,4 +158,76 @@ export default function AdminWithdrawals() {
         <div className="glass-card p-12 text-center">
           <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-heading font-bold mb-2">No Withdrawals</h3>
-          <p className="text-gray-400
+          <p className="text-gray-400">No {filter.toLowerCase()} withdrawals found</p>
+        </div>
+      ) : (
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-white/10">
+                <tr>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">User</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">Amount</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">Bank</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">Account</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-gray-400">Requested</th>
+                  <th className="text-right p-4 text-sm font-medium text-gray-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {withdrawals.map((w) => (
+                  <tr key={w.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                    <td className="p-4 font-medium">{w.account_holder_name}</td>
+                    <td className="p-4 font-bold text-[#FF4655]">${Number(w.amount).toFixed(2)}</td>
+                    <td className="p-4 text-sm">{w.bank_name}</td>
+                    <td className="p-4 text-sm">{w.account_number}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(w.status)}`}>
+                        {w.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-gray-400">
+                      {new Date(w.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        {w.status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => handleProcess(w.id)}
+                              className="p-2 hover:bg-blue-500/20 rounded-lg transition text-blue-500"
+                              title="Process"
+                            >
+                              <Clock className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleReject(w.id)}
+                              className="p-2 hover:bg-red-500/20 rounded-lg transition text-red-500"
+                              title="Reject"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        {w.status === 'PROCESSING' && (
+                          <button
+                            onClick={() => handleComplete(w.id)}
+                            className="p-2 hover:bg-green-500/20 rounded-lg transition text-green-500"
+                            title="Complete"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
