@@ -117,13 +117,13 @@ export default function AdminWithdrawals() {
   }
 
   const getStatusBadge = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       PENDING: 'bg-yellow-500/20 text-yellow-500',
       PROCESSING: 'bg-blue-500/20 text-blue-500',
       COMPLETED: 'bg-green-500/20 text-green-500',
       REJECTED: 'bg-red-500/20 text-red-500',
     }
-    return colors[status] || 'bg-gray-500/20 text-gray-500'
+    return colors[status as keyof typeof colors] || 'bg-gray-500/20 text-gray-500'
   }
 
   if (loading) {
