@@ -10,6 +10,7 @@ import { TeamsModule } from './teams/teams.module';
 import { TournamentsModule } from './tournaments/tournaments.module';
 import { MatchesModule } from './matches/matches.module';
 import { WalletModule } from './wallet/wallet.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { WalletModule } from './wallet/wallet.module';
     TournamentsModule,
     MatchesModule,
     WalletModule,
+    LeaderboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
