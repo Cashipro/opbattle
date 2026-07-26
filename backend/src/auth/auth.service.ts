@@ -1,9 +1,11 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/user.entity';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,9 +15,19 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(body: { email: string; password: string; country_id?: string }) {
-    const { email, password, country_id } = body;
+  async register(registerDto: RegisterDto) {
+    const { email, password, country_id } = registerDto;
 
+    // Manual validation
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException('Invalid email address');
+    }
+
+    if (!password || password.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters');
+    }
+
+    // Check if user exists
     const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('User already exists');
@@ -37,7 +49,6 @@ export class AuthService {
       role: user.role,
     });
 
-    // Remove password from response
     const { password_hash, ...userWithoutPassword } = user;
 
     return {
@@ -46,8 +57,8 @@ export class AuthService {
     };
   }
 
-  async login(body: { email: string; password: string }) {
-    const { email, password } = body;
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
 
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
@@ -59,7 +70,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Update last login
     await this.userRepository.update(user.id, { last_login: new Date() });
 
     const token = this.jwtService.sign({
