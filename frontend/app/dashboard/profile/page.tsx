@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Edit2, Check, X } from 'lucide-react'
+import { User, Edit2, Check, X, Search, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface PlayerProfile {
@@ -24,10 +24,28 @@ interface PlayerProfile {
   is_banned: boolean
 }
 
+interface PubgData {
+  id: string
+  name: string
+  stats: {
+    kills?: number
+    wins?: number
+    matches?: number
+    kd?: number
+    headshots?: number
+    damage?: number
+    top10s?: number
+  }
+}
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [pubgUid, setPubgUid] = useState('')
+  const [pubgData, setPubgData] = useState<PubgData | null>(null)
+  const [loadingPubg, setLoadingPubg] = useState(false)
+  
   const [form, setForm] = useState({
     pubg_uid: '',
     player_name: '',
@@ -51,10 +69,38 @@ export default function ProfilePage() {
         player_name: data.player_name || '',
         device_type: data.device_type || '',
       })
+      // Auto fetch PUBG data if UID exists
+      if (data.pubg_uid) {
+        fetchPubgData(data.pubg_uid)
+      }
     } catch (error) {
       toast.error('Failed to load profile')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchPubgData = async (uid: string) => {
+    setLoadingPubg(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/players/pubg/${encodeURIComponent(uid)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      if (!res.ok) {
+        throw new Error('Player not found')
+      }
+      const data = await res.json()
+      setPubgData(data)
+      toast.success('PUBG data fetched!')
+    } catch (error: any) {
+      toast.error(error.message || 'Player not found. Check the name/UID.')
+      setPubgData(null)
+    } finally {
+      setLoadingPubg(false)
     }
   }
 
@@ -74,9 +120,22 @@ export default function ProfilePage() {
       setProfile(data)
       setIsEditing(false)
       toast.success('Profile updated successfully!')
+      
+      // Fetch PUBG data if UID is added
+      if (form.pubg_uid && form.pubg_uid !== profile?.pubg_uid) {
+        fetchPubgData(form.pubg_uid)
+      }
     } catch (error) {
       toast.error('Failed to update profile')
     }
+  }
+
+  const handleFetchPubg = () => {
+    if (!pubgUid) {
+      toast.error('Please enter PUBG UID or Name')
+      return
+    }
+    fetchPubgData(pubgUid)
   }
 
   if (loading) {
@@ -185,6 +244,80 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* PUBG Data Fetch Section */}
+      <div className="glass-card p-6 mb-8">
+        <h3 className="text-lg font-heading font-bold mb-4 flex items-center gap-2">
+          <Search className="w-5 h-5 text-[#FF4655]" />
+          Fetch PUBG Data
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <input
+            type="text"
+            placeholder="Enter PUBG Name or UID"
+            value={pubgUid}
+            onChange={(e) => setPubgUid(e.target.value)}
+            className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+          />
+          <button
+            onClick={handleFetchPubg}
+            disabled={loadingPubg}
+            className="px-6 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loadingPubg ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Fetching...
+              </>
+            ) : (
+              'Fetch Data'
+            )}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Enter a PUBG player name (e.g., Shroud, WackyJacky101) or their account ID.
+        </p>
+
+        {pubgData && (
+          <div className="bg-white/5 rounded-lg p-4 mt-4">
+            <h4 className="font-bold text-lg mb-3">PUBG Profile</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs text-gray-400">Name</p>
+                <p className="font-bold">{pubgData.name || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Account ID</p>
+                <p className="font-bold text-sm truncate">{pubgData.id || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Kills</p>
+                <p className="font-bold text-[#FF4655]">{pubgData.stats?.kills || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Wins</p>
+                <p className="font-bold text-yellow-500">{pubgData.stats?.wins || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Matches</p>
+                <p className="font-bold">{pubgData.stats?.matches || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">KD Ratio</p>
+                <p className="font-bold text-green-500">{pubgData.stats?.kd || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Headshots</p>
+                <p className="font-bold">{pubgData.stats?.headshots || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Top 10s</p>
+                <p className="font-bold">{pubgData.stats?.top10s || 0}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Edit Form */}
       {isEditing && (
         <div className="glass-card p-6">
@@ -197,7 +330,7 @@ export default function ProfilePage() {
                 value={form.pubg_uid}
                 onChange={(e) => setForm({ ...form, pubg_uid: e.target.value })}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                placeholder="Enter PUBG UID"
+                placeholder="Enter your PUBG UID"
               />
             </div>
             <div>
