@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Team } from './team.entity';
@@ -21,7 +15,7 @@ export class TeamsService {
     private playersService: PlayersService,
   ) {}
 
-  async create(userId: string, data: { name: string; game_id?: string }): Promise<Team> {
+  async create(userId: string, data: { name: string }): Promise<Team> {
     // Check if user already has a team
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
@@ -38,7 +32,6 @@ export class TeamsService {
     const team = this.teamRepository.create({
       name: data.name,
       captain_id: userId,
-      game_id: data.game_id,
       country_id: player.country_id,
     });
 
@@ -57,41 +50,6 @@ export class TeamsService {
     return team;
   }
 
-  async findById(id: string): Promise<any> {
-    const team = await this.teamRepository.findOne({
-      where: { id, is_active: true },
-    });
-
-    if (!team) {
-      throw new NotFoundException('Team not found');
-    }
-
-    const members = await this.teamMemberRepository.find({
-      where: { team_id: id, is_active: true },
-      relations: ['team'],
-    });
-
-    const memberDetails = await Promise.all(
-      members.map(async (member) => {
-        const player = await this.playersService.findByUserId(member.player_id);
-        return {
-          id: member.id,
-          player_id: member.player_id,
-          is_captain: member.is_captain,
-          joined_at: member.joined_at,
-          player_name: player.player_name,
-          pubg_uid: player.pubg_uid,
-          avatar_url: player.avatar_url,
-        };
-      }),
-    );
-
-    return {
-      ...team,
-      members: memberDetails,
-    };
-  }
-
   async findByPlayerId(userId: string): Promise<any> {
     const member = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
@@ -104,52 +62,64 @@ export class TeamsService {
     return this.findById(member.team_id);
   }
 
-  async findAll(query: any): Promise<{ teams: any[]; total: number }> {
-    const { page = 1, limit = 20, game, country, search } = query;
-    const skip = (page - 1) * limit;
+  async findById(id: string): Promise<any> {
+    const team = await this.teamRepository.findOne({
+      where: { id, is_active: true },
+    });
 
-    const qb = this.teamRepository.createQueryBuilder('team')
-      .where('team.is_active = :isActive', { isActive: true });
-
-    if (game) {
-      qb.andWhere('team.game_id = :game', { game });
+    if (!team) {
+      throw new NotFoundException('Team not found');
     }
 
-    if (country) {
-      qb.andWhere('team.country_id = :country', { country });
-    }
+    const members = await this.teamMemberRepository.find({
+      where: { team_id: id, is_active: true },
+    });
 
-    if (search) {
-      qb.andWhere('team.name ILIKE :search', { search: `%${search}%` });
-    }
-
-    const [teams, total] = await qb
-      .skip(skip)
-      .take(limit)
-      .orderBy('team.ranking', 'ASC')
-      .getManyAndCount();
-
-    const teamDetails = await Promise.all(
-      teams.map(async (team) => {
-        const members = await this.teamMemberRepository.count({
-          where: { team_id: team.id, is_active: true },
-        });
-        return { ...team, member_count: members };
+    const memberDetails = await Promise.all(
+      members.map(async (member) => {
+        try {
+          const player = await this.playersService.findByUserId(member.player_id);
+          return {
+            id: member.id,
+            player_id: member.player_id,
+            is_captain: member.is_captain,
+            joined_at: member.joined_at,
+            player_name: player?.player_name || 'Unknown',
+            pubg_uid: player?.pubg_uid || 'N/A',
+            avatar_url: player?.avatar_url || null,
+          };
+        } catch {
+          return {
+            id: member.id,
+            player_id: member.player_id,
+            is_captain: member.is_captain,
+            joined_at: member.joined_at,
+            player_name: 'Unknown',
+            pubg_uid: 'N/A',
+            avatar_url: null,
+          };
+        }
       }),
     );
 
-    return { teams: teamDetails, total };
+    return {
+      ...team,
+      members: memberDetails,
+    };
   }
 
-  async search(query: string): Promise<any[]> {
-    const teams = await this.teamRepository.find({
-      where: [
-        { name: query, is_active: true },
-      ],
-      take: 10,
+  async findAll(query: any): Promise<{ teams: Team[]; total: number }> {
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const [teams, total] = await this.teamRepository.findAndCount({
+      where: { is_active: true },
+      skip,
+      take: limit,
+      order: { created_at: 'DESC' },
     });
 
-    return teams;
+    return { teams, total };
   }
 
   async update(id: string, userId: string, data: any): Promise<Team> {
@@ -161,13 +131,12 @@ export class TeamsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Only captain can update
     if (team.captain_id !== userId) {
       throw new ForbiddenException('Only captain can update team');
     }
 
     Object.assign(team, data);
-    return this.teamRepository.save(team);
+    return await this.teamRepository.save(team);
   }
 
   async delete(id: string, userId: string): Promise<void> {
@@ -179,16 +148,13 @@ export class TeamsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Only captain can delete
     if (team.captain_id !== userId) {
       throw new ForbiddenException('Only captain can delete team');
     }
 
-    // Soft delete
     team.is_active = false;
     await this.teamRepository.save(team);
 
-    // Deactivate all members
     await this.teamMemberRepository.update(
       { team_id: id },
       { is_active: false },
@@ -204,31 +170,18 @@ export class TeamsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Only captain can add members
     if (team.captain_id !== captainId) {
       throw new ForbiddenException('Only captain can add members');
     }
 
-    // Check if player exists and is verified
-    const player = await this.playersService.findByUserId(playerId);
-    if (player.verification_status !== 'APPROVED') {
-      throw new BadRequestException('Player is not verified');
-    }
-
-    if (player.is_banned) {
-      throw new BadRequestException('Player is banned');
-    }
-
-    // Check member count
     const currentMembers = await this.teamMemberRepository.count({
       where: { team_id: teamId, is_active: true },
     });
 
-    if (currentMembers >= team.max_members) {
+    if (currentMembers >= 4) {
       throw new BadRequestException('Team is full');
     }
 
-    // Check if player is already in a team
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: playerId, is_active: true },
     });
@@ -237,7 +190,6 @@ export class TeamsService {
       throw new ConflictException('Player is already in a team');
     }
 
-    // Add member
     const member = this.teamMemberRepository.create({
       team_id: teamId,
       player_id: playerId,
@@ -259,12 +211,10 @@ export class TeamsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Only captain can remove members
     if (team.captain_id !== captainId) {
       throw new ForbiddenException('Only captain can remove members');
     }
 
-    // Can't remove captain
     if (team.captain_id === playerId) {
       throw new BadRequestException('Cannot remove captain');
     }
@@ -292,7 +242,6 @@ export class TeamsService {
       throw new NotFoundException('Team not found');
     }
 
-    // Captain cannot leave, must transfer captain or delete team
     if (team.captain_id === userId) {
       throw new BadRequestException('Captain cannot leave. Transfer captain or delete team.');
     }
@@ -324,7 +273,6 @@ export class TeamsService {
       throw new ForbiddenException('Only captain can transfer captaincy');
     }
 
-    // Check if new captain is a member
     const member = await this.teamMemberRepository.findOne({
       where: { team_id: teamId, player_id: newCaptainId, is_active: true },
     });
@@ -333,11 +281,9 @@ export class TeamsService {
       throw new BadRequestException('Player is not a member of this team');
     }
 
-    // Update captain
     team.captain_id = newCaptainId;
     await this.teamRepository.save(team);
 
-    // Update member roles
     await this.teamMemberRepository.update(
       { team_id: teamId, player_id: currentCaptainId },
       { is_captain: false },
@@ -354,11 +300,7 @@ export class TeamsService {
   async getTopTeams(limit: number = 10): Promise<Team[]> {
     return this.teamRepository.find({
       where: { is_active: true },
-      order: {
-        wins: 'DESC',
-        total_prize: 'DESC',
-        ranking: 'ASC',
-      },
+      order: { wins: 'DESC', total_prize: 'DESC' },
       take: limit,
     });
   }
