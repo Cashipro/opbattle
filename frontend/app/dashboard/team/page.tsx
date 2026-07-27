@@ -210,26 +210,6 @@ export default function TeamPage() {
     }
   }
 
-  const handleLeaveTeam = async () => {
-    if (!confirm('Are you sure you want to leave this team?')) return
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/leave`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        toast.success('You left the team')
-        await fetchUserAndTeam()
-      } else {
-        const data = await res.json()
-        toast.error(data.message || 'Failed to leave team')
-      }
-    } catch (error) {
-      toast.error('Failed to leave team')
-    }
-  }
-
   const handleDeleteTeam = async () => {
     if (!confirm('Delete this team permanently? This cannot be undone.')) return
     try {
@@ -359,7 +339,7 @@ export default function TeamPage() {
               className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
             >
               <Trash2 className="w-4 h-4" />
-              Delete
+              Delete Team
             </button>
           )}
           {/* Leave Team Button */}
@@ -369,7 +349,7 @@ export default function TeamPage() {
               className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition flex items-center gap-2"
             >
               <LogOut className="w-4 h-4" />
-              Leave
+              Leave Team
             </button>
           )}
         </div>
@@ -400,8 +380,20 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Members */}
-      <h2 className="text-xl font-heading font-bold mb-4">Members ({team.members?.length || 0}/4)</h2>
+      {/* Members Section */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-heading font-bold">Members ({team.members?.length || 0}/4)</h2>
+        {isCaptain && !isFull && (
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2 text-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add Member
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {team.members?.map((member) => (
           <div key={member.id} className="glass-card p-4 flex items-center justify-between">
@@ -420,14 +412,17 @@ export default function TeamPage() {
             </div>
             <div className="flex items-center gap-2">
               {member.is_captain && (
-                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded-full text-xs">Captain</span>
+                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded-full text-xs font-medium">
+                  👑 Captain
+                </span>
               )}
               {isCaptain && !member.is_captain && (
                 <button
                   onClick={() => handleRemoveMember(member.id)}
-                  className="p-1 hover:bg-red-500/20 rounded transition"
+                  className="p-2 hover:bg-red-500/20 rounded-lg transition text-red-500"
+                  title="Remove Member"
                 >
-                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
