@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Trophy, Calendar, Users, DollarSign, Gamepad2, MapPin, AlertCircle } from 'lucide-react'
+import { Trophy, Calendar, Users, DollarSign, Gamepad2, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Tournament {
@@ -19,14 +18,11 @@ interface Tournament {
   start_date: string
   status: 'UPCOMING' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
   is_registered: boolean
-  can_register: boolean
-  join_message: string
 }
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     fetchTournaments()
@@ -49,13 +45,13 @@ export default function TournamentsPage() {
   }
 
   const handleJoin = async (id: string) => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        toast.error('Please login first')
-        return
-      }
+    const token = localStorage.getItem('token')
+    if (!token) {
+      toast.error('Please login first')
+      return
+    }
 
+    try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tournaments/${id}/register`, {
         method: 'POST',
         headers: {
@@ -67,13 +63,13 @@ export default function TournamentsPage() {
       const data = await res.json()
 
       if (res.ok) {
-        toast.success(data.message || 'Successfully joined! 🎉')
+        toast.success('Successfully registered! 🎉')
         fetchTournaments()
       } else {
-        toast.error(data.message || 'Failed to join')
+        toast.error(data.message || 'Failed to register')
       }
     } catch (error) {
-      toast.error('Failed to join tournament')
+      toast.error('Failed to register')
     }
   }
 
@@ -97,19 +93,6 @@ export default function TournamentsPage() {
     return colors[status] || 'text-gray-400 bg-gray-500/10'
   }
 
-  const getModeBadge = (mode: string) => {
-    const colors: Record<string, string> = {
-      SOLO: 'bg-blue-500/20 text-blue-500',
-      DUO: 'bg-green-500/20 text-green-500',
-      SQUAD: 'bg-purple-500/20 text-purple-500',
-    }
-    return colors[mode] || 'bg-gray-500/20 text-gray-400'
-  }
-
-  const filteredTournaments = filter === 'all' 
-    ? tournaments 
-    : tournaments.filter(t => t.status === filter.toUpperCase())
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
@@ -121,29 +104,14 @@ export default function TournamentsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] py-12">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-heading font-bold">Tournaments</h1>
             <p className="text-gray-400">Compete and win real prizes</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'upcoming', 'live', 'completed'].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg transition text-sm ${
-                  filter === f 
-                    ? 'bg-[#FF4655] text-white' 
-                    : 'bg-white/5 hover:bg-white/10 text-gray-400'
-                }`}
-              >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {filteredTournaments.length === 0 ? (
+        {tournaments.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-heading font-bold mb-2">No Tournaments</h3>
@@ -151,19 +119,14 @@ export default function TournamentsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTournaments.map((tournament) => (
+            {tournaments.map((tournament) => (
               <div key={tournament.id} className="glass-card p-6 hover:border-[#FF4655]/30 transition">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
-                      {getStatusBadge(tournament.status)}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getModeBadge(tournament.mode)}`}>
-                      {tournament.mode}
-                    </span>
-                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
+                    {getStatusBadge(tournament.status)}
+                  </span>
                   <span className="text-xs text-gray-400">
-                    {tournament.current_teams}/{tournament.max_teams} Teams
+                    {tournament.current_teams}/{tournament.max_teams} Players
                   </span>
                 </div>
 
@@ -195,25 +158,11 @@ export default function TournamentsPage() {
                   </div>
                 </div>
 
-                {/* Join Message */}
-                {tournament.status === 'UPCOMING' && tournament.join_message && (
-                  <div className="mt-3 text-xs text-gray-400 bg-white/5 p-2 rounded-lg">
-                    <span className="flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {tournament.join_message}
-                    </span>
-                  </div>
-                )}
-
                 <div className="mt-4">
                   {tournament.status === 'UPCOMING' && (
                     tournament.is_registered ? (
                       <button className="w-full py-2 bg-green-500/20 text-green-500 rounded-lg font-medium cursor-not-allowed">
                         ✓ Registered
-                      </button>
-                    ) : !tournament.can_register ? (
-                      <button className="w-full py-2 bg-gray-500/20 text-gray-400 rounded-lg font-medium cursor-not-allowed">
-                        {tournament.join_message || 'Cannot Join'}
                       </button>
                     ) : (
                       <button
@@ -230,16 +179,8 @@ export default function TournamentsPage() {
                     </button>
                   )}
                   {tournament.status === 'COMPLETED' && (
-                    <Link
-                      href={`/tournaments/${tournament.id}`}
-                      className="block w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition text-center"
-                    >
-                      View Results
-                    </Link>
-                  )}
-                  {tournament.status === 'CANCELLED' && (
-                    <button className="w-full py-2 bg-red-500/20 text-red-500 rounded-lg font-medium cursor-not-allowed">
-                      Cancelled
+                    <button className="w-full py-2 bg-white/5 text-gray-400 rounded-lg font-medium cursor-not-allowed">
+                      Completed
                     </button>
                   )}
                 </div>
