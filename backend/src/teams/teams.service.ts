@@ -16,24 +16,30 @@ export class TeamsService {
   ) {}
 
   async create(userId: string, data: { name: string }): Promise<any> {
+    console.log('🔍 Creating team for user:', userId);
+    console.log('📝 Team name:', data.name);
+
     // 1. Check if user already has a team
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
     if (existingMember) {
+      console.log('❌ User already in a team');
       throw new ConflictException('You are already in a team');
     }
 
-    // 2. Get player profile (WITH SAFETY CHECK)
+    // 2. Get player profile
     let player;
     try {
       player = await this.playersService.findByUserId(userId);
+      console.log('👤 Player found:', player?.id);
     } catch (e) {
-      // Agar player profile nahi hai toh profile banane ka error do
-      throw new BadRequestException('Please complete your player profile first (Add PUBG UID)');
+      console.log('❌ Player profile not found');
+      throw new BadRequestException('Please complete your player profile first');
     }
 
     if (!player) {
+      console.log('❌ Player is null');
       throw new BadRequestException('Player profile not found. Please update your profile.');
     }
 
@@ -41,10 +47,11 @@ export class TeamsService {
     const team = this.teamRepository.create({
       name: data.name,
       captain_id: userId,
-      country_id: player.country_id || null, // Agar country nahi hai toh null
+      country_id: player.country_id || null,
     });
 
     await this.teamRepository.save(team);
+    console.log('✅ Team created:', team.id);
 
     // 4. Add captain as member
     const member = this.teamMemberRepository.create({
@@ -55,28 +62,36 @@ export class TeamsService {
     });
 
     await this.teamMemberRepository.save(member);
+    console.log('✅ Captain added as member');
 
     return team;
   }
 
   async findByPlayerId(userId: string): Promise<any> {
+    console.log('🔍 Finding team for player:', userId);
+    
     const member = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
 
     if (!member) {
+      console.log('❌ Player not in any team');
       throw new NotFoundException('You are not in a team');
     }
 
+    console.log('✅ Team found:', member.team_id);
     return this.findById(member.team_id);
   }
 
   async findById(id: string): Promise<any> {
+    console.log('🔍 Finding team by ID:', id);
+    
     const team = await this.teamRepository.findOne({
       where: { id, is_active: true },
     });
 
     if (!team) {
+      console.log('❌ Team not found');
       throw new NotFoundException('Team not found');
     }
 
@@ -115,20 +130,6 @@ export class TeamsService {
       ...team,
       members: memberDetails,
     };
-  }
-
-  async findAll(query: any): Promise<{ teams: Team[]; total: number }> {
-    const { page = 1, limit = 20 } = query;
-    const skip = (page - 1) * limit;
-
-    const [teams, total] = await this.teamRepository.findAndCount({
-      where: { is_active: true },
-      skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
-
-    return { teams, total };
   }
 
   async update(id: string, userId: string, data: any): Promise<Team> {
