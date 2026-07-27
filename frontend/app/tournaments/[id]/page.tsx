@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  AlertCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -38,6 +39,7 @@ interface TournamentDetail {
   registered_teams: any[]
   is_registered: boolean
   can_register: boolean
+  join_message: string
 }
 
 export default function TournamentDetailsPage() {
@@ -96,7 +98,7 @@ export default function TournamentDetailsPage() {
       const data = await res.json()
 
       if (res.ok) {
-        toast.success('Successfully joined tournament! 🎉')
+        toast.success(data.message || 'Successfully joined! 🎉')
         fetchTournament()
       } else {
         throw new Error(data.message || 'Failed to join')
@@ -126,6 +128,15 @@ export default function TournamentDetailsPage() {
       CANCELLED: '❌ Cancelled',
     }
     return labels[status] || status
+  }
+
+  const getModeBadge = (mode: string) => {
+    const colors: Record<string, string> = {
+      SOLO: 'bg-blue-500/20 text-blue-500',
+      DUO: 'bg-green-500/20 text-green-500',
+      SQUAD: 'bg-purple-500/20 text-purple-500',
+    }
+    return colors[mode] || 'bg-gray-500/20 text-gray-400'
   }
 
   if (loading) {
@@ -166,7 +177,10 @@ export default function TournamentDetailsPage() {
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
                   {getStatusBadge(tournament.status)}
                 </span>
-                <span className="text-xs text-gray-400">{tournament.mode} • {tournament.game}</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getModeBadge(tournament.mode)}`}>
+                  {tournament.mode}
+                </span>
+                <span className="text-xs text-gray-400">{tournament.game}</span>
               </div>
               <h1 className="text-3xl font-heading font-bold mb-3">{tournament.title}</h1>
               <div className="flex flex-wrap gap-4 text-sm text-gray-400">
@@ -189,11 +203,14 @@ export default function TournamentDetailsPage() {
               </div>
             )}
 
-            {/* Teams */}
+            {/* Teams / Participants */}
             <div className="glass-card p-6">
               <button onClick={() => setShowTeams(!showTeams)} className="flex items-center justify-between w-full">
                 <div>
-                  <h3 className="text-lg font-heading font-bold">Registered Teams ({tournament.current_teams}/{tournament.max_teams})</h3>
+                  <h3 className="text-lg font-heading font-bold">
+                    {tournament.mode === 'SOLO' ? 'Registered Players' : 'Registered Teams'} 
+                    ({tournament.current_teams}/{tournament.max_teams})
+                  </h3>
                 </div>
                 {showTeams ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
               </button>
@@ -201,18 +218,20 @@ export default function TournamentDetailsPage() {
               {showTeams && (
                 <div className="mt-4 space-y-3">
                   {tournament.registered_teams.length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">No teams registered yet</p>
+                    <p className="text-gray-400 text-center py-4">No participants yet</p>
                   ) : (
-                    tournament.registered_teams.map((team) => (
+                    tournament.registered_teams.map((team, index) => (
                       <div key={team.id} className="bg-white/5 rounded-lg p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FF4655]/20 flex items-center justify-center">
-                              <span className="text-[#FF4655] font-bold">{team.name.charAt(0)}</span>
-                            </div>
+                            <span className="text-sm text-gray-400">#{index + 1}</span>
                             <div>
-                              <p className="font-semibold">{team.name}</p>
-                              <p className="text-xs text-gray-400">{team.members} players</p>
+                              <p className="font-semibold">
+                                {tournament.mode === 'SOLO' ? team.name || 'Solo Player' : team.name}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {tournament.mode === 'SOLO' ? 'Player' : `${team.members || 0} players`}
+                              </p>
                             </div>
                           </div>
                           {team.position && (
@@ -225,6 +244,23 @@ export default function TournamentDetailsPage() {
                 </div>
               )}
             </div>
+
+            {tournament.rules && (
+              <div className="glass-card p-6">
+                <h3 className="text-lg font-heading font-bold mb-2">Rules</h3>
+                <div className="text-gray-400 whitespace-pre-wrap">{tournament.rules}</div>
+              </div>
+            )}
+
+            {tournament.prize_distribution && (
+              <div className="glass-card p-6">
+                <h3 className="text-lg font-heading font-bold mb-2 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-yellow-500" />
+                  Prize Distribution
+                </h3>
+                <div className="text-gray-400 whitespace-pre-wrap">{tournament.prize_distribution}</div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -233,6 +269,7 @@ export default function TournamentDetailsPage() {
               <div className="text-center mb-6">
                 <p className="text-sm text-gray-400">Prize Pool</p>
                 <p className="text-4xl font-bold text-yellow-500">${tournament.prize_pool}</p>
+                <p className="text-xs text-gray-500 mt-1">{tournament.mode} Mode</p>
               </div>
 
               <div className="flex items-center justify-between py-3 border-t border-white/10">
@@ -241,14 +278,23 @@ export default function TournamentDetailsPage() {
               </div>
 
               <div className="flex items-center justify-between py-3 border-t border-white/10">
+                <span className="text-sm text-gray-400">Teams</span>
+                <span>{tournament.current_teams}/{tournament.max_teams}</span>
+              </div>
+
+              <div className="flex items-center justify-between py-3 border-t border-white/10">
                 <span className="text-sm text-gray-400">Mode</span>
                 <span className="font-medium">{tournament.mode}</span>
               </div>
 
-              <div className="flex items-center justify-between py-3 border-t border-white/10">
-                <span className="text-sm text-gray-400">Game</span>
-                <span>{tournament.game}</span>
-              </div>
+              {tournament.join_message && (
+                <div className="mt-4 p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{tournament.join_message}</span>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6">
                 {tournament.status === 'UPCOMING' && (
@@ -258,7 +304,7 @@ export default function TournamentDetailsPage() {
                     </button>
                   ) : !tournament.can_register ? (
                     <button className="w-full py-3 bg-gray-500/20 text-gray-400 rounded-lg font-semibold cursor-not-allowed">
-                      Registration Closed
+                      {tournament.join_message || 'Cannot Join'}
                     </button>
                   ) : (
                     <button
@@ -271,20 +317,4 @@ export default function TournamentDetailsPage() {
                   )
                 )}
                 {tournament.status === 'LIVE' && (
-                  <button className="w-full py-3 bg-green-500/20 text-green-500 rounded-lg font-semibold cursor-not-allowed animate-pulse">
-                    🔴 LIVE
-                  </button>
-                )}
-                {tournament.status === 'COMPLETED' && (
-                  <button className="w-full py-3 bg-white/5 text-gray-400 rounded-lg font-semibold cursor-not-allowed">
-                    Completed
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+                  <button className="w-full py-3 bg-green-500
