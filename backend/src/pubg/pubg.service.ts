@@ -44,6 +44,34 @@ export class PubgService {
     }
   }
 
+  // ✅ ADD THIS FUNCTION
+  async getPlayerById(playerId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/shards/steam/players/${playerId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Accept': 'application/vnd.api+json',
+        },
+      }
+    );
+    return response.json();
+  }
+
+  // ✅ ADD THIS FUNCTION
+  async getMatch(matchId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/shards/steam/matches/${matchId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Accept': 'application/vnd.api+json',
+        },
+      }
+    );
+    return response.json();
+  }
+
   async getPlayerStats(playerId: string) {
     const response = await fetch(
       `${this.baseUrl}/shards/steam/players/${playerId}/seasons/lifetime`,
