@@ -23,7 +23,7 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
-    AuthModule,  // ✅ YEH LINE HONI CHAHIYE
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
