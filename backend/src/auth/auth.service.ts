@@ -18,7 +18,7 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { email, password, country_id } = registerDto;
 
-    // Manual validation
+    // Simple validation
     if (!email || !email.includes('@')) {
       throw new BadRequestException('Invalid email address');
     }
