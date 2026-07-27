@@ -1,5 +1,9 @@
 import { Controller, Get, Post, Body, Param, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 
+// In-memory storage (production mein database use karna)
+const teamsStore = new Map();
+const userTeamMap = new Map();
+
 @Controller()
 export class AppController {
   
@@ -39,15 +43,16 @@ export class AppController {
       return { error: 'Password must be at least 6 characters' };
     }
 
+    const userId = 'user_' + Date.now();
     return {
       success: true,
       message: 'Registration successful!',
       user: {
-        id: 'user_' + Date.now(),
+        id: userId,
         email: email,
         role: 'user'
       },
-      access_token: 'token_' + Date.now()
+      access_token: 'token_' + userId
     };
   }
 
@@ -64,29 +69,29 @@ export class AppController {
       return { error: 'Invalid credentials' };
     }
 
+    const userId = 'user_' + Date.now();
     return {
       success: true,
       message: 'Login successful!',
       user: {
-        id: 'user_' + Date.now(),
+        id: userId,
         email: email,
         role: 'user'
       },
-      access_token: 'token_' + Date.now()
+      access_token: 'token_' + userId
     };
   }
 
-  // ✅ CREATE TEAM - REAL DATABASE
+  // ✅ CREATE TEAM
   @Post('teams')
   @HttpCode(HttpStatus.CREATED)
   async createTeam(@Body() body: any, @Headers('authorization') auth: string) {
-    console.log('🔍 Team create request:', body);
-    console.log('🔑 Auth header:', auth);
+    console.log('🔍 Create team request:', body);
 
     if (!auth || !auth.startsWith('Bearer ')) {
       return {
         statusCode: 401,
-        message: 'Unauthorized - No token provided',
+        message: 'Unauthorized',
         error: 'Unauthorized'
       };
     }
@@ -99,12 +104,14 @@ export class AppController {
       };
     }
 
+    // Extract user ID from token (temporary)
     const token = auth.split(' ')[1];
-    const userId = 'user_' + Date.now();
+    const userId = token.replace('token_', '');
 
-    // ✅ Create team with database
+    // Create team
+    const teamId = 'team_' + Date.now();
     const newTeam = {
-      id: 'team_' + Date.now(),
+      id: teamId,
       name: body.name.trim(),
       captain_id: userId,
       members: [
@@ -127,61 +134,66 @@ export class AppController {
       created_at: new Date().toISOString()
     };
 
-    // Store in memory (replace with database later)
-    if (!global.teams) global.teams = {};
-    global.teams[newTeam.id] = newTeam;
-    global.userTeamMap = global.userTeamMap || {};
-    global.userTeamMap[userId] = newTeam.id;
+    // Save to in-memory store
+    teamsStore.set(teamId, newTeam);
+    userTeamMap.set(userId, teamId);
+
+    console.log('✅ Team created:', newTeam);
 
     return newTeam;
   }
 
-  // ✅ GET MY TEAM - Returns team or empty object
+  // ✅ GET MY TEAM (FIXED)
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
     console.log('🔍 Get my team request');
-    console.log('🔑 Auth header:', auth);
 
     if (!auth || !auth.startsWith('Bearer ')) {
       return {
         statusCode: 401,
-        message: 'Unauthorized - No token provided',
+        message: 'Unauthorized',
         error: 'Unauthorized'
       };
     }
 
     const token = auth.split(' ')[1];
-    const userId = 'user_' + Date.now(); // In real app, decode token
+    const userId = token.replace('token_', '');
 
-    // Check if user has a team
-    global.userTeamMap = global.userTeamMap || {};
-    const teamId = global.userTeamMap[userId];
+    const teamId = userTeamMap.get(userId);
+    console.log('🔍 User ID:', userId, 'Team ID:', teamId);
 
-    if (!teamId || !global.teams || !global.teams[teamId]) {
-      // ✅ Return empty object with null (frontend handles this)
+    if (!teamId) {
+      // ✅ Return null if no team (frontend handles this)
       return null;
     }
 
-    return global.teams[teamId];
+    const team = teamsStore.get(teamId);
+    if (!team) {
+      return null;
+    }
+
+    console.log('✅ Team found:', team);
+    return team;
   }
 
   // ✅ GET TEAM BY ID
   @Get('teams/:id')
   async getTeam(@Param('id') id: string) {
-    if (global.teams && global.teams[id]) {
-      return global.teams[id];
+    const team = teamsStore.get(id);
+    if (!team) {
+      return {
+        statusCode: 404,
+        message: 'Team not found',
+        error: 'Not Found'
+      };
     }
-    return {
-      statusCode: 404,
-      message: 'Team not found',
-      error: 'Not Found'
-    };
+    return team;
   }
 
   // ✅ GET ALL TEAMS
   @Get('teams')
   async getTeams() {
-    const teams = global.teams ? Object.values(global.teams) : [];
+    const teams = Array.from(teamsStore.values());
     return {
       teams: teams,
       total: teams.length
