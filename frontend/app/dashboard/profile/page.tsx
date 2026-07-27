@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Edit2, Check, X, Search, Loader2 } from 'lucide-react'
+import { User, Save, Edit2, Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface PlayerProfile {
@@ -24,31 +24,15 @@ interface PlayerProfile {
   is_banned: boolean
 }
 
-interface PubgData {
-  id: string
-  name: string
-  stats: {
-    kills?: number
-    wins?: number
-    matches?: number
-    kd?: number
-    headshots?: number
-    damage?: number
-    top10s?: number
-  }
-}
-
 export default function ProfilePage() {
   const [profile, setProfile] = useState<PlayerProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [pubgUid, setPubgUid] = useState('')
-  const [pubgData, setPubgData] = useState<PubgData | null>(null)
-  const [loadingPubg, setLoadingPubg] = useState(false)
-  
-  const [form, setForm] = useState({
+  const [saving, setSaving] = useState(false)
+  const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({})
+  const [formData, setFormData] = useState({
     pubg_uid: '',
     player_name: '',
+    country: '',
     device_type: '',
   })
 
@@ -64,15 +48,12 @@ export default function ProfilePage() {
       })
       const data = await res.json()
       setProfile(data)
-      setForm({
+      setFormData({
         pubg_uid: data.pubg_uid || '',
         player_name: data.player_name || '',
+        country: data.country || '',
         device_type: data.device_type || '',
       })
-      // Auto fetch PUBG data if UID exists
-      if (data.pubg_uid) {
-        fetchPubgData(data.pubg_uid)
-      }
     } catch (error) {
       toast.error('Failed to load profile')
     } finally {
@@ -80,32 +61,8 @@ export default function ProfilePage() {
     }
   }
 
-  const fetchPubgData = async (uid: string) => {
-    setLoadingPubg(true)
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/players/pubg/${encodeURIComponent(uid)}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      if (!res.ok) {
-        throw new Error('Player not found')
-      }
-      const data = await res.json()
-      setPubgData(data)
-      toast.success('PUBG data fetched!')
-    } catch (error: any) {
-      toast.error(error.message || 'Player not found. Check the name/UID.')
-      setPubgData(null)
-    } finally {
-      setLoadingPubg(false)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = async () => {
+    setSaving(true)
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
@@ -114,28 +71,28 @@ export default function ProfilePage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       })
       const data = await res.json()
       setProfile(data)
-      setIsEditing(false)
+      setEditMode({})
       toast.success('Profile updated successfully!')
-      
-      // Fetch PUBG data if UID is added
-      if (form.pubg_uid && form.pubg_uid !== profile?.pubg_uid) {
-        fetchPubgData(form.pubg_uid)
-      }
     } catch (error) {
       toast.error('Failed to update profile')
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleFetchPubg = () => {
-    if (!pubgUid) {
-      toast.error('Please enter PUBG UID or Name')
-      return
-    }
-    fetchPubgData(pubgUid)
+  const toggleEdit = (field: string) => {
+    setEditMode((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }))
+  }
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   if (loading) {
@@ -161,18 +118,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-heading font-bold">Player Profile</h1>
           <p className="text-gray-400">Manage your gaming identity</p>
         </div>
         <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="px-4 py-2 bg-[#FF4655]/10 hover:bg-[#FF4655]/20 rounded-lg text-[#FF4655] transition flex items-center gap-2"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2 disabled:opacity-50"
         >
-          {isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
-          {isEditing ? 'Cancel' : 'Edit Profile'}
+          <Save className="w-4 h-4" />
+          {saving ? 'Saving...' : 'Save All'}
         </button>
       </div>
 
@@ -201,7 +159,6 @@ export default function ProfilePage() {
                 </span>
               )}
             </div>
-            <p className="text-gray-400">PUBG UID: {profile?.pubg_uid || 'Not set'}</p>
             <p className="text-gray-400 text-sm">
               {profile?.country || 'No country'} • {profile?.device_type || 'No device'}
             </p>
@@ -244,127 +201,122 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* PUBG Data Fetch Section */}
-      <div className="glass-card p-6 mb-8">
-        <h3 className="text-lg font-heading font-bold mb-4 flex items-center gap-2">
-          <Search className="w-5 h-5 text-[#FF4655]" />
-          Fetch PUBG Data
-        </h3>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Enter PUBG Name or UID"
-            value={pubgUid}
-            onChange={(e) => setPubgUid(e.target.value)}
-            className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-          />
-          <button
-            onClick={handleFetchPubg}
-            disabled={loadingPubg}
-            className="px-6 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loadingPubg ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Fetching...
-              </>
-            ) : (
-              'Fetch Data'
-            )}
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Enter a PUBG player name (e.g., Shroud, WackyJacky101) or their account ID.
-        </p>
-
-        {pubgData && (
-          <div className="bg-white/5 rounded-lg p-4 mt-4">
-            <h4 className="font-bold text-lg mb-3">PUBG Profile</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-gray-400">Name</p>
-                <p className="font-bold">{pubgData.name || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Account ID</p>
-                <p className="font-bold text-sm truncate">{pubgData.id || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Kills</p>
-                <p className="font-bold text-[#FF4655]">{pubgData.stats?.kills || 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Wins</p>
-                <p className="font-bold text-yellow-500">{pubgData.stats?.wins || 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Matches</p>
-                <p className="font-bold">{pubgData.stats?.matches || 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">KD Ratio</p>
-                <p className="font-bold text-green-500">{pubgData.stats?.kd || 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Headshots</p>
-                <p className="font-bold">{pubgData.stats?.headshots || 0}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Top 10s</p>
-                <p className="font-bold">{pubgData.stats?.top10s || 0}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Form */}
-      {isEditing && (
-        <div className="glass-card p-6">
-          <h3 className="text-lg font-heading font-bold mb-4">Edit Profile</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">PUBG UID</label>
-              <input
-                type="text"
-                value={form.pubg_uid}
-                onChange={(e) => setForm({ ...form, pubg_uid: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                placeholder="Enter your PUBG UID"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Player Name</label>
-              <input
-                type="text"
-                value={form.player_name}
-                onChange={(e) => setForm({ ...form, player_name: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                placeholder="Enter your in-game name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Device</label>
-              <select
-                value={form.device_type}
-                onChange={(e) => setForm({ ...form, device_type: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-              >
-                <option value="">Select Device</option>
-                <option value="MOBILE">Mobile</option>
-                <option value="PC">PC</option>
-                <option value="EMULATOR">Emulator</option>
-              </select>
+      {/* Editable Fields */}
+      <div className="glass-card p-6">
+        <h3 className="text-lg font-heading font-bold mb-4">Profile Information</h3>
+        <div className="space-y-4">
+          {/* PUBG UID */}
+          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">PUBG UID</p>
+              {editMode.pubg_uid ? (
+                <input
+                  type="text"
+                  value={formData.pubg_uid}
+                  onChange={(e) => handleChange('pubg_uid', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+                  placeholder="Enter PUBG UID"
+                  autoFocus
+                />
+              ) : (
+                <p className="font-medium">{formData.pubg_uid || 'Not set'}</p>
+              )}
             </div>
             <button
-              type="submit"
-              className="px-6 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition"
+              onClick={() => toggleEdit('pubg_uid')}
+              className="ml-4 p-2 hover:bg-white/10 rounded-lg transition"
             >
-              Save Changes
+              {editMode.pubg_uid ? <Check className="w-4 h-4 text-green-500" /> : <Edit2 className="w-4 h-4 text-gray-400" />}
             </button>
-          </form>
+          </div>
+
+          {/* Player Name */}
+          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Player Name</p>
+              {editMode.player_name ? (
+                <input
+                  type="text"
+                  value={formData.player_name}
+                  onChange={(e) => handleChange('player_name', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+                  placeholder="Enter player name"
+                  autoFocus
+                />
+              ) : (
+                <p className="font-medium">{formData.player_name || 'Not set'}</p>
+              )}
+            </div>
+            <button
+              onClick={() => toggleEdit('player_name')}
+              className="ml-4 p-2 hover:bg-white/10 rounded-lg transition"
+            >
+              {editMode.player_name ? <Check className="w-4 h-4 text-green-500" /> : <Edit2 className="w-4 h-4 text-gray-400" />}
+            </button>
+          </div>
+
+          {/* Country */}
+          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Country</p>
+              {editMode.country ? (
+                <select
+                  value={formData.country}
+                  onChange={(e) => handleChange('country', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+                  autoFocus
+                >
+                  <option value="">Select Country</option>
+                  <option value="Pakistan">Pakistan</option>
+                  <option value="Saudi Arabia">Saudi Arabia</option>
+                  <option value="Oman">Oman</option>
+                  <option value="Qatar">Qatar</option>
+                  <option value="Bangladesh">Bangladesh</option>
+                  <option value="India">India</option>
+                  <option value="USA">USA</option>
+                  <option value="UK">UK</option>
+                </select>
+              ) : (
+                <p className="font-medium">{formData.country || 'Not set'}</p>
+              )}
+            </div>
+            <button
+              onClick={() => toggleEdit('country')}
+              className="ml-4 p-2 hover:bg-white/10 rounded-lg transition"
+            >
+              {editMode.country ? <Check className="w-4 h-4 text-green-500" /> : <Edit2 className="w-4 h-4 text-gray-400" />}
+            </button>
+          </div>
+
+          {/* Device */}
+          <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Device</p>
+              {editMode.device_type ? (
+                <select
+                  value={formData.device_type}
+                  onChange={(e) => handleChange('device_type', e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
+                  autoFocus
+                >
+                  <option value="">Select Device</option>
+                  <option value="MOBILE">Mobile</option>
+                  <option value="PC">PC</option>
+                  <option value="EMULATOR">Emulator</option>
+                </select>
+              ) : (
+                <p className="font-medium">{formData.device_type || 'Not set'}</p>
+              )}
+            </div>
+            <button
+              onClick={() => toggleEdit('device_type')}
+              className="ml-4 p-2 hover:bg-white/10 rounded-lg transition"
+            >
+              {editMode.device_type ? <Check className="w-4 h-4 text-green-500" /> : <Edit2 className="w-4 h-4 text-gray-400" />}
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
