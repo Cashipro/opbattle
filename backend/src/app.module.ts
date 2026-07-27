@@ -3,13 +3,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PubgModule } from './pubg/pubg.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { PlayersModule } from './players/players.module';
+import { TeamsModule } from './teams/teams.module';
+import { TournamentsModule } from './tournaments/tournaments.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -17,13 +20,16 @@ import { PubgModule } from './pubg/pubg.module';
         url: configService.get('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: { rejectUnauthorized: false },
       }),
       inject: [ConfigService],
     }),
-    PubgModule,  // ✅ YEH HONA CHAHIYE
+    AuthModule,
+    UsersModule,
+    PlayersModule,
+    TeamsModule,
+    TournamentsModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
