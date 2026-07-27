@@ -20,44 +20,17 @@ export class TeamsController {
 
   @Post()
   async create(@Request() req, @Body() body: { name: string }) {
-    try {
-      return await this.teamsService.create(req.user.id, body);
-    } catch (error) {
-      return {
-        statusCode: error.status || 500,
-        message: error.message || 'Internal server error',
-        error: error.name || 'Error',
-      };
-    }
+    return this.teamsService.create(req.user.id, body);
   }
 
   @Get('my')
   async getMyTeam(@Request() req) {
-    try {
-      return await this.teamsService.findByPlayerId(req.user.id);
-    } catch (error) {
-      if (error.status === 404) {
-        return null;
-      }
-      return {
-        statusCode: error.status || 500,
-        message: error.message || 'Internal server error',
-        error: error.name || 'Error',
-      };
-    }
+    return this.teamsService.findByPlayerId(req.user.id);
   }
 
   @Get(':id')
   async findById(@Param('id') id: string) {
-    try {
-      return await this.teamsService.findById(id);
-    } catch (error) {
-      return {
-        statusCode: error.status || 500,
-        message: error.message || 'Internal server error',
-        error: error.name || 'Error',
-      };
-    }
+    return this.teamsService.findById(id);
   }
 
   @Put(':id')
@@ -70,22 +43,24 @@ export class TeamsController {
     return this.teamsService.delete(id, req.user.id);
   }
 
+  // ✅ ADD MEMBER BY PUBG UID
   @Post(':id/members')
   async addMember(
     @Param('id') id: string,
     @Request() req,
-    @Body() body: { player_id: string },
+    @Body() body: { pubg_uid: string },
   ) {
-    return this.teamsService.addMember(id, req.user.id, body.player_id);
+    return this.teamsService.addMemberByUid(id, req.user.id, body.pubg_uid);
   }
 
-  @Delete(':id/members/:playerId')
+  // ✅ REMOVE MEMBER BY PUBG UID
+  @Delete(':id/members')
   async removeMember(
     @Param('id') id: string,
-    @Param('playerId') playerId: string,
     @Request() req,
+    @Body() body: { pubg_uid: string },
   ) {
-    return this.teamsService.removeMember(id, req.user.id, playerId);
+    return this.teamsService.removeMemberByUid(id, req.user.id, body.pubg_uid);
   }
 
   @Post(':id/leave')
