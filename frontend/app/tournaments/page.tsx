@@ -19,11 +19,13 @@ interface Tournament {
   start_date: string
   status: 'UPCOMING' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
   is_registered: boolean
+  can_register: boolean
 }
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     fetchTournaments()
@@ -74,24 +76,28 @@ export default function TournamentsPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const labels = {
+    const labels: Record<string, string> = {
       UPCOMING: '📅 Upcoming',
       LIVE: '🔴 LIVE',
       COMPLETED: '✅ Completed',
       CANCELLED: '❌ Cancelled',
     }
-    return labels[status as keyof typeof labels] || status
+    return labels[status] || status
   }
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       UPCOMING: 'text-yellow-500 bg-yellow-500/10',
       LIVE: 'text-green-500 bg-green-500/10 animate-pulse',
       COMPLETED: 'text-blue-500 bg-blue-500/10',
       CANCELLED: 'text-red-500 bg-red-500/10',
     }
-    return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-500/10'
+    return colors[status] || 'text-gray-400 bg-gray-500/10'
   }
+
+  const filteredTournaments = filter === 'all' 
+    ? tournaments 
+    : tournaments.filter(t => t.status === filter.toUpperCase())
 
   if (loading) {
     return (
@@ -104,20 +110,31 @@ export default function TournamentsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] py-12">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-heading font-bold">Tournaments</h1>
             <p className="text-gray-400">Compete and win real prizes</p>
           </div>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition"
-          >
-            Dashboard
-          </Link>
+          <div className="flex gap-2">
+            {['all', 'upcoming', 'live', 'completed'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-lg transition text-sm ${
+                  filter === f 
+                    ? 'bg-[#FF4655] text-white' 
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {tournaments.length === 0 ? (
+        {/* Tournament List */}
+        {filteredTournaments.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-heading font-bold mb-2">No Tournaments</h3>
@@ -125,7 +142,7 @@ export default function TournamentsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tournaments.map((tournament) => (
+            {filteredTournaments.map((tournament) => (
               <div key={tournament.id} className="glass-card p-6 hover:border-[#FF4655]/30 transition">
                 <div className="flex items-center justify-between mb-3">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
@@ -170,6 +187,10 @@ export default function TournamentsPage() {
                       <button className="w-full py-2 bg-green-500/20 text-green-500 rounded-lg font-medium cursor-not-allowed">
                         ✓ Registered
                       </button>
+                    ) : !tournament.can_register ? (
+                      <button className="w-full py-2 bg-gray-500/20 text-gray-400 rounded-lg font-medium cursor-not-allowed">
+                        Registration Closed
+                      </button>
                     ) : (
                       <button
                         onClick={() => handleJoin(tournament.id)}
@@ -191,6 +212,11 @@ export default function TournamentsPage() {
                     >
                       View Results
                     </Link>
+                  )}
+                  {tournament.status === 'CANCELLED' && (
+                    <button className="w-full py-2 bg-red-500/20 text-red-500 rounded-lg font-medium cursor-not-allowed">
+                      Cancelled
+                    </button>
                   )}
                 </div>
               </div>
