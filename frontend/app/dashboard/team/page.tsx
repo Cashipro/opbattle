@@ -52,16 +52,16 @@ export default function TeamPage() {
         return
       }
 
-      // Fetch player ID
+      // Get player ID
       const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (playerRes.ok) {
-        const playerData = await playerRes.json()
-        setUserPlayerId(playerData?.id || null)
+        const data = await playerRes.json()
+        setUserPlayerId(data?.id || null)
       }
 
-      // Fetch team
+      // Get team
       const teamRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -84,8 +84,7 @@ export default function TeamPage() {
         setTeam(null)
       }
     } catch (error) {
-      console.error('Error fetching team:', error)
-      toast.error('Failed to load team')
+      console.error('Error:', error)
       setTeam(null)
     } finally {
       setLoading(false)
@@ -113,15 +112,15 @@ export default function TeamPage() {
 
       const data = await res.json()
       if (res.ok) {
-        toast.success('Team created successfully! 🎉')
+        toast.success('Team created! 🎉')
         setShowCreateModal(false)
         setTeamName('')
         await fetchUserAndTeam()
       } else {
-        throw new Error(data.message || 'Failed to create team')
+        toast.error(data.message || 'Failed to create team')
       }
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message || 'Failed to create team')
     } finally {
       setCreating(false)
     }
@@ -154,7 +153,7 @@ export default function TeamPage() {
         toast.error(data.message || 'Failed to update team')
       }
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message || 'Failed to update team')
     }
   }
 
@@ -177,7 +176,7 @@ export default function TeamPage() {
       })
 
       if (res.ok) {
-        toast.success('Member added successfully!')
+        toast.success('Member added!')
         setShowInviteModal(false)
         setInviteUid('')
         await fetchUserAndTeam()
@@ -185,19 +184,20 @@ export default function TeamPage() {
         const data = await res.json()
         toast.error(data.message || 'Failed to add member')
       }
-    } catch (error) {
-      toast.error('Failed to add member')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add member')
     }
   }
 
   const handleRemoveMember = async (memberId: string) => {
-    if (!confirm('Remove this member from the team?')) return
+    if (!confirm('Remove this member?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/members/${memberId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
+
       if (res.ok) {
         toast.success('Member removed')
         await fetchUserAndTeam()
@@ -205,8 +205,8 @@ export default function TeamPage() {
         const data = await res.json()
         toast.error(data.message || 'Failed to remove member')
       }
-    } catch (error) {
-      toast.error('Failed to remove member')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to remove member')
     }
   }
 
@@ -218,6 +218,7 @@ export default function TeamPage() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
+
       if (res.ok) {
         toast.success('Team deleted')
         setTeam(null)
@@ -226,8 +227,29 @@ export default function TeamPage() {
         const data = await res.json()
         toast.error(data.message || 'Failed to delete team')
       }
-    } catch (error) {
-      toast.error('Failed to delete team')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete team')
+    }
+  }
+
+  const handleLeaveTeam = async () => {
+    if (!confirm('Are you sure you want to leave this team?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/leave`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        toast.success('You left the team')
+        await fetchUserAndTeam()
+      } else {
+        const data = await res.json()
+        toast.error(data.message || 'Failed to leave team')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to leave team')
     }
   }
 
@@ -239,7 +261,6 @@ export default function TeamPage() {
     )
   }
 
-  // No Team
   if (!team) {
     return (
       <div>
@@ -338,10 +359,18 @@ export default function TeamPage() {
               </button>
             </>
           )}
+          {!isCaptain && (
+            <button
+              onClick={handleLeaveTeam}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Leave
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Team Card */}
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-[#FF4655]/10 flex items-center justify-center border-2 border-[#FF4655]">
@@ -366,7 +395,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Members Section */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-heading font-bold">
           Members ({team.members?.length || 0}/4)
@@ -407,7 +435,6 @@ export default function TeamPage() {
             </div>
           </div>
         ))}
-        {/* Empty Slots */}
         {Array.from({ length: Math.max(0, 4 - (team.members?.length || 0)) }).map((_, i) => (
           <div key={`empty-${i}`} className="glass-card p-4 flex items-center justify-center border-dashed border-2 border-white/10">
             <p className="text-gray-500 text-sm">Empty Slot</p>
@@ -415,7 +442,6 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {/* Edit Team Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -454,7 +480,6 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Add Member Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -470,7 +495,6 @@ export default function TeamPage() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
                   placeholder="Enter player's PUBG UID"
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter the player's PUBG UID</p>
               </div>
               <div className="flex gap-3">
                 <button
