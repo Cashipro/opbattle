@@ -15,11 +15,25 @@ export class AppController {
     return { status: 'ok', message: 'Test route is working!' };
   }
 
+  // ✅ COUNTRIES ROUTE
+  @Get('countries')
+  getCountries() {
+    return [
+      { id: '1', name: 'Pakistan', code: 'PK' },
+      { id: '2', name: 'Saudi Arabia', code: 'SA' },
+      { id: '3', name: 'Oman', code: 'OM' },
+      { id: '4', name: 'Qatar', code: 'QA' },
+      { id: '5', name: 'Bangladesh', code: 'BD' },
+      { id: '6', name: 'India', code: 'IN' },
+      { id: '7', name: 'USA', code: 'US' },
+      { id: '8', name: 'UK', code: 'UK' },
+    ];
+  }
+
   @Post('register')
   async register(@Body() body: any) {
     const { email, password } = body;
 
-    // Simple validation
     if (!email || !email.includes('@')) {
       return { error: 'Invalid email' };
     }
@@ -28,14 +42,10 @@ export class AppController {
       return { error: 'Password must be at least 6 characters' };
     }
 
-    // ✅ Success response
     return {
       success: true,
       message: 'Registration successful!',
-      user: {
-        email: email,
-        role: 'user'
-      },
+      user: { email, role: 'user' },
       access_token: 'test_token_' + Date.now()
     };
   }
