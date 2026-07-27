@@ -39,37 +39,45 @@ export class PlayersController {
 
   @Get('pubg/:uid')
   async getPubgData(@Param('uid') uid: string) {
-    // Search player by name/UID
-    const data = await this.pubgService.searchPlayer(uid);
-    
-    if (data.errors) {
-      throw new NotFoundException('Player not found. Please check the name/UID.');
-    }
-    
-    if (!data.data || data.data.length === 0) {
-      throw new NotFoundException('No player found with this name/UID.');
-    }
-    
-    const player = data.data[0];
-    const playerId = player.id;
-    const playerName = player.attributes.name;
-    
-    // Fetch player stats
-    let stats = {};
     try {
-      const statsData = await this.pubgService.getPlayerStats(playerId);
-      if (statsData.data && statsData.data.attributes) {
-        stats = statsData.data.attributes;
+      console.log('🔍 Searching for player:', uid);
+      
+      // Search player
+      const data = await this.pubgService.searchPlayer(uid);
+      
+      // Check if player exists
+      if (!data || !data.data || data.data.length === 0) {
+        throw new NotFoundException(`Player "${uid}" not found. Please check the name.`);
       }
+      
+      const player = data.data[0];
+      const playerId = player.id;
+      const playerName = player.attributes.name;
+      
+      console.log('✅ Player found:', playerName, playerId);
+      
+      // Fetch stats
+      let stats = {};
+      try {
+        const statsData = await this.pubgService.getPlayerStats(playerId);
+        if (statsData?.data?.attributes) {
+          stats = statsData.data.attributes;
+        }
+      } catch (statsError) {
+        console.log('Stats not available');
+      }
+      
+      return {
+        success: true,
+        id: playerId,
+        name: playerName,
+        stats: stats,
+      };
+      
     } catch (error) {
-      console.log('Stats not available for this player');
+      console.error('❌ Error:', error);
+      throw new NotFoundException(error.message || 'Player not found');
     }
-    
-    return {
-      id: playerId,
-      name: playerName,
-      stats: stats,
-    };
   }
 
   @Get(':uid')
