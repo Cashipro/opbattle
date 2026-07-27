@@ -62,15 +62,20 @@ export class AppController {
 
   // ============ TEAM ROUTES ============
 
-  // CREATE TEAM
+  // ✅ CREATE TEAM
   @Post('teams')
   @HttpCode(HttpStatus.CREATED)
   async createTeam(@Body() body: any, @Headers('authorization') auth: string) {
+    console.log('🔍 Create team request:', body);
+    console.log('🔑 Auth header:', auth);
+
     if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
     const userId = auth.split(' ')[1];
+    console.log('👤 User ID:', userId);
+
     if (!body.name || body.name.trim().length < 2) {
       return { statusCode: 400, message: 'Team name must be at least 2 characters' };
     }
@@ -108,32 +113,47 @@ export class AppController {
     teamsStore.set(teamId, newTeam);
     userTeamMap.set(userId, teamId);
 
+    console.log('✅ Team created:', newTeam);
+    console.log('📊 Teams store size:', teamsStore.size);
+    console.log('📊 UserTeamMap:', Array.from(userTeamMap.entries()));
+
     return newTeam;
   }
 
-  // GET MY TEAM
+  // ✅ GET MY TEAM
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
+    console.log('🔍 Get my team request');
+    console.log('🔑 Auth header:', auth);
+
     if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
     const userId = auth.split(' ')[1];
+    console.log('👤 User ID:', userId);
+    console.log('📊 UserTeamMap:', Array.from(userTeamMap.entries()));
+
     const teamId = userTeamMap.get(userId);
+    console.log('🔍 Team ID found:', teamId);
 
     if (!teamId) {
+      console.log('❌ No team found for user');
       return null;
     }
 
     const team = teamsStore.get(teamId);
+    console.log('📊 Team found:', team);
+
     if (!team) {
+      console.log('❌ Team not found in store');
       return null;
     }
 
     return team;
   }
 
-  // GET TEAM BY ID
+  // ✅ GET TEAM BY ID
   @Get('teams/:id')
   async getTeam(@Param('id') id: string) {
     const team = teamsStore.get(id);
@@ -143,13 +163,15 @@ export class AppController {
     return team;
   }
 
-  // GET ALL TEAMS
+  // ✅ GET ALL TEAMS
   @Get('teams')
   async getTeams() {
-    return { teams: Array.from(teamsStore.values()), total: teamsStore.size };
+    const teams = Array.from(teamsStore.values());
+    console.log('📊 All teams:', teams.length);
+    return { teams, total: teams.length };
   }
 
-  // UPDATE TEAM (Captain only)
+  // ✅ UPDATE TEAM
   @Put('teams/:id')
   async updateTeam(@Param('id') id: string, @Body() body: any, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -174,7 +196,7 @@ export class AppController {
     return team;
   }
 
-  // DELETE TEAM (Captain only)
+  // ✅ DELETE TEAM
   @Delete('teams/:id')
   async deleteTeam(@Param('id') id: string, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -200,7 +222,7 @@ export class AppController {
     return { message: 'Team deleted successfully' };
   }
 
-  // ADD MEMBER (Captain only)
+  // ✅ ADD MEMBER
   @Post('teams/:id/members')
   async addMember(@Param('id') id: string, @Body() body: any, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -248,7 +270,7 @@ export class AppController {
     return team;
   }
 
-  // REMOVE MEMBER (Captain only)
+  // ✅ REMOVE MEMBER
   @Delete('teams/:id/members/:memberId')
   async removeMember(@Param('id') id: string, @Param('memberId') memberId: string, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -275,7 +297,6 @@ export class AppController {
       return { statusCode: 400, message: 'Cannot remove captain' };
     }
 
-    // Remove from map
     userTeamMap.delete(member.player_id);
     team.members.splice(memberIndex, 1);
     teamsStore.set(id, team);
@@ -283,14 +304,14 @@ export class AppController {
     return team;
   }
 
-  // LEAVE TEAM
+  // ✅ LEAVE TEAM
   @Post('teams/:id/leave')
   async leaveTeam(@Param('id') id: string, @Headers('authorization') auth: string) {
-    if (!auth || !auth.startsWith('Bearer ')) {
+    if (!auth || !auth.startsWith('Bearer '')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
-    const userId = auth.split(' ')[1];
+    const userId = auth.split(' '')[1];
     const team = teamsStore.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
