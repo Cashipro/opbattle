@@ -29,13 +29,24 @@ export default function MyTournamentsPage() {
   const fetchTournaments = async () => {
     try {
       const token = localStorage.getItem('token')
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tournaments/my`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch tournaments')
+      }
+      
       const data = await res.json()
-      setTournaments(data)
+      setTournaments(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Failed to fetch tournaments:', error)
+      setTournaments([])
     } finally {
       setLoading(false)
     }
@@ -97,37 +108,37 @@ export default function MyTournamentsPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="text-lg font-semibold">{tournament.title}</h3>
+                    <h3 className="text-lg font-semibold">{tournament.title || 'Untitled'}</h3>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        tournament.status
+                        tournament.status || 'UPCOMING'
                       )}`}
                     >
-                      {tournament.status}
+                      {tournament.status || 'UPCOMING'}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                     <span className="flex items-center gap-1">
                       <Gamepad2 className="w-4 h-4" />
-                      {tournament.game} • {tournament.mode}
+                      {tournament.game || 'PUBG'} • {tournament.mode || 'Squad'}
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {new Date(tournament.start_date).toLocaleDateString()}
+                      {tournament.start_date ? new Date(tournament.start_date).toLocaleDateString() : 'TBD'}
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      {tournament.current_teams}/{tournament.max_teams} Teams
+                      {tournament.current_teams || 0}/{tournament.max_teams || 0} Teams
                     </span>
                     <span className="flex items-center gap-1">
                       <DollarSign className="w-4 h-4" />
-                      ${tournament.prize_pool}
+                      ${tournament.prize_pool || 0}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium">Entry Fee</p>
-                  <p className="text-[#FF4655] font-bold">${tournament.entry_fee}</p>
+                  <p className="text-[#FF4655] font-bold">${tournament.entry_fee || 0}</p>
                 </div>
               </div>
             </Link>
