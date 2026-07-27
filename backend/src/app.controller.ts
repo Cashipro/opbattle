@@ -281,7 +281,7 @@ export class AppController {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
-    const userId = auth.split(' '')[1];
+    const userId = auth.split(' ')[1];
     const tournament = tournaments.find(t => t.id === id);
     if (!tournament) {
       return { statusCode: 404, message: 'Tournament not found' };
