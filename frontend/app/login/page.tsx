@@ -16,7 +16,9 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://opbattle-production.up.railway.app'
+      
+      const res = await fetch(`${apiUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -24,12 +26,15 @@ export default function LoginPage() {
       
       const data = await res.json()
       
-      if (!res.ok) throw new Error(data.message || 'Login failed')
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Login failed')
+      }
       
       localStorage.setItem('token', data.access_token)
       toast.success('Welcome back! 🎉')
       router.push('/dashboard')
     } catch (error: any) {
+      console.error('Login error:', error)
       toast.error(error.message || 'Invalid credentials')
     } finally {
       setLoading(false)
