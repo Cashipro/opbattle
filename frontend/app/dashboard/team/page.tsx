@@ -35,8 +35,8 @@ export default function TeamPage() {
   const [userPlayerId, setUserPlayerId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchTeam()
     fetchUserPlayerId()
+    fetchTeam()
   }, [])
 
   const fetchUserPlayerId = async () => {
@@ -45,8 +45,10 @@ export default function TeamPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      const data = await res.json()
-      setUserPlayerId(data.id)
+      if (res.ok) {
+        const data = await res.json()
+        setUserPlayerId(data?.id || null)
+      }
     } catch (error) {
       console.error('Failed to fetch player ID:', error)
     }
@@ -63,10 +65,14 @@ export default function TeamPage() {
         setLoading(false)
         return
       }
+      if (!res.ok) {
+        throw new Error('Failed to fetch team')
+      }
       const data = await res.json()
       setTeam(data)
     } catch (error) {
       console.error('Failed to fetch team:', error)
+      toast.error('Failed to load team')
     } finally {
       setLoading(false)
     }
@@ -74,6 +80,10 @@ export default function TeamPage() {
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!teamName.trim()) {
+      toast.error('Please enter a team name')
+      return
+    }
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem('token')
@@ -83,7 +93,7 @@ export default function TeamPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: teamName }),
+        body: JSON.stringify({ name: teamName.trim() }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -103,25 +113,32 @@ export default function TeamPage() {
 
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!inviteUid.trim()) {
+      toast.error('Please enter PUBG UID')
+      return
+    }
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/invite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ pubg_uid: inviteUid }),
-      })
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/members`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ player_id: inviteUid.trim() }),
+        }
+      )
       const data = await res.json()
       if (res.ok) {
-        toast.success('Invitation sent!')
+        toast.success('Member added successfully!')
         fetchTeam()
         setShowInviteModal(false)
         setInviteUid('')
       } else {
-        throw new Error(data.message || 'Failed to invite player')
+        throw new Error(data.message || 'Failed to add member')
       }
     } catch (error: any) {
       toast.error(error.message)
@@ -162,7 +179,7 @@ export default function TeamPage() {
       })
       if (res.ok) {
         toast.success('You left the team')
-        fetchTeam()
+        setTeam(null)
       } else {
         toast.error('Failed to leave team')
       }
@@ -260,7 +277,7 @@ export default function TeamPage() {
   }
 
   // Team exists
-  const isCaptain = team.captain_id === userPlayerId
+  const isCaptain = team?.captain_id === userPlayerId
 
   return (
     <div>
@@ -304,7 +321,7 @@ export default function TeamPage() {
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-[#FF4655]/10 flex items-center justify-center border-2 border-[#FF4655]">
-            {team.logo_url ? (
+            {team?.logo_url ? (
               <img
                 src={team.logo_url}
                 alt={team.name}
@@ -315,24 +332,24 @@ export default function TeamPage() {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">{team.name}</h2>
+            <h2 className="text-2xl font-bold">{team?.name || 'Team'}</h2>
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
               <span className="flex items-center gap-1">
                 <Crown className="w-4 h-4 text-yellow-500" />
-                Captain: {team.members.find((m) => m.is_captain)?.player_name || 'Unknown'}
+                Captain: {team?.members?.find((m) => m.is_captain)?.player_name || 'Unknown'}
               </span>
-              <span>🏆 {team.wins} Wins</span>
-              <span>📊 Rank #{team.ranking || 'N/A'}</span>
-              <span>💰 ${team.total_prize || 0}</span>
+              <span>🏆 {team?.wins || 0} Wins</span>
+              <span>📊 Rank #{team?.ranking || 'N/A'}</span>
+              <span>💰 ${team?.total_prize || 0}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Members */}
-      <h2 className="text-xl font-heading font-bold mb-4">Members ({team.members.length}/4)</h2>
+      <h2 className="text-xl font-heading font-bold mb-4">Members ({team?.members?.length || 0}/4)</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {team.members.map((member) => (
+        {team?.members?.map((member) => (
           <div
             key={member.id}
             className="glass-card p-4 flex items-center justify-between"
@@ -350,8 +367,8 @@ export default function TeamPage() {
                 )}
               </div>
               <div>
-                <p className="font-medium">{member.player_name}</p>
-                <p className="text-xs text-gray-400">{member.pubg_uid}</p>
+                <p className="font-medium">{member.player_name || 'Unknown'}</p>
+                <p className="text-xs text-gray-400">{member.pubg_uid || 'N/A'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -377,21 +394,18 @@ export default function TeamPage() {
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-2xl font-heading font-bold mb-4">Invite Player</h2>
+            <h2 className="text-2xl font-heading font-bold mb-4">Add Member</h2>
             <form onSubmit={handleInviteMember} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">PUBG UID</label>
+                <label className="block text-sm font-medium mb-2">Player ID</label>
                 <input
                   type="text"
                   required
                   value={inviteUid}
                   onChange={(e) => setInviteUid(e.target.value)}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                  placeholder="Enter player's PUBG UID"
+                  placeholder="Enter player ID"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Player must have a verified account on OpBattle
-                </p>
               </div>
               <div className="flex gap-3">
                 <button
@@ -406,7 +420,7 @@ export default function TeamPage() {
                   disabled={isSubmitting}
                   className="flex-1 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Sending...' : 'Send Invite'}
+                  {isSubmitting ? 'Adding...' : 'Add Member'}
                 </button>
               </div>
             </form>
