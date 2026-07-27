@@ -34,7 +34,7 @@ export default function RegisterPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries`)
       const data = await res.json()
-      setCountries(data)
+      setCountries(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Failed to fetch countries:', error)
       setCountries([
@@ -55,6 +55,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validation
+    if (!form.email || !form.email.includes('@')) {
+      toast.error('Please enter a valid email')
+      return
+    }
+
     if (form.password.length < 6) {
       toast.error('Password must be at least 6 characters')
       return
@@ -73,50 +79,36 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://opbattle-production.up.railway.app'
+      
+      const res = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email,
           password: form.password,
           country_id: form.country_id,
+          pubg_uid: form.pubg_uid || undefined,
+          player_name: form.player_name || undefined,
         }),
       })
       
       const data = await res.json()
       
       if (!res.ok) {
-        throw new Error(data.message || 'Registration failed')
+        throw new Error(data.message || data.error || 'Registration failed')
       }
       
-      localStorage.setItem('token', data.access_token)
-
-      if (form.pubg_uid) {
-        const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${data.access_token}`,
-          },
-          body: JSON.stringify({
-            pubg_uid: form.pubg_uid,
-            player_name: form.player_name || form.email.split('@')[0],
-            country_id: form.country_id,
-          }),
-        })
-
-        if (!playerRes.ok) {
-          const playerData = await playerRes.json()
-          toast.error(`User created but player profile issue: ${playerData.message || 'Please add PUBG UID later'}`)
-        } else {
-          toast.success('Player profile created! 🎮')
-        }
+      // Save token if exists
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token)
       }
-
+      
       toast.success('Account created! 🎉')
       router.push('/dashboard')
     } catch (error: any) {
-      toast.error(error.message || 'Registration failed')
+      console.error('Registration error:', error)
+      toast.error(error.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
