@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { TournamentRegistration } from './tournament-registration.entity';
-import { Match } from '../matches/match.entity';
 
 @Entity('tournaments')
 export class Tournament {
@@ -40,9 +39,6 @@ export class Tournament {
   @Column({ name: 'start_date' })
   start_date: Date;
 
-  @Column({ name: 'end_date', nullable: true })
-  end_date: Date;
-
   @Column({ name: 'registration_deadline' })
   registration_deadline: Date;
 
@@ -63,9 +59,6 @@ export class Tournament {
 
   @OneToMany(() => TournamentRegistration, (registration) => registration.tournament)
   registrations: TournamentRegistration[];
-
-  @OneToMany(() => Match, (match) => match.tournament)
-  matches: Match[];
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
