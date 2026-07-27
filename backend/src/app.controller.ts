@@ -1,12 +1,13 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 
-// In-memory storage
-const teamsStore = new Map();
+// ✅ In-memory database
+const teams = new Map();
 const userTeamMap = new Map();
 
 @Controller()
 export class AppController {
-  
+
+  // ========== HEALTH ==========
   @Get()
   getHello() {
     return { message: 'OpBattle API is running! 🚀' };
@@ -31,6 +32,7 @@ export class AppController {
     ];
   }
 
+  // ========== AUTH ==========
   @Post('register')
   async register(@Body() body: any) {
     const { email, password } = body;
@@ -60,16 +62,20 @@ export class AppController {
     };
   }
 
-  // ============ TEAM ROUTES ============
+  // ========== TEAM ROUTES ==========
 
+  // ✅ CREATE TEAM
   @Post('teams')
   @HttpCode(HttpStatus.CREATED)
   async createTeam(@Body() body: any, @Headers('authorization') auth: string) {
+    console.log('🔍 Create team:', body);
+
     if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
     const userId = auth.split(' ')[1];
+    
     if (!body.name || body.name.trim().length < 2) {
       return { statusCode: 400, message: 'Team name must be at least 2 characters' };
     }
@@ -103,26 +109,36 @@ export class AppController {
       created_at: new Date().toISOString()
     };
 
-    teamsStore.set(teamId, newTeam);
+    teams.set(teamId, newTeam);
     userTeamMap.set(userId, teamId);
+
+    console.log('✅ Team created:', newTeam);
+    console.log('📊 Total teams:', teams.size);
 
     return newTeam;
   }
 
+  // ✅ GET MY TEAM
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
+    console.log('🔍 Get my team');
+
     if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
     const userId = auth.split(' ')[1];
     const teamId = userTeamMap.get(userId);
+    console.log('📊 userTeamMap:', Array.from(userTeamMap.entries()));
 
     if (!teamId) {
+      console.log('❌ No team found');
       return null;
     }
 
-    const team = teamsStore.get(teamId);
+    const team = teams.get(teamId);
+    console.log('✅ Team found:', team);
+
     if (!team) {
       return null;
     }
@@ -130,20 +146,26 @@ export class AppController {
     return team;
   }
 
+  // ✅ GET TEAM BY ID
   @Get('teams/:id')
-  async getTeam(@Param('id') id: string) {
-    const team = teamsStore.get(id);
+  async getTeamById(@Param('id') id: string) {
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
     return team;
   }
 
+  // ✅ GET ALL TEAMS
   @Get('teams')
-  async getTeams() {
-    return { teams: Array.from(teamsStore.values()), total: teamsStore.size };
+  async getAllTeams() {
+    return {
+      teams: Array.from(teams.values()),
+      total: teams.size
+    };
   }
 
+  // ✅ UPDATE TEAM
   @Put('teams/:id')
   async updateTeam(@Param('id') id: string, @Body() body: any, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -151,7 +173,7 @@ export class AppController {
     }
 
     const userId = auth.split(' ')[1];
-    const team = teamsStore.get(id);
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
@@ -164,10 +186,11 @@ export class AppController {
       team.name = body.name.trim();
     }
 
-    teamsStore.set(id, team);
+    teams.set(id, team);
     return team;
   }
 
+  // ✅ DELETE TEAM
   @Delete('teams/:id')
   async deleteTeam(@Param('id') id: string, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -175,7 +198,7 @@ export class AppController {
     }
 
     const userId = auth.split(' ')[1];
-    const team = teamsStore.get(id);
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
@@ -188,18 +211,21 @@ export class AppController {
       userTeamMap.delete(member.player_id);
     }
 
-    teamsStore.delete(id);
+    teams.delete(id);
     return { message: 'Team deleted successfully' };
   }
 
+  // ✅ ADD MEMBER BY PUBG UID
   @Post('teams/:id/members')
   async addMember(@Param('id') id: string, @Body() body: any, @Headers('authorization') auth: string) {
+    console.log('🔍 Add member:', body);
+
     if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
     const userId = auth.split(' ')[1];
-    const team = teamsStore.get(id);
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
@@ -212,32 +238,34 @@ export class AppController {
       return { statusCode: 400, message: 'Team is full (max 4 members)' };
     }
 
-    const playerId = body.player_id;
-    if (!playerId) {
-      return { statusCode: 400, message: 'Player ID is required' };
+    const pubgUid = body.pubg_uid;
+    if (!pubgUid) {
+      return { statusCode: 400, message: 'PUBG UID is required' };
     }
 
-    if (userTeamMap.has(playerId)) {
-      return { statusCode: 400, message: 'Player is already in a team' };
+    // Check if member already exists
+    if (team.members.some((m: any) => m.pubg_uid === pubgUid)) {
+      return { statusCode: 400, message: 'Player already in team' };
     }
 
     const newMember = {
       id: 'mem_' + Date.now(),
-      player_id: playerId,
+      player_id: 'player_' + Date.now(),
       is_captain: false,
       joined_at: new Date().toISOString(),
       player_name: 'Player',
-      pubg_uid: 'N/A',
+      pubg_uid: pubgUid,
       avatar_url: null
     };
 
     team.members.push(newMember);
-    userTeamMap.set(playerId, team.id);
-    teamsStore.set(id, team);
+    teams.set(id, team);
 
+    console.log('✅ Member added:', newMember);
     return team;
   }
 
+  // ✅ REMOVE MEMBER
   @Delete('teams/:id/members/:memberId')
   async removeMember(@Param('id') id: string, @Param('memberId') memberId: string, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -245,7 +273,7 @@ export class AppController {
     }
 
     const userId = auth.split(' ')[1];
-    const team = teamsStore.get(id);
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
@@ -254,23 +282,23 @@ export class AppController {
       return { statusCode: 403, message: 'Only captain can remove members' };
     }
 
-    const memberIndex = team.members.findIndex((m: any) => m.id === memberId);
-    if (memberIndex === -1) {
+    const index = team.members.findIndex((m: any) => m.id === memberId);
+    if (index === -1) {
       return { statusCode: 404, message: 'Member not found' };
     }
 
-    const member = team.members[memberIndex];
+    const member = team.members[index];
     if (member.is_captain) {
       return { statusCode: 400, message: 'Cannot remove captain' };
     }
 
-    userTeamMap.delete(member.player_id);
-    team.members.splice(memberIndex, 1);
-    teamsStore.set(id, team);
+    team.members.splice(index, 1);
+    teams.set(id, team);
 
     return team;
   }
 
+  // ✅ LEAVE TEAM
   @Post('teams/:id/leave')
   async leaveTeam(@Param('id') id: string, @Headers('authorization') auth: string) {
     if (!auth || !auth.startsWith('Bearer ')) {
@@ -278,7 +306,7 @@ export class AppController {
     }
 
     const userId = auth.split(' ')[1];
-    const team = teamsStore.get(id);
+    const team = teams.get(id);
     if (!team) {
       return { statusCode: 404, message: 'Team not found' };
     }
@@ -287,15 +315,13 @@ export class AppController {
       return { statusCode: 400, message: 'Captain cannot leave. Delete team instead.' };
     }
 
-    const memberIndex = team.members.findIndex((m: any) => m.player_id === userId);
-    if (memberIndex === -1) {
+    const index = team.members.findIndex((m: any) => m.player_id === userId);
+    if (index === -1) {
       return { statusCode: 404, message: 'You are not in this team' };
     }
 
-    const member = team.members[memberIndex];
-    userTeamMap.delete(member.player_id);
-    team.members.splice(memberIndex, 1);
-    teamsStore.set(id, team);
+    team.members.splice(index, 1);
+    teams.set(id, team);
 
     return { message: 'You left the team' };
   }
