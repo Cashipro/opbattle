@@ -17,23 +17,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class TournamentsController {
   constructor(private readonly tournamentsService: TournamentsService) {}
 
-  // Admin routes (no guard for now, will add role guard later)
+  // Admin routes
   @Post()
   @UseGuards(JwtAuthGuard)
   async create(@Request() req, @Body() body: any) {
     return this.tournamentsService.create(req.user.id, body);
-  }
-
-  @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Request() req, @Body() body: any) {
-    return this.tournamentsService.update(id, req.user.id, body);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: string, @Request() req) {
-    return this.tournamentsService.delete(id, req.user.id);
   }
 
   // Public routes
@@ -70,46 +58,9 @@ export class TournamentsController {
     return this.tournamentsService.registerTeam(id, req.user.id);
   }
 
-  @Put(':id/approve/:registrationId')
-  @UseGuards(JwtAuthGuard)
-  async approveRegistration(
-    @Param('id') id: string,
-    @Param('registrationId') registrationId: string,
-    @Request() req,
-  ) {
-    return this.tournamentsService.approveRegistration(id, registrationId, req.user.id);
-  }
-
-  @Put(':id/reject/:registrationId')
-  @UseGuards(JwtAuthGuard)
-  async rejectRegistration(
-    @Param('id') id: string,
-    @Param('registrationId') registrationId: string,
-    @Request() req,
-  ) {
-    return this.tournamentsService.rejectRegistration(id, registrationId, req.user.id);
-  }
-
-  @Post(':id/start')
-  @UseGuards(JwtAuthGuard)
-  async startTournament(@Param('id') id: string, @Request() req) {
-    return this.tournamentsService.startTournament(id, req.user.id);
-  }
-
-  @Post(':id/cancel')
-  @UseGuards(JwtAuthGuard)
-  async cancelTournament(@Param('id') id: string, @Request() req) {
-    return this.tournamentsService.cancelTournament(id, req.user.id);
-  }
-
   @Get('my')
   @UseGuards(JwtAuthGuard)
   async getMyTournaments(@Request() req) {
     return this.tournamentsService.getMyTournaments(req.user.id);
-  }
-
-  @Get(':id/leaderboard')
-  async getLeaderboard(@Param('id') id: string) {
-    return this.tournamentsService.getLeaderboard(id);
   }
 }
