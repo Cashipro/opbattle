@@ -19,23 +19,45 @@ export class TeamsController {
   constructor(private readonly teamsService: TeamsService) {}
 
   @Post()
-  async create(@Request() req, @Body() body: { name: string; game_id?: string }) {
-    return this.teamsService.create(req.user.id, body);
+  async create(@Request() req, @Body() body: { name: string }) {
+    try {
+      return await this.teamsService.create(req.user.id, body);
+    } catch (error) {
+      return {
+        statusCode: error.status || 500,
+        message: error.message || 'Internal server error',
+        error: error.name || 'Error',
+      };
+    }
   }
 
   @Get('my')
   async getMyTeam(@Request() req) {
-    return this.teamsService.findByPlayerId(req.user.id);
+    try {
+      return await this.teamsService.findByPlayerId(req.user.id);
+    } catch (error) {
+      if (error.status === 404) {
+        return null;
+      }
+      return {
+        statusCode: error.status || 500,
+        message: error.message || 'Internal server error',
+        error: error.name || 'Error',
+      };
+    }
   }
 
   @Get(':id')
   async findById(@Param('id') id: string) {
-    return this.teamsService.findById(id);
-  }
-
-  @Get()
-  async findAll(@Query() query: any) {
-    return this.teamsService.findAll(query);
+    try {
+      return await this.teamsService.findById(id);
+    } catch (error) {
+      return {
+        statusCode: error.status || 500,
+        message: error.message || 'Internal server error',
+        error: error.name || 'Error',
+      };
+    }
   }
 
   @Put(':id')
