@@ -16,16 +16,13 @@ export class AuthService {
   async register(body: any) {
     const { email, password, country_id } = body;
 
-    // Check if user exists
     const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('User already exists');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = this.userRepository.create({
       email,
       password_hash: hashedPassword,
@@ -34,7 +31,6 @@ export class AuthService {
 
     await this.userRepository.save(user);
 
-    // Generate token
     const token = this.jwtService.sign({
       sub: user.id,
       email: user.email,
