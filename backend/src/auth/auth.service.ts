@@ -18,15 +18,6 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { email, password, country_id } = registerDto;
 
-    // Simple validation
-    if (!email || !email.includes('@')) {
-      throw new BadRequestException('Invalid email address');
-    }
-
-    if (!password || password.length < 6) {
-      throw new BadRequestException('Password must be at least 6 characters');
-    }
-
     // Check if user exists
     const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
@@ -49,10 +40,12 @@ export class AuthService {
       role: user.role,
     });
 
-    const { password_hash, ...userWithoutPassword } = user;
-
     return {
-      user: userWithoutPassword,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
       access_token: token,
     };
   }
@@ -78,10 +71,12 @@ export class AuthService {
       role: user.role,
     });
 
-    const { password_hash, ...userWithoutPassword } = user;
-
     return {
-      user: userWithoutPassword,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
       access_token: token,
     };
   }
