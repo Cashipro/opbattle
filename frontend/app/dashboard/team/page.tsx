@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, UserPlus, Crown, LogOut, Trash2, Edit2, Loader2 } from 'lucide-react'
+import { Users, UserPlus, Crown, LogOut, Trash2, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface TeamMember {
@@ -36,46 +36,70 @@ export default function TeamPage() {
   const [userPlayerId, setUserPlayerId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchUserAndTeam()
+    fetchTeam()
   }, [])
 
-  const fetchUserAndTeam = async () => {
+  const fetchTeam = async () => {
     try {
+      setLoading(true)
       const token = localStorage.getItem('token')
+      
       if (!token) {
         setLoading(false)
         return
       }
 
-      // Fetch player ID
-      const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (playerRes.ok) {
-        const playerData = await playerRes.json()
-        setUserPlayerId(playerData?.id || null)
-      }
-
-      // Fetch team
+      console.log('🔍 Fetching team...')
+      
+      // ✅ FIRST: Try to get team
       const teamRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       })
 
+      console.log('📡 Team response status:', teamRes.status)
+
+      // ✅ Handle 404 or null response
       if (teamRes.status === 404) {
+        console.log('📭 No team found (404)')
         setTeam(null)
         setLoading(false)
         return
       }
 
-      if (!teamRes.ok) {
-        throw new Error('Failed to fetch team')
+      let data
+      try {
+        data = await teamRes.json()
+      } catch (e) {
+        console.log('📭 No team found (empty response)')
+        setTeam(null)
+        setLoading(false)
+        return
       }
 
-      const data = await teamRes.json()
-      setTeam(data)
+      // ✅ Check if data is null or has error
+      if (!data || data.statusCode === 404 || data.message === 'You are not in a team') {
+        console.log('📭 No team found')
+        setTeam(null)
+        setLoading(false)
+        return
+      }
+
+      // ✅ If we have a team, set it
+      if (data && data.id) {
+        console.log('✅ Team loaded:', data)
+        setTeam(data)
+      } else {
+        console.log('📭 No team data')
+        setTeam(null)
+      }
+      
     } catch (error) {
-      console.error('Error fetching team:', error)
-      toast.error('Failed to load team')
+      console.error('❌ Error fetching team:', error)
+      // ✅ Don't show error toast here - just set team to null
+      setTeam(null)
     } finally {
       setLoading(false)
     }
@@ -91,27 +115,33 @@ export default function TeamPage() {
     setCreating(true)
     try {
       const token = localStorage.getItem('token')
+      
+      console.log('🔍 Creating team:', teamName.trim())
+      
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ name: teamName.trim() }),
       })
 
+      console.log('📡 Create team status:', res.status)
       const data = await res.json()
+      console.log('📡 Create team response:', data)
 
       if (res.ok) {
         toast.success('Team created successfully! 🎉')
         setShowCreateModal(false)
         setTeamName('')
-        await fetchUserAndTeam()
+        // ✅ Fetch team again
+        await fetchTeam()
       } else {
         throw new Error(data.message || data.error || 'Failed to create team')
       }
     } catch (error: any) {
-      console.error('Create team error:', error)
+      console.error('❌ Create team error:', error)
       toast.error(error.message || 'Failed to create team')
     } finally {
       setCreating(false)
@@ -131,7 +161,7 @@ export default function TeamPage() {
       )
       if (res.ok) {
         toast.success('Member removed')
-        await fetchUserAndTeam()
+        await fetchTeam()
       } else {
         const data = await res.json()
         toast.error(data.message || 'Failed to remove member')
@@ -151,7 +181,7 @@ export default function TeamPage() {
       })
       if (res.ok) {
         toast.success('You left the team')
-        await fetchUserAndTeam()
+        await fetchTeam()
       } else {
         const data = await res.json()
         toast.error(data.message || 'Failed to leave team')
@@ -171,7 +201,7 @@ export default function TeamPage() {
       })
       if (res.ok) {
         toast.success('Team deleted')
-        await fetchUserAndTeam()
+        await fetchTeam()
       } else {
         const data = await res.json()
         toast.error(data.message || 'Failed to delete team')
@@ -189,7 +219,7 @@ export default function TeamPage() {
     )
   }
 
-  // No Team
+  // ✅ NO TEAM - Show create team button
   if (!team) {
     return (
       <div>
@@ -251,7 +281,7 @@ export default function TeamPage() {
     )
   }
 
-  // Team exists
+  // ✅ TEAM EXISTS - Show team details
   const isCaptain = team?.captain_id === userPlayerId
 
   return (
@@ -262,13 +292,6 @@ export default function TeamPage() {
           <p className="text-gray-400">Manage your team and members</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            Invite
-          </button>
           {isCaptain && (
             <button
               onClick={handleDeleteTeam}
