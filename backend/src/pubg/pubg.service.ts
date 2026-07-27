@@ -8,45 +8,40 @@ export class PubgService {
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get('PUBG_API_KEY');
+    console.log('🔑 API Key loaded:', this.apiKey ? '✅ Yes' : '❌ No');
   }
 
   async searchPlayer(playerName: string) {
-    const response = await fetch(
-      `${this.baseUrl}/shards/steam/players?filter[playerNames]=${encodeURIComponent(playerName)}`,
-      {
+    try {
+      const encodedName = encodeURIComponent(playerName.trim());
+      const url = `${this.baseUrl}/shards/steam/players?filter[playerNames]=${encodedName}`;
+      
+      console.log('🔍 Fetching:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'Accept': 'application/vnd.api+json'
-        }
-      }
-    );
-    return response.json();
-  }
+          'Accept': 'application/vnd.api+json',
+        },
+      });
 
-  async getPlayerById(playerId: string) {
-    const response = await fetch(
-      `${this.baseUrl}/shards/steam/players/${playerId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Accept': 'application/vnd.api+json'
-        }
-      }
-    );
-    return response.json();
-  }
+      console.log('📡 Status:', response.status);
 
-  async getMatch(matchId: string) {
-    const response = await fetch(
-      `${this.baseUrl}/shards/steam/matches/${matchId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Accept': 'application/vnd.api+json'
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error:', response.status, errorText);
+        throw new Error(`PUBG API Error: ${response.status} - ${errorText}`);
       }
-    );
-    return response.json();
+
+      const data = await response.json();
+      console.log('✅ Response received');
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Fetch error:', error);
+      throw error;
+    }
   }
 
   async getPlayerStats(playerId: string) {
@@ -55,8 +50,8 @@ export class PubgService {
       {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'Accept': 'application/vnd.api+json'
-        }
+          'Accept': 'application/vnd.api+json',
+        },
       }
     );
     return response.json();
