@@ -4,8 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { TestController } from './test.controller';
-import { TestAuthController } from './test.controller';  // ✅ Add this
+import { TestAuthController } from './test.controller';
 import { User } from '../users/user.entity';
 
 @Module({
@@ -17,7 +16,7 @@ import { User } from '../users/user.entity';
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  controllers: [AuthController, TestController, TestAuthController],  // ✅ Add here
+  controllers: [AuthController, TestAuthController],
   providers: [AuthService],
   exports: [AuthService],
 })
