@@ -208,27 +208,6 @@ export default function TeamPage() {
     }
   }
 
-  // ✅ ADD THIS FUNCTION
-  const handleLeaveTeam = async () => {
-    if (!confirm('Are you sure you want to leave this team?')) return
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/leave`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        toast.success('You left the team')
-        await fetchUserAndTeam()
-      } else {
-        const data = await res.json()
-        toast.error(data.message || 'Failed to leave team')
-      }
-    } catch (error) {
-      toast.error('Failed to leave team')
-    }
-  }
-
   const handleDeleteTeam = async () => {
     if (!confirm('Delete this team permanently? This cannot be undone.')) return
     try {
@@ -356,15 +335,7 @@ export default function TeamPage() {
               </button>
             </>
           )}
-          {!isCaptain && (
-            <button
-              onClick={handleLeaveTeam}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Leave Team
-            </button>
-          )}
+          {/* ❌ LEAVE BUTTON HATAO — SIRF CAPTAIN KE LIYE DELETE HAI */}
         </div>
       </div>
 
