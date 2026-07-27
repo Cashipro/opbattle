@@ -1,13 +1,25 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
+import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
+  constructor(private readonly appService: AppService) {}
+
   @Get()
   getHello() {
+    return { message: 'OpBattle API is running! 🚀' };
+  }
+
+  @Get('test')
+  test() {
+    return { status: 'ok', message: 'Test route is working!' };
+  }
+
+  @Post('register')
+  register(@Body() body: any) {
     return { 
-      name: 'OpBattle API',
-      status: 'online',
-      version: '1.0.0',
+      message: 'Register route is working!', 
+      received: body,
       timestamp: new Date().toISOString()
     };
   }
