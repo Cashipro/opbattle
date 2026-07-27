@@ -31,7 +31,6 @@ export class AppController {
   async register(@Body() body: any) {
     const { email, password } = body;
 
-    // Validation
     if (!email || !email.includes('@')) {
       return { error: 'Invalid email' };
     }
@@ -40,7 +39,6 @@ export class AppController {
       return { error: 'Password must be at least 6 characters' };
     }
 
-    // ✅ SUCCESS
     return {
       success: true,
       message: 'Registration successful!',
@@ -49,7 +47,32 @@ export class AppController {
         email: email,
         role: 'user'
       },
-      access_token: 'token_' + Date.now() + '_' + Math.random().toString(36).substring(7)
+      access_token: 'token_' + Date.now()
+    };
+  }
+
+  // ✅ NEW: Direct PUBG API Test Route
+  @Get('pubg-test/:name')
+  async testPubg(@Param('name') name: string) {
+    const apiKey = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkZWM2MjU4MC02Yjk1LTAxM2YtZjRkMS01MmUzZDQzMTI2MTAiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNzg1MTIxNDk2LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im9wYmF0dGxlIn0.18NDDV70YNsRHkk75zPYGgrGvUjAxVXYuOxpsiR0LS8';
+    
+    const url = `https://api.pubg.com/shards/steam/players?filter[playerNames]=${encodeURIComponent(name)}`;
+    console.log('🔍 Fetching:', url);
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Accept': 'application/vnd.api+json',
+      },
+    });
+
+    const data = await response.json();
+    console.log('📡 Status:', response.status);
+    console.log('📡 Response:', JSON.stringify(data).substring(0, 200));
+
+    return {
+      status: response.status,
+      data: data
     };
   }
 }
