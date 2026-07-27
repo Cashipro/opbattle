@@ -36,7 +36,7 @@ export default function TeamPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [teamName, setTeamName] = useState('')
   const [editTeamName, setEditTeamName] = useState('')
-  const [inviteUid, setInviteUid] = useState('')
+  const [inviteUid, setInviteUid] = useState('')  // ✅ PUBG UID
   const [userPlayerId, setUserPlayerId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -59,8 +59,6 @@ export default function TeamPage() {
       if (playerRes.ok) {
         const data = await playerRes.json()
         setUserPlayerId(data?.id || null)
-      } else {
-        console.log('Player profile not found')
       }
 
       // Get team
@@ -68,10 +66,7 @@ export default function TeamPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
 
-      console.log('📡 Team response status:', teamRes.status)
-
-      if (teamRes.status === 404 || teamRes.status === 204) {
-        console.log('📭 No team found')
+      if (teamRes.status === 404) {
         setTeam(null)
         setLoading(false)
         return
@@ -82,8 +77,6 @@ export default function TeamPage() {
       }
 
       const data = await teamRes.json()
-      console.log('📡 Team data:', data)
-
       if (data && data.id) {
         setTeam(data)
         setEditTeamName(data.name)
@@ -91,7 +84,7 @@ export default function TeamPage() {
         setTeam(null)
       }
     } catch (error) {
-      console.error('Error fetching team:', error)
+      console.error('Error:', error)
       setTeam(null)
     } finally {
       setLoading(false)
@@ -108,8 +101,6 @@ export default function TeamPage() {
     setCreating(true)
     try {
       const token = localStorage.getItem('token')
-      console.log('🔍 Creating team with token:', token)
-      
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams`, {
         method: 'POST',
         headers: {
@@ -119,21 +110,16 @@ export default function TeamPage() {
         body: JSON.stringify({ name: teamName.trim() }),
       })
 
-      console.log('📡 Create team status:', res.status)
       const data = await res.json()
-      console.log('📡 Create team response:', data)
-
       if (res.ok) {
         toast.success('Team created! 🎉')
         setShowCreateModal(false)
         setTeamName('')
-        // ✅ Fetch team again
         await fetchUserAndTeam()
       } else {
         toast.error(data.message || 'Failed to create team')
       }
     } catch (error: any) {
-      console.error('❌ Create team error:', error)
       toast.error(error.message || 'Failed to create team')
     } finally {
       setCreating(false)
@@ -171,10 +157,11 @@ export default function TeamPage() {
     }
   }
 
+  // ✅ ADD MEMBER BY PUBG UID
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inviteUid.trim()) {
-      toast.error('Please enter Player ID')
+      toast.error('Please enter PUBG UID')
       return
     }
 
@@ -186,7 +173,7 @@ export default function TeamPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ player_id: inviteUid.trim() }),
+        body: JSON.stringify({ pubg_uid: inviteUid.trim() }),
       })
 
       if (res.ok) {
@@ -203,13 +190,18 @@ export default function TeamPage() {
     }
   }
 
+  // ✅ REMOVE MEMBER BY PUBG UID
   const handleRemoveMember = async (memberId: string) => {
     if (!confirm('Remove this member?')) return
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/members/${memberId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/members`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ pubg_uid: memberId }),
       })
 
       if (res.ok) {
@@ -275,7 +267,6 @@ export default function TeamPage() {
     )
   }
 
-  // ✅ NO TEAM - Show create team
   if (!team) {
     return (
       <div>
@@ -292,7 +283,6 @@ export default function TeamPage() {
           </button>
         </div>
 
-        {/* Create Team Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -441,7 +431,7 @@ export default function TeamPage() {
               )}
               {isCaptain && !member.is_captain && (
                 <button
-                  onClick={() => handleRemoveMember(member.id)}
+                  onClick={() => handleRemoveMember(member.pubg_uid)}
                   className="p-2 hover:bg-red-500/20 rounded-lg transition text-red-500"
                   title="Remove Member"
                 >
@@ -502,15 +492,16 @@ export default function TeamPage() {
             <h2 className="text-2xl font-heading font-bold mb-4">Add Member</h2>
             <form onSubmit={handleAddMember} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Player ID</label>
+                <label className="block text-sm font-medium mb-2">PUBG UID</label>
                 <input
                   type="text"
                   required
                   value={inviteUid}
                   onChange={(e) => setInviteUid(e.target.value)}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                  placeholder="Enter player's PUBG UID"
+                  placeholder="Enter PUBG UID"
                 />
+                <p className="text-xs text-gray-500 mt-1">Enter the player's PUBG UID</p>
               </div>
               <div className="flex gap-3">
                 <button
