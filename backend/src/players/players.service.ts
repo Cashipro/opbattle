@@ -33,7 +33,7 @@ export class PlayersService {
       ...data,
     });
 
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async findByUserId(userId: string): Promise<Player> {
@@ -73,7 +73,7 @@ export class PlayersService {
     }
 
     Object.assign(player, data);
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async findAll(query: any): Promise<{ players: Player[]; total: number }> {
@@ -115,32 +115,32 @@ export class PlayersService {
     if (data.stats) {
       Object.assign(player, data.stats);
     }
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async banPlayer(uid: string, reason: string): Promise<Player> {
     const player = await this.findByUid(uid);
     player.is_banned = true;
     player.ban_reason = reason;
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async unbanPlayer(uid: string): Promise<Player> {
     const player = await this.findByUid(uid);
     player.is_banned = false;
     player.ban_reason = null;
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async updateStats(uid: string, stats: any): Promise<Player> {
     const player = await this.findByUid(uid);
     Object.assign(player, stats);
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 
   async addWinnings(uid: string, amount: number): Promise<Player> {
     const player = await this.findByUid(uid);
     player.total_winnings = Number(player.total_winnings) + amount;
-    return await this.playerRepository.save(player);
+    return await this.playerRepository.save(player) as any;
   }
 }
