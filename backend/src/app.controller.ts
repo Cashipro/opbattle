@@ -10,11 +10,13 @@ export class AppController {
     return { message: 'OpBattle API is running! 🚀' };
   }
 
+  // ✅ YE ROUTE PEHLE SE KAAM KAR RAHA HAI
   @Get('test')
   test() {
     return { status: 'ok', message: 'Test route is working!' };
   }
 
+  // ✅ AB YE BHI KAAM KAREGA
   @Post('register')
   register(@Body() body: any) {
     return { 
