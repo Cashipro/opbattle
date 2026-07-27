@@ -1,10 +1,8 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  
   @Get()
   getHello() {
     return { message: 'OpBattle API is running! 🚀' };
@@ -15,7 +13,6 @@ export class AppController {
     return { status: 'ok', message: 'Test route is working!' };
   }
 
-  // ✅ COUNTRIES ROUTE
   @Get('countries')
   getCountries() {
     return [
@@ -34,6 +31,7 @@ export class AppController {
   async register(@Body() body: any) {
     const { email, password } = body;
 
+    // Validation
     if (!email || !email.includes('@')) {
       return { error: 'Invalid email' };
     }
@@ -42,11 +40,16 @@ export class AppController {
       return { error: 'Password must be at least 6 characters' };
     }
 
+    // ✅ SUCCESS
     return {
       success: true,
       message: 'Registration successful!',
-      user: { email, role: 'user' },
-      access_token: 'test_token_' + Date.now()
+      user: {
+        id: 'user_' + Date.now(),
+        email: email,
+        role: 'user'
+      },
+      access_token: 'token_' + Date.now() + '_' + Math.random().toString(36).substring(7)
     };
   }
 }
