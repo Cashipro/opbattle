@@ -52,7 +52,6 @@ export default function TeamPage() {
         return
       }
 
-      // Fetch player ID
       const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -61,7 +60,6 @@ export default function TeamPage() {
         setUserPlayerId(playerData?.id || null)
       }
 
-      // Fetch team
       const teamRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -210,6 +208,27 @@ export default function TeamPage() {
     }
   }
 
+  // ✅ ADD THIS FUNCTION
+  const handleLeaveTeam = async () => {
+    if (!confirm('Are you sure you want to leave this team?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/leave`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        toast.success('You left the team')
+        await fetchUserAndTeam()
+      } else {
+        const data = await res.json()
+        toast.error(data.message || 'Failed to leave team')
+      }
+    } catch (error) {
+      toast.error('Failed to leave team')
+    }
+  }
+
   const handleDeleteTeam = async () => {
     if (!confirm('Delete this team permanently? This cannot be undone.')) return
     try {
@@ -239,7 +258,6 @@ export default function TeamPage() {
     )
   }
 
-  // No Team
   if (!team) {
     return (
       <div>
@@ -256,7 +274,6 @@ export default function TeamPage() {
           </button>
         </div>
 
-        {/* Create Team Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -312,37 +329,33 @@ export default function TeamPage() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {/* Edit Team Button */}
           {isCaptain && (
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg font-medium transition flex items-center gap-2 text-blue-400"
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit
-            </button>
+            <>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg font-medium transition flex items-center gap-2 text-blue-400"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit
+              </button>
+              {!isFull && (
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Add Member
+                </button>
+              )}
+              <button
+                onClick={handleDeleteTeam}
+                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Team
+              </button>
+            </>
           )}
-          {/* Add Member Button */}
-          {isCaptain && !isFull && (
-            <button
-              onClick={() => setShowInviteModal(true)}
-              className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Add Member
-            </button>
-          )}
-          {/* Delete Team Button */}
-          {isCaptain && (
-            <button
-              onClick={handleDeleteTeam}
-              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Team
-            </button>
-          )}
-          {/* Leave Team Button */}
           {!isCaptain && (
             <button
               onClick={handleLeaveTeam}
@@ -355,7 +368,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Team Card */}
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-[#FF4655]/10 flex items-center justify-center border-2 border-[#FF4655]">
@@ -380,7 +392,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Members Section */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-heading font-bold">Members ({team.members?.length || 0}/4)</h2>
         {isCaptain && !isFull && (
@@ -428,7 +439,6 @@ export default function TeamPage() {
             </div>
           </div>
         ))}
-        {/* Empty Slots */}
         {Array.from({ length: Math.max(0, 4 - (team.members?.length || 0)) }).map((_, i) => (
           <div key={`empty-${i}`} className="glass-card p-4 flex items-center justify-center border-dashed border-2 border-white/10">
             <p className="text-gray-500 text-sm">Empty Slot</p>
@@ -436,7 +446,6 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {/* Edit Team Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -475,7 +484,6 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Invite Member Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
