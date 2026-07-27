@@ -1,15 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, UserPlus, Crown, LogOut, Trash2, Edit2 } from 'lucide-react'
+import { Users, UserPlus, Crown, LogOut, Trash2, Edit2, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface TeamMember {
   id: string
+  player_id: string
   player_name: string
   pubg_uid: string
   avatar_url: string | null
   is_captain: boolean
+  joined_at: string
 }
 
 interface Team {
@@ -22,56 +24,57 @@ interface Team {
   losses: number
   total_prize: number
   ranking: number
+  max_members: number
 }
 
 export default function TeamPage() {
   const [team, setTeam] = useState<Team | null>(null)
   const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showInviteModal, setShowInviteModal] = useState(false)
   const [teamName, setTeamName] = useState('')
-  const [inviteUid, setInviteUid] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [userPlayerId, setUserPlayerId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchUserPlayerId()
-    fetchTeam()
+    fetchUserAndTeam()
   }, [])
 
-  const fetchUserPlayerId = async () => {
+  const fetchUserAndTeam = async () => {
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setUserPlayerId(data?.id || null)
+      if (!token) {
+        setLoading(false)
+        return
       }
-    } catch (error) {
-      console.error('Failed to fetch player ID:', error)
-    }
-  }
 
-  const fetchTeam = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
+      // Fetch player ID
+      const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (res.status === 404) {
+      if (playerRes.ok) {
+        const playerData = await playerRes.json()
+        setUserPlayerId(playerData?.id || null)
+      }
+
+      // Fetch team
+      const teamRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (teamRes.status === 404) {
         setTeam(null)
         setLoading(false)
         return
       }
-      if (!res.ok) {
+
+      if (!teamRes.ok) {
         throw new Error('Failed to fetch team')
       }
-      const data = await res.json()
+
+      const data = await teamRes.json()
       setTeam(data)
     } catch (error) {
-      console.error('Failed to fetch team:', error)
+      console.error('Error fetching team:', error)
       toast.error('Failed to load team')
     } finally {
       setLoading(false)
@@ -84,7 +87,8 @@ export default function TeamPage() {
       toast.error('Please enter a team name')
       return
     }
-    setIsSubmitting(true)
+
+    setCreating(true)
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams`, {
@@ -95,55 +99,22 @@ export default function TeamPage() {
         },
         body: JSON.stringify({ name: teamName.trim() }),
       })
+
       const data = await res.json()
+
       if (res.ok) {
         toast.success('Team created successfully! 🎉')
-        fetchTeam()
         setShowCreateModal(false)
         setTeamName('')
+        await fetchUserAndTeam()
       } else {
-        throw new Error(data.message || 'Failed to create team')
+        throw new Error(data.message || data.error || 'Failed to create team')
       }
     } catch (error: any) {
-      toast.error(error.message)
+      console.error('Create team error:', error)
+      toast.error(error.message || 'Failed to create team')
     } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleInviteMember = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inviteUid.trim()) {
-      toast.error('Please enter PUBG UID')
-      return
-    }
-    setIsSubmitting(true)
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}/members`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ player_id: inviteUid.trim() }),
-        }
-      )
-      const data = await res.json()
-      if (res.ok) {
-        toast.success('Member added successfully!')
-        fetchTeam()
-        setShowInviteModal(false)
-        setInviteUid('')
-      } else {
-        throw new Error(data.message || 'Failed to add member')
-      }
-    } catch (error: any) {
-      toast.error(error.message)
-    } finally {
-      setIsSubmitting(false)
+      setCreating(false)
     }
   }
 
@@ -160,9 +131,10 @@ export default function TeamPage() {
       )
       if (res.ok) {
         toast.success('Member removed')
-        fetchTeam()
+        await fetchUserAndTeam()
       } else {
-        toast.error('Failed to remove member')
+        const data = await res.json()
+        toast.error(data.message || 'Failed to remove member')
       }
     } catch (error) {
       toast.error('Failed to remove member')
@@ -179,9 +151,10 @@ export default function TeamPage() {
       })
       if (res.ok) {
         toast.success('You left the team')
-        setTeam(null)
+        await fetchUserAndTeam()
       } else {
-        toast.error('Failed to leave team')
+        const data = await res.json()
+        toast.error(data.message || 'Failed to leave team')
       }
     } catch (error) {
       toast.error('Failed to leave team')
@@ -198,9 +171,10 @@ export default function TeamPage() {
       })
       if (res.ok) {
         toast.success('Team deleted')
-        setTeam(null)
+        await fetchUserAndTeam()
       } else {
-        toast.error('Failed to delete team')
+        const data = await res.json()
+        toast.error(data.message || 'Failed to delete team')
       }
     } catch (error) {
       toast.error('Failed to delete team')
@@ -210,7 +184,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4655]"></div>
+        <Loader2 className="w-8 h-8 text-[#FF4655] animate-spin" />
       </div>
     )
   }
@@ -262,10 +236,11 @@ export default function TeamPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition disabled:opacity-50"
+                    disabled={creating}
+                    className="flex-1 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? 'Creating...' : 'Create'}
+                    {creating && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {creating ? 'Creating...' : 'Create'}
                   </button>
                 </div>
               </form>
@@ -287,23 +262,21 @@ export default function TeamPage() {
           <p className="text-gray-400">Manage your team and members</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2"
+          >
+            <UserPlus className="w-4 h-4" />
+            Invite
+          </button>
           {isCaptain && (
-            <>
-              <button
-                onClick={() => setShowInviteModal(true)}
-                className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2"
-              >
-                <UserPlus className="w-4 h-4" />
-                Invite
-              </button>
-              <button
-                onClick={handleDeleteTeam}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-            </>
+            <button
+              onClick={handleDeleteTeam}
+              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
           )}
           {!isCaptain && (
             <button
@@ -347,7 +320,9 @@ export default function TeamPage() {
       </div>
 
       {/* Members */}
-      <h2 className="text-xl font-heading font-bold mb-4">Members ({team?.members?.length || 0}/4)</h2>
+      <h2 className="text-xl font-heading font-bold mb-4">
+        Members ({team?.members?.length || 0}/{team?.max_members || 4})
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {team?.members?.map((member) => (
           <div
@@ -389,44 +364,6 @@ export default function TeamPage() {
           </div>
         ))}
       </div>
-
-      {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-2xl font-heading font-bold mb-4">Add Member</h2>
-            <form onSubmit={handleInviteMember} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Player ID</label>
-                <input
-                  type="text"
-                  required
-                  value={inviteUid}
-                  onChange={(e) => setInviteUid(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                  placeholder="Enter player ID"
-                />
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowInviteModal(false)}
-                  className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Adding...' : 'Add Member'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
