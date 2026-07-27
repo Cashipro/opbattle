@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { TestController } from './test.controller';  // ✅ Import karo
 import { User } from '../users/user.entity';
 
 @Module({
@@ -15,7 +16,7 @@ import { User } from '../users/user.entity';
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, TestController],  // ✅ Yahan add karo
   providers: [AuthService],
   exports: [AuthService],
 })
