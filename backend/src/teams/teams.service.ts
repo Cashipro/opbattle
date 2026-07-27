@@ -15,11 +15,31 @@ export class TeamsService {
     private playersService: PlayersService,
   ) {}
 
+  // ✅ ADD THIS METHOD
+  async findAll(query: any): Promise<{ teams: Team[]; total: number }> {
+    const { page = 1, limit = 20, search } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.teamRepository.createQueryBuilder('team')
+      .where('team.is_active = :isActive', { isActive: true });
+
+    if (search) {
+      qb.andWhere('team.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    const [teams, total] = await qb
+      .skip(skip)
+      .take(limit)
+      .orderBy('team.created_at', 'DESC')
+      .getManyAndCount();
+
+    return { teams, total };
+  }
+
   async create(userId: string, data: { name: string }): Promise<any> {
     console.log('🔍 Creating team for user:', userId);
     console.log('📝 Team name:', data.name);
 
-    // 1. Check if user already has a team
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
@@ -28,7 +48,6 @@ export class TeamsService {
       throw new ConflictException('You are already in a team');
     }
 
-    // 2. Get player profile
     let player;
     try {
       player = await this.playersService.findByUserId(userId);
@@ -43,7 +62,6 @@ export class TeamsService {
       throw new BadRequestException('Player profile not found. Please update your profile.');
     }
 
-    // 3. Create team
     const team = this.teamRepository.create({
       name: data.name,
       captain_id: userId,
@@ -53,7 +71,6 @@ export class TeamsService {
     await this.teamRepository.save(team);
     console.log('✅ Team created:', team.id);
 
-    // 4. Add captain as member
     const member = this.teamMemberRepository.create({
       team_id: team.id,
       player_id: userId,
