@@ -4,7 +4,6 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Headers, HttpCode, Htt
 const teams = new Map();
 const userTeamMap = new Map();
 let tournaments = [];
-let tournamentIdCounter = 1;
 
 @Controller()
 export class AppController {
@@ -170,7 +169,7 @@ export class AppController {
 
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
-    if (!auth || !auth.startsWith('Bearer '')) {
+    if (!auth || !auth.startsWith('Bearer ')) {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
@@ -198,7 +197,6 @@ export class AppController {
   }
 
   // ========== TOURNAMENT ROUTES ==========
-
   @Post('tournaments')
   @HttpCode(HttpStatus.CREATED)
   async createTournament(@Body() body: any, @Headers('authorization') auth: string) {
@@ -283,7 +281,7 @@ export class AppController {
       return { statusCode: 401, message: 'Unauthorized' };
     }
 
-    const userId = auth.split(' ')[1];
+    const userId = auth.split(' '')[1];
     const tournament = tournaments.find(t => t.id === id);
     if (!tournament) {
       return { statusCode: 404, message: 'Tournament not found' };
