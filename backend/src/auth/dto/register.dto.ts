@@ -1,12 +1,11 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Please enter a valid email address' })
+  @IsEmail()
   email: string;
 
   @IsString()
-  @MinLength(6, { message: 'Password must be at least 6 characters' })
-  // Remove any @Matches decorator if present
+  @MinLength(6)
   password: string;
 
   @IsOptional()
