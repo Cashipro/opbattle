@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Headers, HttpCode, HttpStatus } from '@nestjs/common';
 
-// In-memory storage (production mein database use karna)
+// In-memory storage
 const teamsStore = new Map();
 const userTeamMap = new Map();
 
@@ -52,7 +52,7 @@ export class AppController {
         email: email,
         role: 'user'
       },
-      access_token: 'token_' + userId
+      access_token: userId // ✅ SIMPLE TOKEN = USER ID
     };
   }
 
@@ -78,7 +78,7 @@ export class AppController {
         email: email,
         role: 'user'
       },
-      access_token: 'token_' + userId
+      access_token: userId // ✅ SIMPLE TOKEN = USER ID
     };
   }
 
@@ -104,9 +104,9 @@ export class AppController {
       };
     }
 
-    // Extract user ID from token (temporary)
-    const token = auth.split(' ')[1];
-    const userId = token.replace('token_', '');
+    // ✅ EXTRACT USER ID FROM TOKEN
+    const userId = auth.split(' ')[1];
+    console.log('👤 User ID from token:', userId);
 
     // Create team
     const teamId = 'team_' + Date.now();
@@ -134,16 +134,17 @@ export class AppController {
       created_at: new Date().toISOString()
     };
 
-    // Save to in-memory store
+    // Save to store
     teamsStore.set(teamId, newTeam);
     userTeamMap.set(userId, teamId);
 
     console.log('✅ Team created:', newTeam);
+    console.log('📊 userTeamMap:', Array.from(userTeamMap.entries()));
 
     return newTeam;
   }
 
-  // ✅ GET MY TEAM (FIXED)
+  // ✅ GET MY TEAM
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
     console.log('🔍 Get my team request');
@@ -156,19 +157,22 @@ export class AppController {
       };
     }
 
-    const token = auth.split(' ')[1];
-    const userId = token.replace('token_', '');
+    // ✅ EXTRACT USER ID FROM TOKEN
+    const userId = auth.split(' ')[1];
+    console.log('👤 User ID from token:', userId);
+    console.log('📊 userTeamMap:', Array.from(userTeamMap.entries()));
 
     const teamId = userTeamMap.get(userId);
-    console.log('🔍 User ID:', userId, 'Team ID:', teamId);
+    console.log('🔍 Team ID found:', teamId);
 
     if (!teamId) {
-      // ✅ Return null if no team (frontend handles this)
+      console.log('❌ No team found for user');
       return null;
     }
 
     const team = teamsStore.get(teamId);
     if (!team) {
+      console.log('❌ Team not found in store');
       return null;
     }
 
@@ -176,7 +180,6 @@ export class AppController {
     return team;
   }
 
-  // ✅ GET TEAM BY ID
   @Get('teams/:id')
   async getTeam(@Param('id') id: string) {
     const team = teamsStore.get(id);
@@ -190,7 +193,6 @@ export class AppController {
     return team;
   }
 
-  // ✅ GET ALL TEAMS
   @Get('teams')
   async getTeams() {
     const teams = Array.from(teamsStore.values());
@@ -200,7 +202,6 @@ export class AppController {
     };
   }
 
-  // ✅ PUBG TEST
   @Get('pubg-test/:name')
   async testPubg(@Param('name') name: string) {
     const apiKey = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkZWM2MjU4MC02Yjk1LTAxM2YtZjRkMS01MmUzZDQzMTI2MTAiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNzg1MTIxNDk2LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im9wYmF0dGxlIn0.18NDDV70YNsRHkk75zPYGgrGvUjAxVXYuOxpsiR0LS8';
