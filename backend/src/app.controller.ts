@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';  // ✅ Param import karo
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 
 @Controller()
 export class AppController {
@@ -27,6 +27,7 @@ export class AppController {
     ];
   }
 
+  // ✅ REGISTER ROUTE
   @Post('register')
   async register(@Body() body: any) {
     const { email, password } = body;
@@ -51,13 +52,38 @@ export class AppController {
     };
   }
 
-  // ✅ PUBG API Test Route
+  // ✅ LOGIN ROUTE (ADD THIS)
+  @Post('login')
+  async login(@Body() body: any) {
+    const { email, password } = body;
+
+    if (!email || !email.includes('@')) {
+      return { error: 'Invalid email' };
+    }
+
+    if (!password || password.length < 6) {
+      return { error: 'Invalid credentials' };
+    }
+
+    // ✅ For testing, any email/password works
+    return {
+      success: true,
+      message: 'Login successful!',
+      user: {
+        id: 'user_' + Date.now(),
+        email: email,
+        role: 'user'
+      },
+      access_token: 'token_' + Date.now()
+    };
+  }
+
+  // ✅ PUBG TEST ROUTE
   @Get('pubg-test/:name')
   async testPubg(@Param('name') name: string) {
     const apiKey = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkZWM2MjU4MC02Yjk1LTAxM2YtZjRkMS01MmUzZDQzMTI2MTAiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNzg1MTIxNDk2LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6Im9wYmF0dGxlIn0.18NDDV70YNsRHkk75zPYGgrGvUjAxVXYuOxpsiR0LS8';
     
     const url = `https://api.pubg.com/shards/steam/players?filter[playerNames]=${encodeURIComponent(name)}`;
-    console.log('🔍 Fetching:', url);
     
     const response = await fetch(url, {
       headers: {
@@ -67,8 +93,6 @@ export class AppController {
     });
 
     const data = await response.json();
-    console.log('📡 Status:', response.status);
-    console.log('📡 Response:', JSON.stringify(data).substring(0, 200));
 
     return {
       status: response.status,
