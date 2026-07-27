@@ -23,10 +23,10 @@ export class Match {
   map_name: string;
 
   @Column({ name: 'perspective', nullable: true })
-  perspective: string; // TPP, FPP
+  perspective: string;
 
   @Column({ default: 'SCHEDULED' })
-  status: string; // SCHEDULED, LIVE, COMPLETED, CANCELLED
+  status: string;
 
   @Column({ name: 'started_at', nullable: true })
   started_at: Date;
@@ -40,7 +40,7 @@ export class Match {
   @Column({ name: 'max_teams', default: 25 })
   max_teams: number;
 
-  @ManyToOne(() => Tournament, (tournament) => tournament.matches)
+  @ManyToOne(() => Tournament)
   @JoinColumn({ name: 'tournament_id' })
   tournament: Tournament;
 
