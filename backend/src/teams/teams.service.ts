@@ -15,51 +15,20 @@ export class TeamsService {
     private playersService: PlayersService,
   ) {}
 
-  // ✅ ADD THIS METHOD
-  async findAll(query: any): Promise<{ teams: Team[]; total: number }> {
-    const { page = 1, limit = 20, search } = query;
-    const skip = (page - 1) * limit;
-
-    const qb = this.teamRepository.createQueryBuilder('team')
-      .where('team.is_active = :isActive', { isActive: true });
-
-    if (search) {
-      qb.andWhere('team.name ILIKE :search', { search: `%${search}%` });
-    }
-
-    const [teams, total] = await qb
-      .skip(skip)
-      .take(limit)
-      .orderBy('team.created_at', 'DESC')
-      .getManyAndCount();
-
-    return { teams, total };
-  }
-
-  async create(userId: string, data: { name: string }): Promise<any> {
-    console.log('🔍 Creating team for user:', userId);
-    console.log('📝 Team name:', data.name);
-
+  async create(userId: string, data: { name: string }): Promise<Team> {
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
+
     if (existingMember) {
-      console.log('❌ User already in a team');
       throw new ConflictException('You are already in a team');
     }
 
     let player;
     try {
       player = await this.playersService.findByUserId(userId);
-      console.log('👤 Player found:', player?.id);
-    } catch (e) {
-      console.log('❌ Player profile not found');
+    } catch {
       throw new BadRequestException('Please complete your player profile first');
-    }
-
-    if (!player) {
-      console.log('❌ Player is null');
-      throw new BadRequestException('Player profile not found. Please update your profile.');
     }
 
     const team = this.teamRepository.create({
@@ -69,7 +38,6 @@ export class TeamsService {
     });
 
     await this.teamRepository.save(team);
-    console.log('✅ Team created:', team.id);
 
     const member = this.teamMemberRepository.create({
       team_id: team.id,
@@ -79,36 +47,28 @@ export class TeamsService {
     });
 
     await this.teamMemberRepository.save(member);
-    console.log('✅ Captain added as member');
 
     return team;
   }
 
   async findByPlayerId(userId: string): Promise<any> {
-    console.log('🔍 Finding team for player:', userId);
-    
     const member = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
 
     if (!member) {
-      console.log('❌ Player not in any team');
       throw new NotFoundException('You are not in a team');
     }
 
-    console.log('✅ Team found:', member.team_id);
     return this.findById(member.team_id);
   }
 
   async findById(id: string): Promise<any> {
-    console.log('🔍 Finding team by ID:', id);
-    
     const team = await this.teamRepository.findOne({
       where: { id, is_active: true },
     });
 
     if (!team) {
-      console.log('❌ Team not found');
       throw new NotFoundException('Team not found');
     }
 
@@ -147,6 +107,62 @@ export class TeamsService {
       ...team,
       members: memberDetails,
     };
+  }
+
+  // ✅ ADD MEMBER BY PUBG UID
+  async addMemberByUid(teamId: string, captainId: string, pubgUid: string): Promise<any> {
+    const team = await this.teamRepository.findOne({
+      where: { id: teamId, is_active: true },
+    });
+
+    if (!team) {
+      throw new NotFoundException('Team not found');
+    }
+
+    if (team.captain_id !== captainId) {
+      throw new ForbiddenException('Only captain can add members');
+    }
+
+    const currentMembers = await this.teamMemberRepository.count({
+      where: { team_id: teamId, is_active: true },
+    });
+
+    if (currentMembers >= 4) {
+      throw new BadRequestException('Team is full');
+    }
+
+    // ✅ Find player by PUBG UID
+    let player;
+    try {
+      player = await this.playersService.findByUid(pubgUid);
+    } catch {
+      throw new NotFoundException(`Player with PUBG UID "${pubgUid}" not found`);
+    }
+
+    if (!player) {
+      throw new NotFoundException(`Player with PUBG UID "${pubgUid}" not found`);
+    }
+
+    // ✅ Check if player is already in a team
+    const existingMember = await this.teamMemberRepository.findOne({
+      where: { player_id: player.user_id, is_active: true },
+    });
+
+    if (existingMember) {
+      throw new ConflictException('Player is already in a team');
+    }
+
+    // ✅ Add member using user_id from player
+    const member = this.teamMemberRepository.create({
+      team_id: teamId,
+      player_id: player.user_id,
+      is_captain: false,
+      joined_at: new Date(),
+    });
+
+    await this.teamMemberRepository.save(member);
+
+    return this.findById(teamId);
   }
 
   async update(id: string, userId: string, data: any): Promise<Team> {
@@ -188,48 +204,8 @@ export class TeamsService {
     );
   }
 
-  async addMember(teamId: string, captainId: string, playerId: string): Promise<any> {
-    const team = await this.teamRepository.findOne({
-      where: { id: teamId, is_active: true },
-    });
-
-    if (!team) {
-      throw new NotFoundException('Team not found');
-    }
-
-    if (team.captain_id !== captainId) {
-      throw new ForbiddenException('Only captain can add members');
-    }
-
-    const currentMembers = await this.teamMemberRepository.count({
-      where: { team_id: teamId, is_active: true },
-    });
-
-    if (currentMembers >= 4) {
-      throw new BadRequestException('Team is full');
-    }
-
-    const existingMember = await this.teamMemberRepository.findOne({
-      where: { player_id: playerId, is_active: true },
-    });
-
-    if (existingMember) {
-      throw new ConflictException('Player is already in a team');
-    }
-
-    const member = this.teamMemberRepository.create({
-      team_id: teamId,
-      player_id: playerId,
-      is_captain: false,
-      joined_at: new Date(),
-    });
-
-    await this.teamMemberRepository.save(member);
-
-    return this.findById(teamId);
-  }
-
-  async removeMember(teamId: string, captainId: string, playerId: string): Promise<any> {
+  // ✅ REMOVE MEMBER BY PUBG UID
+  async removeMemberByUid(teamId: string, captainId: string, pubgUid: string): Promise<any> {
     const team = await this.teamRepository.findOne({
       where: { id: teamId, is_active: true },
     });
@@ -242,12 +218,24 @@ export class TeamsService {
       throw new ForbiddenException('Only captain can remove members');
     }
 
-    if (team.captain_id === playerId) {
+    // ✅ Find player by PUBG UID
+    let player;
+    try {
+      player = await this.playersService.findByUid(pubgUid);
+    } catch {
+      throw new NotFoundException(`Player with PUBG UID "${pubgUid}" not found`);
+    }
+
+    if (!player) {
+      throw new NotFoundException(`Player with PUBG UID "${pubgUid}" not found`);
+    }
+
+    if (team.captain_id === player.user_id) {
       throw new BadRequestException('Cannot remove captain');
     }
 
     const member = await this.teamMemberRepository.findOne({
-      where: { team_id: teamId, player_id: playerId, is_active: true },
+      where: { team_id: teamId, player_id: player.user_id, is_active: true },
     });
 
     if (!member) {
@@ -322,6 +310,26 @@ export class TeamsService {
     );
 
     return this.findById(teamId);
+  }
+
+  async findAll(query: any): Promise<{ teams: Team[]; total: number }> {
+    const { page = 1, limit = 20, search } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.teamRepository.createQueryBuilder('team')
+      .where('team.is_active = :isActive', { isActive: true });
+
+    if (search) {
+      qb.andWhere('team.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    const [teams, total] = await qb
+      .skip(skip)
+      .take(limit)
+      .orderBy('team.created_at', 'DESC')
+      .getManyAndCount();
+
+    return { teams, total };
   }
 
   async getTopTeams(limit: number = 10): Promise<Team[]> {
