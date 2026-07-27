@@ -317,4 +317,20 @@ export default function TournamentDetailsPage() {
                   )
                 )}
                 {tournament.status === 'LIVE' && (
-                  <button className="w-full py-3 bg-green-500
+                  <button className="w-full py-3 bg-green-500/20 text-green-500 rounded-lg font-semibold cursor-not-allowed animate-pulse">
+                    🔴 LIVE
+                  </button>
+                )}
+                {tournament.status === 'COMPLETED' && (
+                  <button className="w-full py-3 bg-white/5 text-gray-400 rounded-lg font-semibold cursor-not-allowed">
+                    Completed
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
