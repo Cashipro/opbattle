@@ -1,28 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:3001', 'https://opbattle.vercel.app'],
-    credentials: true,
-  }));
+  app.use(cors());
   
-  // ⚠️ YEH LINE COMMENT KARO
+  // ⚠️ SAB KUCH HATADO — koi prefix, koi validation nahi
   // app.setGlobalPrefix('api/v1');
-  
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: false,
-    disableErrorMessages: false,
-  }));
   
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`⚡ OpBattle Backend running on port ${port}`);
+  console.log(`⚡ Server running on port ${port}`);
+  console.log(`📍 Test URL: http://localhost:${port}/test`);
 }
 bootstrap();
