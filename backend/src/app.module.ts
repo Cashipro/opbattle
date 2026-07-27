@@ -6,9 +6,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PlayersModule } from './players/players.module';
-import { TeamsModule } from './teams/teams.module';
+import { TeamsModule } from './teams/teams.module';  // ✅ IMPORT
 import { TournamentsModule } from './tournaments/tournaments.module';
 import { WalletModule } from './wallet/wallet.module';
+import { PubgModule } from './pubg/pubg.module';
 
 @Module({
   imports: [
@@ -27,9 +28,10 @@ import { WalletModule } from './wallet/wallet.module';
     AuthModule,
     UsersModule,
     PlayersModule,
-    TeamsModule,
+    TeamsModule,  // ✅ YEH ADD KARO
     TournamentsModule,
     WalletModule,
+    PubgModule,
   ],
   controllers: [AppController],
   providers: [AppService],
