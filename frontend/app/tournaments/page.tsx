@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Trophy, Calendar, Users, DollarSign, Gamepad2, MapPin } from 'lucide-react'
+import { Trophy, Calendar, Users, DollarSign, Gamepad2, MapPin, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Tournament {
@@ -20,6 +20,7 @@ interface Tournament {
   status: 'UPCOMING' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
   is_registered: boolean
   can_register: boolean
+  join_message: string
 }
 
 export default function TournamentsPage() {
@@ -63,11 +64,12 @@ export default function TournamentsPage() {
         },
       })
 
+      const data = await res.json()
+
       if (res.ok) {
-        toast.success('Successfully joined tournament! 🎉')
+        toast.success(data.message || 'Successfully joined! 🎉')
         fetchTournaments()
       } else {
-        const data = await res.json()
         toast.error(data.message || 'Failed to join')
       }
     } catch (error) {
@@ -95,6 +97,15 @@ export default function TournamentsPage() {
     return colors[status] || 'text-gray-400 bg-gray-500/10'
   }
 
+  const getModeBadge = (mode: string) => {
+    const colors: Record<string, string> = {
+      SOLO: 'bg-blue-500/20 text-blue-500',
+      DUO: 'bg-green-500/20 text-green-500',
+      SQUAD: 'bg-purple-500/20 text-purple-500',
+    }
+    return colors[mode] || 'bg-gray-500/20 text-gray-400'
+  }
+
   const filteredTournaments = filter === 'all' 
     ? tournaments 
     : tournaments.filter(t => t.status === filter.toUpperCase())
@@ -110,13 +121,12 @@ export default function TournamentsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] py-12">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-heading font-bold">Tournaments</h1>
             <p className="text-gray-400">Compete and win real prizes</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {['all', 'upcoming', 'live', 'completed'].map((f) => (
               <button
                 key={f}
@@ -133,7 +143,6 @@ export default function TournamentsPage() {
           </div>
         </div>
 
-        {/* Tournament List */}
         {filteredTournaments.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -145,9 +154,14 @@ export default function TournamentsPage() {
             {filteredTournaments.map((tournament) => (
               <div key={tournament.id} className="glass-card p-6 hover:border-[#FF4655]/30 transition">
                 <div className="flex items-center justify-between mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
-                    {getStatusBadge(tournament.status)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
+                      {getStatusBadge(tournament.status)}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getModeBadge(tournament.mode)}`}>
+                      {tournament.mode}
+                    </span>
+                  </div>
                   <span className="text-xs text-gray-400">
                     {tournament.current_teams}/{tournament.max_teams} Teams
                   </span>
@@ -181,6 +195,16 @@ export default function TournamentsPage() {
                   </div>
                 </div>
 
+                {/* Join Message */}
+                {tournament.status === 'UPCOMING' && tournament.join_message && (
+                  <div className="mt-3 text-xs text-gray-400 bg-white/5 p-2 rounded-lg">
+                    <span className="flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {tournament.join_message}
+                    </span>
+                  </div>
+                )}
+
                 <div className="mt-4">
                   {tournament.status === 'UPCOMING' && (
                     tournament.is_registered ? (
@@ -189,7 +213,7 @@ export default function TournamentsPage() {
                       </button>
                     ) : !tournament.can_register ? (
                       <button className="w-full py-2 bg-gray-500/20 text-gray-400 rounded-lg font-medium cursor-not-allowed">
-                        Registration Closed
+                        {tournament.join_message || 'Cannot Join'}
                       </button>
                     ) : (
                       <button
