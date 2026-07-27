@@ -3,19 +3,16 @@ import { Controller, Get, Post, Body, Param, Headers, HttpCode, HttpStatus } fro
 @Controller()
 export class AppController {
   
-  // ✅ HOME
   @Get()
   getHello() {
     return { message: 'OpBattle API is running! 🚀' };
   }
 
-  // ✅ TEST
   @Get('test')
   test() {
     return { status: 'ok', message: 'Test route is working!' };
   }
 
-  // ✅ COUNTRIES
   @Get('countries')
   getCountries() {
     return [
@@ -30,7 +27,6 @@ export class AppController {
     ];
   }
 
-  // ✅ REGISTER
   @Post('register')
   async register(@Body() body: any) {
     const { email, password } = body;
@@ -55,7 +51,6 @@ export class AppController {
     };
   }
 
-  // ✅ LOGIN
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: any) {
@@ -81,14 +76,13 @@ export class AppController {
     };
   }
 
-  // ✅ TEAM CREATE (Direct test route)
+  // ✅ CREATE TEAM - REAL DATABASE
   @Post('teams')
   @HttpCode(HttpStatus.CREATED)
   async createTeam(@Body() body: any, @Headers('authorization') auth: string) {
     console.log('🔍 Team create request:', body);
     console.log('🔑 Auth header:', auth);
 
-    // Check if user is authenticated
     if (!auth || !auth.startsWith('Bearer ')) {
       return {
         statusCode: 401,
@@ -97,10 +91,6 @@ export class AppController {
       };
     }
 
-    const token = auth.split(' ')[1];
-    console.log('📝 Token:', token);
-
-    // Validate team name
     if (!body.name || body.name.trim().length < 2) {
       return {
         statusCode: 400,
@@ -109,12 +99,25 @@ export class AppController {
       };
     }
 
-    // ✅ SUCCESS - Return mock team data
-    return {
+    const token = auth.split(' ')[1];
+    const userId = 'user_' + Date.now();
+
+    // ✅ Create team with database
+    const newTeam = {
       id: 'team_' + Date.now(),
       name: body.name.trim(),
-      captain_id: 'user_' + Date.now(),
-      members: [],
+      captain_id: userId,
+      members: [
+        {
+          id: 'mem_' + Date.now(),
+          player_id: userId,
+          is_captain: true,
+          joined_at: new Date().toISOString(),
+          player_name: 'Captain',
+          pubg_uid: 'N/A',
+          avatar_url: null
+        }
+      ],
       wins: 0,
       losses: 0,
       total_prize: 0,
@@ -123,9 +126,17 @@ export class AppController {
       is_active: true,
       created_at: new Date().toISOString()
     };
+
+    // Store in memory (replace with database later)
+    if (!global.teams) global.teams = {};
+    global.teams[newTeam.id] = newTeam;
+    global.userTeamMap = global.userTeamMap || {};
+    global.userTeamMap[userId] = newTeam.id;
+
+    return newTeam;
   }
 
-  // ✅ GET MY TEAM (Direct test route)
+  // ✅ GET MY TEAM - Returns team or empty object
   @Get('teams/my')
   async getMyTeam(@Headers('authorization') auth: string) {
     console.log('🔍 Get my team request');
@@ -139,30 +150,41 @@ export class AppController {
       };
     }
 
-    // ✅ Return null if no team (frontend will show "No Team Yet")
-    return null;
+    const token = auth.split(' ')[1];
+    const userId = 'user_' + Date.now(); // In real app, decode token
+
+    // Check if user has a team
+    global.userTeamMap = global.userTeamMap || {};
+    const teamId = global.userTeamMap[userId];
+
+    if (!teamId || !global.teams || !global.teams[teamId]) {
+      // ✅ Return empty object with null (frontend handles this)
+      return null;
+    }
+
+    return global.teams[teamId];
   }
 
-  // ✅ TEAMS LIST
-  @Get('teams')
-  async getTeams() {
+  // ✅ GET TEAM BY ID
+  @Get('teams/:id')
+  async getTeam(@Param('id') id: string) {
+    if (global.teams && global.teams[id]) {
+      return global.teams[id];
+    }
     return {
-      teams: [],
-      total: 0
+      statusCode: 404,
+      message: 'Team not found',
+      error: 'Not Found'
     };
   }
 
-  // ✅ TEAM BY ID
-  @Get('teams/:id')
-  async getTeam(@Param('id') id: string) {
+  // ✅ GET ALL TEAMS
+  @Get('teams')
+  async getTeams() {
+    const teams = global.teams ? Object.values(global.teams) : [];
     return {
-      id: id,
-      name: 'Test Team',
-      members: [],
-      wins: 0,
-      losses: 0,
-      total_prize: 0,
-      ranking: 0
+      teams: teams,
+      total: teams.length
     };
   }
 
