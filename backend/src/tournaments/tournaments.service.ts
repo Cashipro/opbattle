@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tournament } from './tournament.entity';
 import { TournamentRegistration } from './tournament-registration.entity';
 import { TeamsService } from '../teams/teams.service';
 import { WalletService } from '../wallet/wallet.service';
+import { PlayersService } from '../players/players.service';
 
 @Injectable()
 export class TournamentsService {
@@ -15,6 +16,7 @@ export class TournamentsService {
     private registrationRepository: Repository<TournamentRegistration>,
     private teamsService: TeamsService,
     private walletService: WalletService,
+    private playersService: PlayersService,
   ) {}
 
   async create(userId: string, data: any): Promise<Tournament> {
@@ -60,15 +62,26 @@ export class TournamentsService {
 
     const registeredTeams = await Promise.all(
       registrations.map(async (reg) => {
-        const team = await this.teamsService.findById(reg.team_id);
-        return {
-          id: team.id,
-          name: team.name,
-          members: team.members?.length || 0,
-          status: reg.status,
-          position: reg.position,
-          prize_won: reg.prize_won,
-        };
+        try {
+          const team = await this.teamsService.findById(reg.team_id);
+          return {
+            id: team.id,
+            name: team.name,
+            members: team.members?.length || 0,
+            status: reg.status,
+            position: reg.position,
+            prize_won: reg.prize_won,
+          };
+        } catch {
+          return {
+            id: reg.team_id,
+            name: 'Unknown Team',
+            members: 0,
+            status: reg.status,
+            position: reg.position,
+            prize_won: reg.prize_won,
+          };
+        }
       }),
     );
 
@@ -87,53 +100,42 @@ export class TournamentsService {
       new Date() < tournament.registration_deadline &&
       tournament.current_teams < tournament.max_teams;
 
+    // ✅ Check if user can join based on mode
+    let joinMessage = '';
+    let canJoin = true;
+
+    if (tournament.mode === 'SOLO') {
+      // ✅ Solo mode: Any player can join directly
+      canJoin = true;
+      joinMessage = 'Join as solo player';
+    } else if (tournament.mode === 'DUO' || tournament.mode === 'SQUAD') {
+      // ✅ Team mode: User must have a team
+      try {
+        const team = await this.teamsService.findByPlayerId(userId);
+        const requiredPlayers = tournament.mode === 'DUO' ? 2 : 4;
+        if (team.members.length < requiredPlayers) {
+          canJoin = false;
+          joinMessage = `Need ${requiredPlayers - team.members.length} more players in your team`;
+        } else {
+          canJoin = true;
+          joinMessage = `Join with your team (${team.members.length} players)`;
+        }
+      } catch {
+        canJoin = false;
+        joinMessage = 'You need to create or join a team first';
+      }
+    }
+
     return {
       ...tournament,
       registered_teams: registeredTeams,
       is_registered: isRegistered,
-      can_register: canRegister,
+      can_register: canRegister && canJoin,
+      join_message: joinMessage,
     };
   }
 
-  async update(id: string, userId: string, data: any): Promise<Tournament> {
-    const tournament = await this.tournamentRepository.findOne({
-      where: { id, is_active: true },
-    });
-
-    if (!tournament) {
-      throw new NotFoundException('Tournament not found');
-    }
-
-    if (tournament.created_by !== userId) {
-      throw new ForbiddenException('Only tournament creator can update');
-    }
-
-    if (tournament.status === 'COMPLETED') {
-      throw new BadRequestException('Cannot update completed tournament');
-    }
-
-    Object.assign(tournament, data);
-    return await this.tournamentRepository.save(tournament) as any;
-  }
-
-  async delete(id: string, userId: string): Promise<void> {
-    const tournament = await this.tournamentRepository.findOne({
-      where: { id, is_active: true },
-    });
-
-    if (!tournament) {
-      throw new NotFoundException('Tournament not found');
-    }
-
-    if (tournament.created_by !== userId) {
-      throw new ForbiddenException('Only tournament creator can delete');
-    }
-
-    tournament.is_active = false;
-    await this.tournamentRepository.save(tournament);
-  }
-
-  async registerTeam(tournamentId: string, userId: string): Promise<TournamentRegistration> {
+  async registerTeam(tournamentId: string, userId: string): Promise<any> {
     const tournament = await this.tournamentRepository.findOne({
       where: { id: tournamentId, is_active: true },
     });
@@ -154,25 +156,88 @@ export class TournamentsService {
       throw new BadRequestException('Tournament is full');
     }
 
-    const team = await this.teamsService.findByPlayerId(userId);
+    let teamId: string;
+    let teamName: string = 'Solo Player';
+    let membersCount: number = 1;
 
-    const existing = await this.registrationRepository.findOne({
-      where: { tournament_id: tournamentId, team_id: team.id },
-    });
+    // ✅ SOLO MODE - Direct player registration
+    if (tournament.mode === 'SOLO') {
+      // Check if player already registered
+      const existing = await this.registrationRepository.findOne({
+        where: { tournament_id: tournamentId, team_id: userId },
+      });
+      if (existing) {
+        throw new ConflictException('You are already registered in this tournament');
+      }
 
-    if (existing) {
-      throw new ConflictException('Team already registered');
+      // Deduct entry fee
+      if (tournament.entry_fee > 0) {
+        await this.walletService.deductFee(userId, tournament.entry_fee, `Tournament: ${tournament.title}`);
+      }
+
+      // Create registration with user ID as team_id
+      const registration = this.registrationRepository.create({
+        tournament_id: tournamentId,
+        team_id: userId, // Solo player uses user ID as team_id
+        entry_fee_paid: tournament.entry_fee,
+        payment_status: tournament.entry_fee > 0 ? 'PAID' : 'PENDING',
+        status: 'APPROVED',
+      });
+
+      await this.registrationRepository.save(registration);
+
+      tournament.current_teams += 1;
+      await this.tournamentRepository.save(tournament);
+
+      return {
+        message: 'Successfully registered as solo player! 🎉',
+        mode: 'SOLO',
+      };
     }
 
+    // ✅ TEAM MODE (DUO / SQUAD) - Team required
+    let team;
+    try {
+      team = await this.teamsService.findByPlayerId(userId);
+    } catch {
+      throw new BadRequestException('You need to create or join a team first');
+    }
+
+    if (!team) {
+      throw new BadRequestException('You need to create or join a team first');
+    }
+
+    const requiredPlayers = tournament.mode === 'DUO' ? 2 : 4;
+    if (team.members.length < requiredPlayers) {
+      throw new BadRequestException(
+        `Your team has ${team.members.length} players. Need ${requiredPlayers - team.members.length} more players.`
+      );
+    }
+
+    teamId = team.id;
+    teamName = team.name;
+    membersCount = team.members.length;
+
+    // Check if team already registered
+    const existing = await this.registrationRepository.findOne({
+      where: { tournament_id: tournamentId, team_id: teamId },
+    });
+    if (existing) {
+      throw new ConflictException('Your team is already registered in this tournament');
+    }
+
+    // Deduct entry fee
     if (tournament.entry_fee > 0) {
       await this.walletService.deductFee(userId, tournament.entry_fee, `Tournament: ${tournament.title}`);
     }
 
+    // Create registration
     const registration = this.registrationRepository.create({
       tournament_id: tournamentId,
-      team_id: team.id,
+      team_id: teamId,
       entry_fee_paid: tournament.entry_fee,
       payment_status: tournament.entry_fee > 0 ? 'PAID' : 'PENDING',
+      status: 'APPROVED',
     });
 
     await this.registrationRepository.save(registration);
@@ -180,99 +245,44 @@ export class TournamentsService {
     tournament.current_teams += 1;
     await this.tournamentRepository.save(tournament);
 
-    return registration;
+    return {
+      message: `Team "${teamName}" registered successfully! 🎉`,
+      mode: tournament.mode,
+      team_name: teamName,
+      members: membersCount,
+    };
   }
 
-  async approveRegistration(tournamentId: string, registrationId: string, adminId: string): Promise<void> {
-    const registration = await this.registrationRepository.findOne({
-      where: { id: registrationId, tournament_id: tournamentId },
-    });
+  async getMyTournaments(userId: string): Promise<any[]> {
+    // Check if user has a team
+    let teamId = userId; // Default: solo player
 
-    if (!registration) {
-      throw new NotFoundException('Registration not found');
+    try {
+      const team = await this.teamsService.findByPlayerId(userId);
+      teamId = team.id;
+    } catch {
+      // User is solo, use user ID
     }
-
-    registration.status = 'APPROVED';
-    registration.approved_by = adminId;
-    registration.approved_at = new Date();
-    await this.registrationRepository.save(registration);
-  }
-
-  async rejectRegistration(tournamentId: string, registrationId: string, adminId: string): Promise<void> {
-    const registration = await this.registrationRepository.findOne({
-      where: { id: registrationId, tournament_id: tournamentId },
-    });
-
-    if (!registration) {
-      throw new NotFoundException('Registration not found');
-    }
-
-    registration.status = 'REJECTED';
-    await this.registrationRepository.save(registration);
-
-    if (registration.entry_fee_paid > 0) {
-      const team = await this.teamsService.findById(registration.team_id);
-      await this.walletService.refund(team.captain_id, registration.entry_fee_paid);
-    }
-
-    const tournament = await this.tournamentRepository.findOne({
-      where: { id: tournamentId },
-    });
-    if (tournament) {
-      tournament.current_teams -= 1;
-      await this.tournamentRepository.save(tournament);
-    }
-  }
-
-  async startTournament(id: string, userId: string): Promise<Tournament> {
-    const tournament = await this.tournamentRepository.findOne({
-      where: { id, is_active: true },
-    });
-
-    if (!tournament) {
-      throw new NotFoundException('Tournament not found');
-    }
-
-    if (tournament.created_by !== userId) {
-      throw new ForbiddenException('Only tournament creator can start');
-    }
-
-    if (tournament.current_teams < tournament.min_teams) {
-      throw new BadRequestException(`Minimum ${tournament.min_teams} teams required to start`);
-    }
-
-    tournament.status = 'LIVE';
-    return await this.tournamentRepository.save(tournament) as any;
-  }
-
-  async cancelTournament(id: string, userId: string): Promise<Tournament> {
-    const tournament = await this.tournamentRepository.findOne({
-      where: { id, is_active: true },
-    });
-
-    if (!tournament) {
-      throw new NotFoundException('Tournament not found');
-    }
-
-    if (tournament.created_by !== userId) {
-      throw new ForbiddenException('Only tournament creator can cancel');
-    }
-
-    tournament.status = 'CANCELLED';
-    await this.tournamentRepository.save(tournament);
 
     const registrations = await this.registrationRepository.find({
-      where: { tournament_id: id, status: 'APPROVED' },
+      where: { team_id: teamId },
     });
 
-    for (const reg of registrations) {
-      if (reg.entry_fee_paid > 0) {
-        const team = await this.teamsService.findById(reg.team_id);
-        await this.walletService.refund(team.captain_id, reg.entry_fee_paid);
-      }
-    }
+    const tournaments = await Promise.all(
+      registrations.map(async (reg) => {
+        const tournament = await this.tournamentRepository.findOne({
+          where: { id: reg.tournament_id },
+        });
+        return {
+          ...tournament,
+          registration_status: reg.status,
+          position: reg.position,
+          prize_won: reg.prize_won,
+        };
+      }),
+    );
 
-    return tournament;
+    return tournaments;
   }
 
   async getUpcoming(): Promise<Tournament[]> {
@@ -298,30 +308,6 @@ export class TournamentsService {
     });
   }
 
-  async getMyTournaments(userId: string): Promise<any[]> {
-    const team = await this.teamsService.findByPlayerId(userId);
-
-    const registrations = await this.registrationRepository.find({
-      where: { team_id: team.id },
-    });
-
-    const tournaments = await Promise.all(
-      registrations.map(async (reg) => {
-        const tournament = await this.tournamentRepository.findOne({
-          where: { id: reg.tournament_id },
-        });
-        return {
-          ...tournament,
-          registration_status: reg.status,
-          position: reg.position,
-          prize_won: reg.prize_won,
-        };
-      }),
-    );
-
-    return tournaments;
-  }
-
   async getLeaderboard(tournamentId: string): Promise<any[]> {
     const registrations = await this.registrationRepository.find({
       where: { tournament_id: tournamentId },
@@ -330,9 +316,21 @@ export class TournamentsService {
 
     const leaderboard = await Promise.all(
       registrations.map(async (reg) => {
-        const team = await this.teamsService.findById(reg.team_id);
+        let teamName = 'Solo Player';
+        try {
+          const team = await this.teamsService.findById(reg.team_id);
+          teamName = team.name;
+        } catch {
+          // Solo player
+          try {
+            const player = await this.playersService.findByUserId(reg.team_id);
+            teamName = player.player_name || 'Solo Player';
+          } catch {
+            teamName = 'Unknown Player';
+          }
+        }
         return {
-          team_name: team.name,
+          team_name: teamName,
           position: reg.position,
           prize_won: reg.prize_won,
         };
@@ -361,11 +359,22 @@ export class TournamentsService {
       );
 
       if (result.prize_amount > 0) {
-        const team = await this.teamsService.findById(result.team_id);
-        const members = team.members || [];
-        const prizePerMember = result.prize_amount / members.length;
-        for (const member of members) {
-          await this.walletService.addReward(member.player_id, prizePerMember);
+        // If solo, prize goes to player directly
+        if (tournament.mode === 'SOLO') {
+          await this.walletService.addReward(result.team_id, result.prize_amount);
+        } else {
+          // Team mode - distribute to team members
+          try {
+            const team = await this.teamsService.findById(result.team_id);
+            const members = team.members || [];
+            const prizePerMember = result.prize_amount / members.length;
+            for (const member of members) {
+              await this.walletService.addReward(member.player_id, prizePerMember);
+            }
+          } catch {
+            // Solo mode fallback
+            await this.walletService.addReward(result.team_id, result.prize_amount);
+          }
         }
       }
     }
