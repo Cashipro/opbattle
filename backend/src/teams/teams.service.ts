@@ -15,29 +15,38 @@ export class TeamsService {
     private playersService: PlayersService,
   ) {}
 
-  async create(userId: string, data: { name: string }): Promise<Team> {
-    // Check if user already has a team
+  async create(userId: string, data: { name: string }): Promise<any> {
+    // 1. Check if user already has a team
     const existingMember = await this.teamMemberRepository.findOne({
       where: { player_id: userId, is_active: true },
     });
-
     if (existingMember) {
       throw new ConflictException('You are already in a team');
     }
 
-    // Get player profile
-    const player = await this.playersService.findByUserId(userId);
+    // 2. Get player profile (WITH SAFETY CHECK)
+    let player;
+    try {
+      player = await this.playersService.findByUserId(userId);
+    } catch (e) {
+      // Agar player profile nahi hai toh profile banane ka error do
+      throw new BadRequestException('Please complete your player profile first (Add PUBG UID)');
+    }
 
-    // Create team
+    if (!player) {
+      throw new BadRequestException('Player profile not found. Please update your profile.');
+    }
+
+    // 3. Create team
     const team = this.teamRepository.create({
       name: data.name,
       captain_id: userId,
-      country_id: player.country_id,
+      country_id: player.country_id || null, // Agar country nahi hai toh null
     });
 
     await this.teamRepository.save(team);
 
-    // Add captain as member
+    // 4. Add captain as member
     const member = this.teamMemberRepository.create({
       team_id: team.id,
       player_id: userId,
@@ -136,7 +145,7 @@ export class TeamsService {
     }
 
     Object.assign(team, data);
-    return await this.teamRepository.save(team);
+    return this.teamRepository.save(team);
   }
 
   async delete(id: string, userId: string): Promise<void> {
