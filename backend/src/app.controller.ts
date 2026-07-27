@@ -10,19 +10,33 @@ export class AppController {
     return { message: 'OpBattle API is running! 🚀' };
   }
 
-  // ✅ YE ROUTE PEHLE SE KAAM KAR RAHA HAI
   @Get('test')
   test() {
     return { status: 'ok', message: 'Test route is working!' };
   }
 
-  // ✅ AB YE BHI KAAM KAREGA
   @Post('register')
-  register(@Body() body: any) {
-    return { 
-      message: 'Register route is working!', 
-      received: body,
-      timestamp: new Date().toISOString()
+  async register(@Body() body: any) {
+    const { email, password } = body;
+
+    // Simple validation
+    if (!email || !email.includes('@')) {
+      return { error: 'Invalid email' };
+    }
+
+    if (!password || password.length < 6) {
+      return { error: 'Password must be at least 6 characters' };
+    }
+
+    // ✅ Success response
+    return {
+      success: true,
+      message: 'Registration successful!',
+      user: {
+        email: email,
+        role: 'user'
+      },
+      access_token: 'test_token_' + Date.now()
     };
   }
 }
