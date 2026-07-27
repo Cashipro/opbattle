@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, UserPlus, Crown, LogOut, Trash2, Loader2, Edit2, Save, X } from 'lucide-react'
+import { Users, UserPlus, Crown, Trash2, Loader2, Edit2, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface TeamMember {
@@ -52,6 +52,7 @@ export default function TeamPage() {
         return
       }
 
+      // Fetch player ID
       const playerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -60,6 +61,7 @@ export default function TeamPage() {
         setUserPlayerId(playerData?.id || null)
       }
 
+      // Fetch team
       const teamRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/my`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -143,20 +145,20 @@ export default function TeamPage() {
         body: JSON.stringify({ name: editTeamName.trim() }),
       })
 
-      const data = await res.json()
       if (res.ok) {
         toast.success('Team name updated!')
         setShowEditModal(false)
         await fetchUserAndTeam()
       } else {
-        throw new Error(data.message || 'Failed to update team')
+        const data = await res.json()
+        toast.error(data.message || 'Failed to update team')
       }
     } catch (error: any) {
       toast.error(error.message)
     }
   }
 
-  const handleInviteMember = async (e: React.FormEvent) => {
+  const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inviteUid.trim()) {
       toast.error('Please enter Player ID')
@@ -209,7 +211,7 @@ export default function TeamPage() {
   }
 
   const handleDeleteTeam = async () => {
-    if (!confirm('Delete this team permanently? This cannot be undone.')) return
+    if (!confirm('Delete this team permanently?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/teams/${team?.id}`, {
@@ -237,6 +239,7 @@ export default function TeamPage() {
     )
   }
 
+  // No Team
   if (!team) {
     return (
       <div>
@@ -244,7 +247,7 @@ export default function TeamPage() {
         <div className="glass-card p-12 text-center">
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-heading font-bold mb-2">No Team Yet</h3>
-          <p className="text-gray-400 mb-4">Create a team to start competing in tournaments</p>
+          <p className="text-gray-400 mb-4">Create a team to start competing</p>
           <button
             onClick={() => setShowCreateModal(true)}
             className="px-6 py-3 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-semibold transition"
@@ -307,7 +310,7 @@ export default function TeamPage() {
             {isFull ? '✅ Team is full!' : `${team.members?.length || 0}/4 players`}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           {isCaptain && (
             <>
               <button
@@ -331,14 +334,14 @@ export default function TeamPage() {
                 className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg font-medium transition flex items-center gap-2 text-red-500"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete Team
+                Delete
               </button>
             </>
           )}
-          {/* ❌ LEAVE BUTTON HATAO — SIRF CAPTAIN KE LIYE DELETE HAI */}
         </div>
       </div>
 
+      {/* Team Card */}
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-[#FF4655]/10 flex items-center justify-center border-2 border-[#FF4655]">
@@ -363,17 +366,11 @@ export default function TeamPage() {
         </div>
       </div>
 
+      {/* Members Section */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-heading font-bold">Members ({team.members?.length || 0}/4)</h2>
-        {isCaptain && !isFull && (
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="px-4 py-2 bg-[#FF4655] hover:bg-[#FF4655]/80 rounded-lg font-medium transition flex items-center gap-2 text-sm"
-          >
-            <UserPlus className="w-4 h-4" />
-            Add Member
-          </button>
-        )}
+        <h2 className="text-xl font-heading font-bold">
+          Members ({team.members?.length || 0}/4)
+        </h2>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -410,6 +407,7 @@ export default function TeamPage() {
             </div>
           </div>
         ))}
+        {/* Empty Slots */}
         {Array.from({ length: Math.max(0, 4 - (team.members?.length || 0)) }).map((_, i) => (
           <div key={`empty-${i}`} className="glass-card p-4 flex items-center justify-center border-dashed border-2 border-white/10">
             <p className="text-gray-500 text-sm">Empty Slot</p>
@@ -417,6 +415,7 @@ export default function TeamPage() {
         ))}
       </div>
 
+      {/* Edit Team Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
@@ -455,11 +454,12 @@ export default function TeamPage() {
         </div>
       )}
 
+      {/* Add Member Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 w-full max-w-md">
             <h2 className="text-2xl font-heading font-bold mb-4">Add Member</h2>
-            <form onSubmit={handleInviteMember} className="space-y-4">
+            <form onSubmit={handleAddMember} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Player ID</label>
                 <input
@@ -468,7 +468,7 @@ export default function TeamPage() {
                   value={inviteUid}
                   onChange={(e) => setInviteUid(e.target.value)}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-[#FF4655] transition"
-                  placeholder="Enter player ID"
+                  placeholder="Enter player's PUBG UID"
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter the player's PUBG UID</p>
               </div>
