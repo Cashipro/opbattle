@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, UserPlus, Crown, Trash2, Loader2, Edit2, Save } from 'lucide-react'
+import { Users, UserPlus, Crown, Trash2, Loader2, Edit2, Save, LogOut } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface TeamMember {
