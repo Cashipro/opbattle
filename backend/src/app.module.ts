@@ -23,7 +23,7 @@ import { PubgModule } from './pubg/pubg.module';
       }),
       inject: [ConfigService],
     }),
-    PubgModule, // ✅ YEH ADD KARO
+    PubgModule,  // ✅ YEH HONA CHAHIYE
   ],
   controllers: [AppController],
   providers: [AppService],
