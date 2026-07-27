@@ -12,10 +12,22 @@ interface Country {
   code: string
 }
 
+// ✅ FALLBACK COUNTRIES (AGAR API FAIL HO)
+const FALLBACK_COUNTRIES: Country[] = [
+  { id: '1', name: 'Pakistan', code: 'PK' },
+  { id: '2', name: 'Saudi Arabia', code: 'SA' },
+  { id: '3', name: 'Oman', code: 'OM' },
+  { id: '4', name: 'Qatar', code: 'QA' },
+  { id: '5', name: 'Bangladesh', code: 'BD' },
+  { id: '6', name: 'India', code: 'IN' },
+  { id: '7', name: 'USA', code: 'US' },
+  { id: '8', name: 'UK', code: 'UK' },
+]
+
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES)
   const [loadingCountries, setLoadingCountries] = useState(true)
   const [form, setForm] = useState({
     email: '',
@@ -32,21 +44,23 @@ export default function RegisterPage() {
 
   const fetchCountries = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries`)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://opbattle-production.up.railway.app'
+      const res = await fetch(`${apiUrl}/countries`)
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch countries')
+      }
+      
       const data = await res.json()
-      setCountries(Array.isArray(data) ? data : [])
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setCountries(data)
+      } else {
+        setCountries(FALLBACK_COUNTRIES)
+      }
     } catch (error) {
       console.error('Failed to fetch countries:', error)
-      setCountries([
-        { id: '1', name: 'Pakistan', code: 'PK' },
-        { id: '2', name: 'Saudi Arabia', code: 'SA' },
-        { id: '3', name: 'Oman', code: 'OM' },
-        { id: '4', name: 'Qatar', code: 'QA' },
-        { id: '5', name: 'Bangladesh', code: 'BD' },
-        { id: '6', name: 'India', code: 'IN' },
-        { id: '7', name: 'USA', code: 'US' },
-        { id: '8', name: 'UK', code: 'UK' },
-      ])
+      setCountries(FALLBACK_COUNTRIES)
     } finally {
       setLoadingCountries(false)
     }
@@ -55,7 +69,6 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validation
     if (!form.email || !form.email.includes('@')) {
       toast.error('Please enter a valid email')
       return
@@ -99,7 +112,6 @@ export default function RegisterPage() {
         throw new Error(data.message || data.error || 'Registration failed')
       }
       
-      // Save token if exists
       if (data.access_token) {
         localStorage.setItem('token', data.access_token)
       }
