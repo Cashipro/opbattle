@@ -6,6 +6,7 @@ export class RegisterDto {
 
   @IsString()
   @MinLength(6, { message: 'Password must be at least 6 characters' })
+  // Remove any @Matches decorator if present
   password: string;
 
   @IsOptional()
