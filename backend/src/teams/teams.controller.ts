@@ -13,7 +13,7 @@ import {
 import { TeamsService } from './teams.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('api/v1/teams')
+@Controller('teams')
 @UseGuards(JwtAuthGuard)
 export class TeamsController {
   constructor(private readonly teamsService: TeamsService) {}
@@ -36,11 +36,6 @@ export class TeamsController {
   @Get()
   async findAll(@Query() query: any) {
     return this.teamsService.findAll(query);
-  }
-
-  @Get('search/:query')
-  async search(@Param('query') query: string) {
-    return this.teamsService.search(query);
   }
 
   @Put(':id')
