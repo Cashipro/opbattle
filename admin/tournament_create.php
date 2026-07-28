@@ -3,9 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors',1);
 
+session_start();
+
 require_once '../config.php';
 
-session_start();
 
 
 if(!isset($_SESSION['admin_id'])){
@@ -16,6 +17,7 @@ if(!isset($_SESSION['admin_id'])){
 }
 
 
+
 $message="";
 $error="";
 
@@ -24,31 +26,37 @@ $error="";
 if(isset($_POST['create'])){
 
 
-$title = trim($_POST['title'] ?? '');
+$title = trim($_POST['title']);
 
-$game_name = $_POST['game_name'] ?? 'PUBG Mobile';
+$game_name = $_POST['game_name'];
 
-$tournament_type = $_POST['tournament_type'] ?? 'Squad';
+$tournament_type = $_POST['tournament_type'];
 
-$map_name = $_POST['map_name'] ?? 'Erangel';
+$map_name = $_POST['map_name'];
 
-$entry_fee = floatval($_POST['entry_fee'] ?? 0);
+$entry_fee = floatval($_POST['entry_fee']);
 
-$prize_pool = floatval($_POST['prize_pool'] ?? 0);
+$prize_pool = floatval($_POST['prize_pool']);
 
-$total_slots = intval($_POST['total_slots'] ?? 100);
+$total_slots = intval($_POST['total_slots']);
 
-$tournament_date = $_POST['tournament_date'] ?? null;
+$tournament_date = $_POST['tournament_date'];
 
 $description = $_POST['description'] ?? '';
+
+$players_per_team = intval($_POST['players_per_team']);
+
 
 
 
 if(empty($title)){
 
-    $error="Tournament title required.";
+
+$error="Tournament title required.";
+
 
 }
+
 else{
 
 
@@ -59,28 +67,46 @@ $pdo->beginTransaction();
 
 
 
+// CREATE TOURNAMENT
+
+
 $stmt=$pdo->prepare("
 
 INSERT INTO tournaments
 
 (
+
 title,
+
 game_name,
+
 tournament_type,
+
 map_name,
+
 entry_fee,
+
 prize_pool,
+
 total_slots,
+
 joined_players,
+
 tournament_date,
+
 status,
-description
+
+description,
+
+registration_status,
+
+players_per_team
 
 )
 
 VALUES
 
-(?,?,?,?,?,?,?,0,?,'upcoming',?)
+(?,?,?,?,?,?,?,0,?,'upcoming',?,'open',?)
 
 ");
 
@@ -88,30 +114,42 @@ VALUES
 
 $stmt->execute([
 
+
 $title,
+
 $game_name,
+
 $tournament_type,
+
 $map_name,
+
 $entry_fee,
+
 $prize_pool,
+
 $total_slots,
+
 $tournament_date,
-$description
+
+$description,
+
+$players_per_team
+
 
 ]);
 
+
+
+
+// GET TOURNAMENT ID
 
 
 $tournament_id=$pdo->lastInsertId();
 
 
 
-/*
- CREATE PUBG STYLE TEAMS
-*/
 
-
-for($i=1; $i <= $total_slots; $i++){
+// CREATE TEAMS
 
 
 $team=$pdo->prepare("
@@ -119,8 +157,11 @@ $team=$pdo->prepare("
 INSERT INTO tournament_teams
 
 (
+
 tournament_id,
+
 team_number
+
 )
 
 VALUES
@@ -130,9 +171,14 @@ VALUES
 ");
 
 
+
+for($i=1;$i<=$total_slots;$i++){
+
+
 $team->execute([
 
 $tournament_id,
+
 $i
 
 ]);
@@ -142,15 +188,16 @@ $i
 
 
 
+
 $pdo->commit();
 
 
-
-$message="Tournament created with $total_slots teams successfully.";
+$message="Tournament created with ".$total_slots." teams successfully.";
 
 
 
 }
+
 catch(PDOException $e){
 
 
@@ -162,18 +209,15 @@ $error=$e->getMessage();
 }
 
 
-}
-
-
 
 }
 
+
+
+}
 
 
 ?>
-
-
-
 <!DOCTYPE html>
 
 <html>
@@ -181,19 +225,25 @@ $error=$e->getMessage();
 <head>
 
 <title>
-Create Tournament - OPBattle
+OPBattle Create Tournament
 </title>
 
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 
+
 <style>
 
+
 *{
+
 box-sizing:border-box;
+
 font-family:Segoe UI,sans-serif;
+
 }
+
 
 
 body{
@@ -211,7 +261,7 @@ color:white;
 
 .container{
 
-max-width:800px;
+max-width:850px;
 
 margin:40px auto;
 
@@ -225,6 +275,8 @@ h1{
 
 color:#ccff00;
 
+font-size:34px;
+
 }
 
 
@@ -233,23 +285,13 @@ color:#ccff00;
 
 background:#0f1319;
 
-border:1px solid #1f2937;
+border:1px solid #27313d;
 
-border-radius:20px;
+border-radius:22px;
 
 padding:30px;
 
-}
-
-
-
-.alert{
-
-padding:15px;
-
-border-radius:12px;
-
-margin-bottom:20px;
+box-shadow:0 0 30px #000;
 
 }
 
@@ -263,6 +305,12 @@ border:1px solid #22c55e;
 
 color:#22c55e;
 
+padding:15px;
+
+border-radius:12px;
+
+margin-bottom:20px;
+
 }
 
 
@@ -275,6 +323,12 @@ border:1px solid red;
 
 color:#ff7777;
 
+padding:15px;
+
+border-radius:12px;
+
+margin-bottom:20px;
+
 }
 
 
@@ -283,29 +337,45 @@ label{
 
 display:block;
 
-margin-bottom:7px;
-
 color:#9ca3af;
+
+font-size:14px;
+
+margin-bottom:8px;
 
 }
 
 
 
-input,select,textarea{
+input,
+select,
+textarea{
+
 
 width:100%;
 
 padding:14px;
 
-margin-bottom:18px;
-
 background:#161b22;
 
 border:1px solid #374151;
 
-border-radius:10px;
+border-radius:12px;
 
 color:white;
+
+margin-bottom:18px;
+
+
+}
+
+
+
+textarea{
+
+height:100px;
+
+resize:none;
 
 }
 
@@ -317,7 +387,7 @@ display:grid;
 
 grid-template-columns:1fr 1fr;
 
-gap:15px;
+gap:18px;
 
 }
 
@@ -327,13 +397,17 @@ button{
 
 width:100%;
 
-padding:15px;
+padding:16px;
 
 background:#ccff00;
 
+color:black;
+
 border:0;
 
-border-radius:12px;
+border-radius:14px;
+
+font-size:16px;
 
 font-weight:900;
 
@@ -343,13 +417,49 @@ cursor:pointer;
 
 
 
+button:hover{
+
+opacity:.85;
+
+}
+
+
+
+.note{
+
+background:#161b22;
+
+padding:15px;
+
+border-radius:12px;
+
+margin-bottom:20px;
+
+color:#9ca3af;
+
+}
+
+
+
 @media(max-width:700px){
+
 
 .grid{
 
 grid-template-columns:1fr;
 
 }
+
+
+.container{
+
+margin:20px auto;
+
+padding:15px;
+
+}
+
+
 
 }
 
@@ -360,26 +470,30 @@ grid-template-columns:1fr;
 </head>
 
 
-
 <body>
+
 
 
 <div class="container">
 
 
+
 <h1>
-🎮 Create New Tournament
+🎮 Create OPBattle Tournament
 </h1>
+
 
 
 
 <?php if($message){ ?>
 
-<div class="alert success">
+
+<div class="success">
 
 <?php echo $message; ?>
 
 </div>
+
 
 <?php } ?>
 
@@ -387,18 +501,33 @@ grid-template-columns:1fr;
 
 <?php if($error){ ?>
 
-<div class="alert error">
+
+<div class="error">
 
 <?php echo $error; ?>
 
 </div>
+
 
 <?php } ?>
 
 
 
 
+
 <div class="card">
+
+
+<div class="note">
+
+Tournament create hote hi system automatically teams generate karega.
+
+Example:
+100 Teams = Team 1 se Team 100
+
+</div>
+
+
 
 
 <form method="post">
@@ -409,11 +538,19 @@ grid-template-columns:1fr;
 Tournament Name
 </label>
 
-<input 
+
+<input
+
 type="text"
+
 name="title"
+
 placeholder="OPBattle Weekly Cup"
-required>
+
+required
+
+>
+
 
 
 
@@ -422,13 +559,22 @@ required>
 
 <div>
 
+
 <label>
-Game
+Game Name
 </label>
 
-<input 
+
+<input
+
+type="text"
+
 name="game_name"
-value="PUBG Mobile">
+
+value="PUBG Mobile"
+
+>
+
 
 </div>
 
@@ -436,43 +582,108 @@ value="PUBG Mobile">
 
 <div>
 
+
 <label>
-Type
+Tournament Type
 </label>
+
 
 <select name="tournament_type">
 
-<option>Squad</option>
 
-<option>Duo</option>
+<option>
+Squad
+</option>
 
-<option>Solo</option>
+
+<option>
+Duo
+</option>
+
+
+<option>
+Solo
+</option>
+
 
 </select>
 
-</div>
-
 
 </div>
 
 
+</div>
+
+
+
+
+
+<div class="grid">
+
+
+<div>
 
 
 <label>
 Map
 </label>
 
+
 <select name="map_name">
 
-<option>Erangel</option>
 
-<option>Miramar</option>
+<option>
+Erangel
+</option>
 
-<option>Livik</option>
 
-<option>Sanhok</option>
+<option>
+Miramar
+</option>
+
+
+<option>
+Livik
+</option>
+
+
+<option>
+Sanhok
+</option>
+
 
 </select>
+
+
+</div>
+
+
+
+
+<div>
+
+
+<label>
+Players Per Team
+</label>
+
+
+<input
+
+type="number"
+
+name="players_per_team"
+
+value="4"
+
+>
+
+
+</div>
+
+
+</div>
+
 
 
 
@@ -481,15 +692,23 @@ Map
 
 
 <div>
+
 
 <label>
 Entry Fee
 </label>
 
-<input 
+
+<input
+
 type="number"
+
 name="entry_fee"
-value="0">
+
+value="0"
+
+>
+
 
 </div>
 
@@ -497,19 +716,28 @@ value="0">
 
 <div>
 
+
 <label>
 Prize Pool
 </label>
 
-<input 
+
+<input
+
 type="number"
+
 name="prize_pool"
-value="0">
+
+value="0"
+
+>
+
 
 </div>
 
 
 </div>
+
 
 
 
@@ -519,14 +747,23 @@ value="0">
 
 <div>
 
+
 <label>
 Total Teams
+
 </label>
 
-<input 
+
+<input
+
 type="number"
+
 name="total_slots"
-value="100">
+
+value="100"
+
+>
+
 
 </div>
 
@@ -534,27 +771,49 @@ value="100">
 
 <div>
 
+
 <label>
-Match Date
+Match Date & Time
+
 </label>
 
-<input 
+
+<input
+
 type="datetime-local"
-name="tournament_date">
+
+name="tournament_date"
+
+required
+
+>
+
 
 </div>
 
 
 </div>
+
+
 
 
 
 <label>
+
 Description
+
 </label>
 
 
-<textarea name="description"></textarea>
+<textarea
+
+name="description"
+
+placeholder="Tournament details..."
+
+></textarea>
+
+
 
 
 
@@ -567,13 +826,17 @@ CREATE TOURNAMENT
 
 
 
+
 </form>
 
 
+
 </div>
 
 
+
 </div>
+
 
 
 </body>
