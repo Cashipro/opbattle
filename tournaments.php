@@ -1,9 +1,13 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors',1);
+
 require_once 'config.php';
 
-session_start();
-
+if(session_status() === PHP_SESSION_NONE){
+    session_start();
+}
 
 
 /*
@@ -28,7 +32,7 @@ LEFT JOIN teams tm
 ON t.id=tm.tournament_id
 
 
-WHERE t.status='registration_open'
+WHERE t.status IN ('upcoming','registration','registration_open')
 
 
 GROUP BY t.id
@@ -336,7 +340,7 @@ Join PUBG tournaments and compete for prizes.
 
 <div class="badge">
 
-REGISTRATION OPEN
+<?php echo strtoupper($t['status']); ?>
 
 </div>
 
@@ -403,12 +407,34 @@ TEAMS
 
 /
 
-<?php echo $t['total_teams']; ?>
+<?php echo $t['total_slots']; ?>
 
 </div>
 
 </div>
 
+
+
+
+
+
+
+<div class="info">
+
+<div class="label">
+
+MODE
+
+</div>
+
+
+<div class="value">
+
+<?php echo htmlspecialchars($t['tournament_type']); ?>
+
+</div>
+
+</div>
 
 
 
@@ -427,6 +453,44 @@ MAP
 <div class="value">
 
 <?php echo htmlspecialchars($t['map_name']); ?>
+
+</div>
+
+</div>
+
+
+
+
+
+
+<div class="info">
+
+<div class="label">
+
+MATCH DATE
+
+</div>
+
+
+<div class="value">
+
+<?php 
+
+if($t['tournament_date']){
+
+echo date(
+"d M Y h:i A",
+strtotime($t['tournament_date'])
+);
+
+}
+else{
+
+echo "Not Scheduled";
+
+}
+
+?>
 
 </div>
 
