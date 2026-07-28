@@ -5,41 +5,58 @@ ini_set('display_errors',1);
 
 require_once '../config.php';
 
+session_start();
+
+
 if(!isset($_SESSION['admin_id'])){
 
-header("Location: admin_login.php");
-exit;
+    header("Location: admin_login.php");
+    exit;
 
 }
 
 
 $message="";
-
 $error="";
+
 
 
 if(isset($_POST['create'])){
 
 
-$title=trim($_POST['title'] ?? '');
+$title = trim($_POST['title'] ?? '');
 
-$map=$_POST['map_name'] ?? 'Erangel';
+$game_name = $_POST['game_name'] ?? 'PUBG Mobile';
 
-$mode=$_POST['mode'] ?? 'Squad';
+$tournament_type = $_POST['tournament_type'] ?? 'Squad';
 
-$match_date=$_POST['match_date'] ?? null;
+$map_name = $_POST['map_name'] ?? 'Erangel';
 
-$entry_fee=floatval($_POST['entry_fee'] ?? 0);
+$entry_fee = floatval($_POST['entry_fee'] ?? 0);
 
-$prize_pool=floatval($_POST['prize_pool'] ?? 0);
+$prize_pool = floatval($_POST['prize_pool'] ?? 0);
 
-$total_teams=intval($_POST['total_teams'] ?? 100);
+$total_slots = intval($_POST['total_slots'] ?? 100);
 
-$description=$_POST['description'] ?? '';
+$tournament_date = $_POST['tournament_date'] ?? null;
 
+$description = $_POST['description'] ?? '';
+
+
+
+if(empty($title)){
+
+    $error="Tournament title required.";
+
+}
+else{
 
 
 try{
+
+
+$pdo->beginTransaction();
+
 
 
 $stmt=$pdo->prepare("
@@ -47,38 +64,23 @@ $stmt=$pdo->prepare("
 INSERT INTO tournaments
 
 (
-
 title,
-
 game_name,
-
 tournament_type,
-
 map_name,
-
 entry_fee,
-
 prize_pool,
-
 total_slots,
-
 joined_players,
-
 tournament_date,
-
 status,
-
 description
 
 )
 
 VALUES
 
-(
-
-?,?,?,?,?,?,?,?,?,'upcoming',?
-
-)
+(?,?,?,?,?,?,?,0,?,'upcoming',?)
 
 ");
 
@@ -87,37 +89,77 @@ VALUES
 $stmt->execute([
 
 $title,
-
-'PUBG Mobile',
-
-$mode,
-
-$map,
-
+$game_name,
+$tournament_type,
+$map_name,
 $entry_fee,
-
 $prize_pool,
-
-$total_teams,
-
-0,
-
-$match_date,
-
+$total_slots,
+$tournament_date,
 $description
 
 ]);
 
 
 
-$message="Tournament created successfully";
+$tournament_id=$pdo->lastInsertId();
+
+
+
+/*
+ CREATE PUBG STYLE TEAMS
+*/
+
+
+for($i=1; $i <= $total_slots; $i++){
+
+
+$team=$pdo->prepare("
+
+INSERT INTO tournament_teams
+
+(
+tournament_id,
+team_number
+)
+
+VALUES
+
+(?,?)
+
+");
+
+
+$team->execute([
+
+$tournament_id,
+$i
+
+]);
+
+
+}
+
+
+
+$pdo->commit();
+
+
+
+$message="Tournament created with $total_slots teams successfully.";
+
 
 
 }
 catch(PDOException $e){
 
 
+$pdo->rollBack();
+
 $error=$e->getMessage();
+
+
+}
 
 
 }
@@ -139,9 +181,7 @@ $error=$e->getMessage();
 <head>
 
 <title>
-
-OPBattle Create Tournament
-
+Create Tournament - OPBattle
 </title>
 
 
@@ -150,15 +190,10 @@ OPBattle Create Tournament
 
 <style>
 
-
 *{
-
 box-sizing:border-box;
-
 font-family:Segoe UI,sans-serif;
-
 }
-
 
 
 body{
@@ -166,7 +201,6 @@ body{
 margin:0;
 
 background:
-
 radial-gradient(circle at top,#263800,#050505);
 
 color:white;
@@ -211,12 +245,6 @@ padding:30px;
 
 .alert{
 
-background:#052e16;
-
-border:1px solid #22c55e;
-
-color:#22c55e;
-
 padding:15px;
 
 border-radius:12px;
@@ -224,6 +252,19 @@ border-radius:12px;
 margin-bottom:20px;
 
 }
+
+
+
+.success{
+
+background:#052e16;
+
+border:1px solid #22c55e;
+
+color:#22c55e;
+
+}
+
 
 
 .error{
@@ -234,12 +275,6 @@ border:1px solid red;
 
 color:#ff7777;
 
-padding:15px;
-
-border-radius:12px;
-
-margin-bottom:20px;
-
 }
 
 
@@ -248,18 +283,15 @@ label{
 
 display:block;
 
-color:#9ca3af;
-
-font-size:13px;
-
 margin-bottom:7px;
+
+color:#9ca3af;
 
 }
 
 
 
 input,select,textarea{
-
 
 width:100%;
 
@@ -274,7 +306,6 @@ border:1px solid #374151;
 border-radius:10px;
 
 color:white;
-
 
 }
 
@@ -299,8 +330,6 @@ width:100%;
 padding:15px;
 
 background:#ccff00;
-
-color:black;
 
 border:0;
 
@@ -335,42 +364,36 @@ grid-template-columns:1fr;
 <body>
 
 
-
 <div class="container">
 
 
-
 <h1>
-
 🎮 Create New Tournament
-
 </h1>
 
 
 
+<?php if($message){ ?>
 
-<?php if($message): ?>
-
-<div class="alert">
+<div class="alert success">
 
 <?php echo $message; ?>
 
 </div>
 
-<?php endif; ?>
+<?php } ?>
 
 
-<?php if($error): ?>
 
-<div class="error">
+<?php if($error){ ?>
+
+<div class="alert error">
 
 <?php echo $error; ?>
 
 </div>
 
-<?php endif; ?>
-
-
+<?php } ?>
 
 
 
@@ -383,24 +406,14 @@ grid-template-columns:1fr;
 
 
 <label>
-
 Tournament Name
-
 </label>
 
-
-<input
-
+<input 
 type="text"
-
 name="title"
-
-placeholder="Example: OPBattle Weekly Cup"
-
-required
-
->
-
+placeholder="OPBattle Weekly Cup"
+required>
 
 
 
@@ -410,14 +423,46 @@ required
 <div>
 
 <label>
-
-Map
-
+Game
 </label>
 
+<input 
+name="game_name"
+value="PUBG Mobile">
+
+</div>
+
+
+
+<div>
+
+<label>
+Type
+</label>
+
+<select name="tournament_type">
+
+<option>Squad</option>
+
+<option>Duo</option>
+
+<option>Solo</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+
+
+<label>
+Map
+</label>
 
 <select name="map_name">
-
 
 <option>Erangel</option>
 
@@ -427,62 +472,7 @@ Map
 
 <option>Sanhok</option>
 
-
 </select>
-
-</div>
-
-
-
-
-<div>
-
-
-<label>
-
-Mode
-
-</label>
-
-
-<select name="mode">
-
-
-<option>Squad</option>
-
-<option>Duo</option>
-
-<option>Solo</option>
-
-
-</select>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<label>
-
-Match Date & Time
-
-</label>
-
-
-<input
-
-type="datetime-local"
-
-name="match_date"
-
-required
-
->
 
 
 
@@ -492,26 +482,14 @@ required
 
 <div>
 
-
 <label>
-
 Entry Fee
-
 </label>
 
-
-<input
-
+<input 
 type="number"
-
 name="entry_fee"
-
-placeholder="PKR"
-
-required
-
->
-
+value="0">
 
 </div>
 
@@ -519,33 +497,19 @@ required
 
 <div>
 
-
 <label>
-
 Prize Pool
-
 </label>
 
-
-<input
-
+<input 
 type="number"
-
 name="prize_pool"
-
-placeholder="PKR"
-
-required
-
->
-
+value="0">
 
 </div>
 
 
 </div>
-
-
 
 
 
@@ -555,24 +519,14 @@ required
 
 <div>
 
-
 <label>
-
 Total Teams
-
 </label>
 
-
-<input
-
+<input 
 type="number"
-
-name="total_teams"
-
-value="100"
-
->
-
+name="total_slots"
+value="100">
 
 </div>
 
@@ -580,24 +534,13 @@ value="100"
 
 <div>
 
-
 <label>
-
-Qualified Teams
-
+Match Date
 </label>
 
-
-<input
-
-type="number"
-
-name="qualify_teams"
-
-value="8"
-
->
-
+<input 
+type="datetime-local"
+name="tournament_date">
 
 </div>
 
@@ -606,46 +549,12 @@ value="8"
 
 
 
-
-
-
 <label>
-
-Points Per Kill
-
-</label>
-
-
-<input
-
-type="number"
-
-name="kill_points"
-
-value="2"
-
->
-
-
-
-
-<label>
-
 Description
-
 </label>
 
 
-<textarea
-
-name="description"
-
-rows="4"
-
-placeholder="Tournament details">
-
-</textarea>
-
+<textarea name="description"></textarea>
 
 
 
@@ -664,9 +573,7 @@ CREATE TOURNAMENT
 </div>
 
 
-
 </div>
-
 
 
 </body>
