@@ -11,25 +11,67 @@ require_once 'config.php';
 
 if(!isset($_SESSION['user_id'])){
 
-header("Location: login.php");
-exit;
+    header("Location: login.php");
+    exit;
 
 }
 
 
+$user_id = $_SESSION['user_id'];
 
 $tournament_id = $_GET['tournament'] ?? 0;
 
 
+
 if(!$tournament_id){
 
-die("Tournament not found");
+    die("Tournament not found");
 
 }
 
 
 
-$user_id=$_SESSION['user_id'];
+$message = "";
+
+$error = "";
+
+
+
+// CHECK PAYMENT
+
+$pay = $pdo->prepare("
+
+SELECT id
+
+FROM transactions
+
+WHERE user_id=?
+
+AND tournament_id=?
+
+AND transaction_type='entry_fee'
+
+AND payment_status='approved'
+
+");
+
+
+$pay->execute([
+
+$user_id,
+$tournament_id
+
+]);
+
+
+
+if(!$pay->fetch()){
+
+
+    die("Please join tournament first.");
+
+}
+
 
 
 
@@ -37,88 +79,162 @@ $user_id=$_SESSION['user_id'];
 // JOIN SLOT
 
 
-if(isset($_POST['join'])){
+if(isset($_POST['join_slot'])){
 
 
-$team_id=$_POST['team_id'];
-
-$slot=$_POST['slot'];
-
-
-
-// check already joined
-
-$check=$pdo->prepare("
-
-SELECT id
-
-FROM tournament_team_players
-
-WHERE tournament_id=?
-
-AND user_id=?
-
-");
-
-
-$check->execute([
-
-$tournament_id,
-$user_id
-
-]);
+    $team_id = $_POST['team_id'];
+    $slot = $_POST['slot'];
 
 
 
-if($check->fetch()){
+    // CHECK ALREADY JOINED
 
 
-$message="You already joined a team.";
+    $check = $pdo->prepare("
+
+    SELECT id
+
+    FROM tournament_team_players
+
+    WHERE tournament_id=?
+
+    AND user_id=?
+
+    ");
+
+
+    $check->execute([
+
+    $tournament_id,
+    $user_id
+
+    ]);
+
+
+
+    if($check->fetch()){
+
+
+        $error="You already joined a team.";
+
+
+    }
+
+    else{
+
+
+        // CHECK SLOT EMPTY
+
+
+        $slotCheck=$pdo->prepare("
+
+        SELECT id
+
+        FROM tournament_team_players
+
+        WHERE team_id=?
+
+        AND slot_number=?
+
+        ");
+
+
+        $slotCheck->execute([
+
+        $team_id,
+        $slot
+
+        ]);
+
+
+
+        if($slotCheck->fetch()){
+
+
+            $error="Slot already taken.";
+
+
+        }
+
+        else{
+
+
+            // CHECK TEAM COUNT
+
+
+            $count=$pdo->prepare("
+
+            SELECT COUNT(*)
+
+            FROM tournament_team_players
+
+            WHERE team_id=?
+
+            ");
+
+
+            $count->execute([$team_id]);
+
+
+            if($count->fetchColumn() >= 4){
+
+
+                $error="Team is full.";
+
+
+            }
+
+            else{
+
+
+                $insert=$pdo->prepare("
+
+                INSERT INTO tournament_team_players
+
+                (
+
+                tournament_id,
+
+                team_id,
+
+                user_id,
+
+                slot_number
+
+                )
+
+                VALUES
+
+                (?,?,?,?)
+
+                ");
+
+
+
+                $insert->execute([
+
+                $tournament_id,
+                $team_id,
+                $user_id,
+                $slot
+
+                ]);
+
+
+
+                $message="Joined team successfully.";
+
+
+            }
+
+
+        }
+
+
+    }
 
 
 }
-
-else{
-
-
-$insert=$pdo->prepare("
-
-INSERT INTO tournament_team_players
-
-(
-tournament_id,
-team_id,
-user_id,
-slot_number
-)
-
-VALUES
-
-(?,?,?,?)
-
-");
-
-
-$insert->execute([
-
-$tournament_id,
-$team_id,
-$user_id,
-$slot
-
-]);
-
-
-
-$message="Joined successfully";
-
-
-}
-
-
-
-}
-
 
 
 
@@ -126,7 +242,7 @@ $message="Joined successfully";
 // GET TEAMS
 
 
-$stmt=$pdo->prepare("
+$teams=$pdo->prepare("
 
 SELECT *
 
@@ -139,14 +255,15 @@ ORDER BY team_number ASC
 ");
 
 
-$stmt->execute([$tournament_id]);
+$teams->execute([$tournament_id]);
 
 
-$teams=$stmt->fetchAll();
+$teams=$teams->fetchAll();
 
 
 
 ?>
+
 
 
 <!DOCTYPE html>
@@ -154,7 +271,6 @@ $teams=$stmt->fetchAll();
 <html>
 
 <head>
-
 
 <title>
 OPBattle Lobby
@@ -167,6 +283,16 @@ OPBattle Lobby
 <style>
 
 
+*{
+
+box-sizing:border-box;
+
+font-family:Segoe UI,sans-serif;
+
+}
+
+
+
 body{
 
 margin:0;
@@ -176,15 +302,13 @@ radial-gradient(circle at top,#263800,#050505);
 
 color:white;
 
-font-family:Segoe UI;
-
 }
 
 
 
 .container{
 
-max-width:1200px;
+max-width:1300px;
 
 margin:auto;
 
@@ -207,7 +331,7 @@ color:#ccff00;
 display:grid;
 
 grid-template-columns:
-repeat(auto-fit,minmax(260px,1fr));
+repeat(auto-fit,minmax(280px,1fr));
 
 gap:20px;
 
@@ -237,15 +361,15 @@ color:#ccff00;
 
 
 
-.slot{
+.player{
 
 background:#161b22;
 
 padding:12px;
 
-margin:8px 0;
-
 border-radius:10px;
+
+margin:8px 0;
 
 }
 
@@ -253,9 +377,13 @@ border-radius:10px;
 
 .empty{
 
+background:#052e16;
+
 color:#22c55e;
 
-cursor:pointer;
+padding:12px;
+
+border-radius:10px;
 
 }
 
@@ -267,13 +395,15 @@ width:100%;
 
 padding:10px;
 
-background:#ccff00;
-
 border:0;
 
 border-radius:10px;
 
+background:#ccff00;
+
 font-weight:bold;
+
+cursor:pointer;
 
 }
 
@@ -281,13 +411,31 @@ font-weight:bold;
 
 .alert{
 
-background:#052e16;
-
 padding:15px;
 
 border-radius:10px;
 
+background:#052e16;
+
 margin-bottom:20px;
+
+}
+
+
+
+.error{
+
+background:#450a0a;
+
+}
+
+
+
+.uid{
+
+color:#9ca3af;
+
+font-size:12px;
 
 }
 
@@ -302,8 +450,8 @@ margin-bottom:20px;
 <body>
 
 
-<div class="container">
 
+<div class="container">
 
 
 <h1>
@@ -312,7 +460,7 @@ margin-bottom:20px;
 
 
 
-<?php if(isset($message)){ ?>
+<?php if($message){ ?>
 
 <div class="alert">
 
@@ -324,7 +472,22 @@ margin-bottom:20px;
 
 
 
+<?php if($error){ ?>
+
+<div class="alert error">
+
+<?php echo $error; ?>
+
+</div>
+
+<?php } ?>
+
+
+
+
+
 <div class="grid">
+
 
 
 <?php foreach($teams as $team){ ?>
@@ -344,62 +507,91 @@ TEAM <?php echo $team['team_number']; ?>
 <?php
 
 
-$p=$pdo->prepare("
+$players=$pdo->prepare("
 
-SELECT 
+SELECT
 
-tp.slot_number,
-u.name
+u.name,
+
+u.pubg_uid,
+
+tp.slot_number
+
 
 FROM tournament_team_players tp
 
-LEFT JOIN users u
 
-ON tp.user_id=u.id
+JOIN users u
+
+ON u.id=tp.user_id
+
 
 WHERE tp.team_id=?
 
+
 ORDER BY tp.slot_number
+
 
 ");
 
 
-$p->execute([$team['id']]);
+$players->execute([$team['id']]);
 
 
-$players=$p->fetchAll();
+$data=$players->fetchAll();
+
+
 
 
 
 for($i=1;$i<=4;$i++){
 
 
+
 $found=false;
 
 
-foreach($players as $pl){
+
+foreach($data as $p){
 
 
-if($pl['slot_number']==$i){
+if($p['slot_number']==$i){
+
 
 $found=true;
 
 
-echo "
+?>
 
-<div class='slot'>
 
-🟢 ".$pl['name']."
+<div class="player">
+
+<b>
+<?php echo htmlspecialchars($p['name']); ?>
+</b>
+
+<br>
+
+<span class="uid">
+
+PUBG UID:
+<?php echo htmlspecialchars($p['pubg_uid']); ?>
+
+</span>
 
 </div>
 
-";
+
+<?php
 
 
 }
 
 
+
 }
+
+
 
 
 
@@ -408,16 +600,21 @@ if(!$found){
 
 ?>
 
+
 <form method="post">
 
-<div class="slot empty">
 
 <input type="hidden" name="team_id" value="<?php echo $team['id']; ?>">
+
 
 <input type="hidden" name="slot" value="<?php echo $i; ?>">
 
 
-<button name="join">
+
+<div class="empty">
+
+
+<button name="join_slot">
 
 + JOIN SLOT <?php echo $i; ?>
 
@@ -425,6 +622,7 @@ if(!$found){
 
 
 </div>
+
 
 </form>
 
@@ -443,7 +641,6 @@ if(!$found){
 ?>
 
 
-
 </div>
 
 
@@ -457,7 +654,6 @@ if(!$found){
 
 
 </div>
-
 
 
 </body>
