@@ -3,43 +3,21 @@
 error_reporting(E_ALL);
 ini_set('display_errors',1);
 
+session_start();
+
 require_once 'config.php';
 
-if(session_status() === PHP_SESSION_NONE){
-    session_start();
-}
-
-
-/*
- GET AVAILABLE TOURNAMENTS
-*/
 
 
 $stmt=$pdo->query("
 
-SELECT
+SELECT *
 
-t.*,
+FROM tournaments
 
-COUNT(tm.id) AS joined_teams
+WHERE status='upcoming'
 
-
-FROM tournaments t
-
-
-LEFT JOIN teams tm
-
-ON t.id=tm.tournament_id
-
-
-WHERE t.status IN ('upcoming','registration','registration_open')
-
-
-GROUP BY t.id
-
-
-ORDER BY t.id DESC
-
+ORDER BY id DESC
 
 ");
 
@@ -60,14 +38,11 @@ $tournaments=$stmt->fetchAll();
 
 
 <title>
-
 OPBattle Tournaments
-
 </title>
 
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 
 
 <style>
@@ -113,11 +88,19 @@ h1{
 
 color:#ccff00;
 
-font-size:34px;
+font-size:36px;
 
 }
 
 
+
+.subtitle{
+
+color:#9ca3af;
+
+margin-bottom:30px;
+
+}
 
 
 
@@ -135,15 +118,13 @@ gap:20px;
 
 
 
-
-
 .card{
 
 background:#0f1319;
 
-border:1px solid #1f2937;
+border:1px solid #252525;
 
-border-radius:20px;
+border-radius:22px;
 
 padding:25px;
 
@@ -163,8 +144,6 @@ border-color:#ccff00;
 
 
 
-
-
 .title{
 
 font-size:24px;
@@ -179,15 +158,15 @@ margin-bottom:15px;
 
 
 
-.info{
+.box{
 
 background:#161b22;
 
-padding:15px;
+padding:14px;
 
 border-radius:12px;
 
-margin-bottom:10px;
+margin:10px 0;
 
 }
 
@@ -209,23 +188,15 @@ font-size:18px;
 
 font-weight:bold;
 
-margin-top:5px;
-
 }
 
 
 
-
-
-.badge{
+.status{
 
 display:inline-block;
 
-padding:8px 14px;
-
-background:#052e16;
-
-color:#22c55e;
+padding:8px 15px;
 
 border-radius:20px;
 
@@ -233,17 +204,35 @@ font-size:12px;
 
 font-weight:bold;
 
+margin-bottom:15px;
+
 }
 
 
+
+.open{
+
+background:#052e16;
+
+color:#22c55e;
+
+}
+
+
+
+.locked{
+
+background:#450a0a;
+
+color:#ff7777;
+
+}
 
 
 
 .join{
 
 display:block;
-
-text-align:center;
 
 margin-top:20px;
 
@@ -252,6 +241,8 @@ padding:14px;
 background:#ccff00;
 
 color:black;
+
+text-align:center;
 
 text-decoration:none;
 
@@ -262,6 +253,26 @@ font-weight:900;
 }
 
 
+
+.disabled{
+
+display:block;
+
+margin-top:20px;
+
+padding:14px;
+
+background:#333;
+
+color:#999;
+
+text-align:center;
+
+border-radius:12px;
+
+font-weight:bold;
+
+}
 
 
 
@@ -279,6 +290,18 @@ text-align:center;
 
 
 
+@media(max-width:600px){
+
+h1{
+
+font-size:28px;
+
+}
+
+}
+
+
+
 </style>
 
 
@@ -289,26 +312,21 @@ text-align:center;
 <body>
 
 
-
 <div class="container">
 
 
 
 <h1>
-
-🎮 Available Tournaments
-
+🎮 OPBattle Tournaments
 </h1>
 
 
 
-<p style="color:#9ca3af">
+<p class="subtitle">
 
-Join PUBG tournaments and compete for prizes.
+Join tournaments and compete for prizes.
 
 </p>
-
-
 
 
 
@@ -317,16 +335,15 @@ Join PUBG tournaments and compete for prizes.
 
 
 
-<?php if(count($tournaments)>0): ?>
+<?php if(count($tournaments)>0){ ?>
 
 
 
-<?php foreach($tournaments as $t): ?>
+<?php foreach($tournaments as $t){ ?>
 
 
 
 <div class="card">
-
 
 
 <div class="title">
@@ -338,27 +355,47 @@ Join PUBG tournaments and compete for prizes.
 
 
 
-<div class="badge">
+<?php 
 
-<?php echo strtoupper($t['status']); ?>
+if(isset($t['registration_status']) 
+&& 
+$t['registration_status']=='locked'){
+
+
+?>
+
+<div class="status locked">
+
+🔒 LOCKED
 
 </div>
 
 
+<?php }else{ ?>
 
 
-<div class="info">
+<div class="status open">
+
+🟢 OPEN
+
+</div>
+
+
+<?php } ?>
+
+
+
+
+
+<div class="box">
 
 <div class="label">
-
-ENTRY FEE
-
+GAME
 </div>
-
 
 <div class="value">
 
-PKR <?php echo number_format($t['entry_fee']); ?>
+<?php echo htmlspecialchars($t['game_name']); ?>
 
 </div>
 
@@ -367,88 +404,11 @@ PKR <?php echo number_format($t['entry_fee']); ?>
 
 
 
-
-
-<div class="info">
+<div class="box">
 
 <div class="label">
-
-PRIZE POOL
-
-</div>
-
-
-<div class="value">
-
-PKR <?php echo number_format($t['prize_pool']); ?>
-
-</div>
-
-</div>
-
-
-
-
-
-
-
-<div class="info">
-
-<div class="label">
-
-TEAMS
-
-</div>
-
-
-<div class="value">
-
-<?php echo $t['joined_teams']; ?>
-
-/
-
-<?php echo $t['total_slots']; ?>
-
-</div>
-
-</div>
-
-
-
-
-
-
-
-<div class="info">
-
-<div class="label">
-
-MODE
-
-</div>
-
-
-<div class="value">
-
-<?php echo htmlspecialchars($t['tournament_type']); ?>
-
-</div>
-
-</div>
-
-
-
-
-
-
-<div class="info">
-
-<div class="label">
-
 MAP
-
 </div>
-
 
 <div class="value">
 
@@ -461,16 +421,62 @@ MAP
 
 
 
-
-
-<div class="info">
+<div class="box">
 
 <div class="label">
+ENTRY FEE
+</div>
 
-MATCH DATE
+<div class="value">
+
+PKR <?php echo number_format($t['entry_fee']); ?>
 
 </div>
 
+</div>
+
+
+
+
+<div class="box">
+
+<div class="label">
+PRIZE POOL
+</div>
+
+<div class="value">
+
+PKR <?php echo number_format($t['prize_pool']); ?>
+
+</div>
+
+</div>
+
+
+
+
+<div class="box">
+
+<div class="label">
+TOTAL TEAMS
+</div>
+
+<div class="value">
+
+<?php echo $t['total_slots']; ?>
+
+</div>
+
+</div>
+
+
+
+
+<div class="box">
+
+<div class="label">
+MATCH DATE
+</div>
 
 <div class="value">
 
@@ -486,7 +492,7 @@ strtotime($t['tournament_date'])
 }
 else{
 
-echo "Not Scheduled";
+echo "Not Set";
 
 }
 
@@ -499,17 +505,41 @@ echo "Not Scheduled";
 
 
 
+<?php
 
+if(
+!isset($t['registration_status'])
+||
+$t['registration_status']=='open'
 
+){
+
+?>
 
 <a class="join"
 
-href="team_create.php?tournament=<?php echo $t['id']; ?>">
+href="join_tournament.php?tournament=<?php echo $t['id']; ?>">
 
 JOIN TOURNAMENT
 
 </a>
 
+
+<?php
+
+}else{
+
+?>
+
+
+<div class="disabled">
+
+REGISTRATION CLOSED
+
+</div>
+
+
+<?php } ?>
 
 
 
@@ -518,11 +548,11 @@ JOIN TOURNAMENT
 
 
 
-<?php endforeach; ?>
+<?php } ?>
 
 
 
-<?php else: ?>
+<?php }else{ ?>
 
 
 
@@ -537,7 +567,7 @@ No Tournament Available
 
 <p>
 
-New tournaments will appear here.
+New tournaments coming soon.
 
 </p>
 
@@ -546,12 +576,11 @@ New tournaments will appear here.
 
 
 
-<?php endif; ?>
+<?php } ?>
 
 
 
 </div>
-
 
 
 </div>
