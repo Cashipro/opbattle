@@ -32,6 +32,13 @@ SelectSlotService
 
 
 
+import {
+MyTournamentsService
+} from './my-tournaments.service';
+
+
+
+
 
 
 @Controller('tournaments')
@@ -42,6 +49,7 @@ export class TournamentsController {
 
 constructor(
 
+
 private tournamentsService:TournamentsService,
 
 
@@ -51,11 +59,13 @@ private joinService:JoinService,
 private teamRoomService:TeamRoomService,
 
 
-private selectSlotService:SelectSlotService
+private selectSlotService:SelectSlotService,
+
+
+private myTournamentsService:MyTournamentsService
 
 
 ){}
-
 
 
 
@@ -99,6 +109,7 @@ return this.tournamentsService.findOne(id);
 
 
 
+
 @Post(':id/join')
 
 joinTournament(
@@ -120,6 +131,7 @@ id
 
 
 }
+
 
 
 
@@ -181,6 +193,30 @@ return this.selectSlotService.selectSlot(
 body.userId,
 
 body.slotId
+
+);
+
+
+}
+
+
+
+
+
+
+
+@Get('user/:userId/my')
+
+myTournaments(
+
+@Param('userId') userId:string
+
+){
+
+
+return this.myTournamentsService.getMyTournaments(
+
+userId
 
 );
 
