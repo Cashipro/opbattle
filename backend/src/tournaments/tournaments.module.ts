@@ -8,21 +8,14 @@ PrismaModule
 } from '../prisma/prisma.module';
 
 
-
 import {
 TournamentsController
 } from './tournaments.controller';
 
 
-
 import {
 TournamentsService
 } from './tournaments.service';
-
-
-import {
-JoinService
-} from './join.service';
 
 
 import {
@@ -36,13 +29,13 @@ SelectSlotService
 
 
 import {
-MyTournamentsService
-} from './my-tournaments.service';
+PlannerService
+} from './planner.service';
 
 
 import {
-PlannerService
-} from './planner.service';
+MatchGeneratorService
+} from './match-generator.service';
 
 
 
@@ -50,7 +43,12 @@ PlannerService
 
 @Module({
 
-imports:[PrismaModule],
+imports:[
+
+PrismaModule
+
+],
+
 
 
 controllers:[
@@ -65,17 +63,16 @@ providers:[
 
 TournamentsService,
 
-JoinService,
-
 TeamRoomService,
 
 SelectSlotService,
 
-MyTournamentsService,
+PlannerService,
 
-PlannerService
+MatchGeneratorService
 
 ]
+
 
 })
 
