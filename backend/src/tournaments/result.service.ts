@@ -3,12 +3,9 @@ Injectable,
 BadRequestException
 } from '@nestjs/common';
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
 
 
 
@@ -17,38 +14,22 @@ PrismaService
 export class ResultService {
 
 
-
 constructor(
-
 private prisma:PrismaService
-
 ){}
 
 
 
 
 
+async getMatchTeams(matchId:string){
 
 
-
-async getMatchTeams(
-
-matchId:string
-
-){
-
-
-
-const match =
-
-await this.prisma.tournamentMatch.findUnique({
+const match = await this.prisma.tournamentMatch.findUnique({
 
 where:{
-
 id:matchId
-
 },
-
 
 include:{
 
@@ -75,27 +56,21 @@ team:true
 
 
 
-
-
 if(!match){
 
 throw new BadRequestException(
-
 "Match not found"
-
 );
 
 }
 
 
 
-
-return match.teams;
+return match;
 
 
 
 }
-
 
 
 
@@ -108,33 +83,35 @@ async addResult(
 
 matchId:string,
 
-data:any
+body:any
 
 ){
 
 
 
+const {
+
+matchTeamId,
+
+kills,
+
+position
+
+}=body;
 
 
-const matchTeam =
 
-await this.prisma.matchTeam.findUnique({
+
+
+const matchTeam = await this.prisma.matchTeam.findUnique({
 
 where:{
-
-id:data.matchTeamId
-
+id:matchTeamId
 },
 
-
 include:{
-
-
 team:true
-
-
 }
-
 
 });
 
@@ -145,9 +122,7 @@ team:true
 if(!matchTeam){
 
 throw new BadRequestException(
-
 "Team not found"
-
 );
 
 }
@@ -156,26 +131,21 @@ throw new BadRequestException(
 
 
 
-
-
-const positionPoints = this.positionPoints(
-
-data.position
-
+const positionPoints =
+this.calculatePositionPoints(
+Number(position)
 );
 
 
 
 
 const killPoints =
-
-Number(data.kills);
+Number(kills);
 
 
 
 
 const totalPoints =
-
 positionPoints + killPoints;
 
 
@@ -184,7 +154,8 @@ positionPoints + killPoints;
 
 
 
-return this.prisma.matchResult.create({
+const result =
+await this.prisma.matchResult.create({
 
 data:{
 
@@ -195,17 +166,17 @@ match_id:matchId,
 team_id:matchTeam.team_id,
 
 
-kills:Number(data.kills),
+kills:Number(kills),
 
 
-position:Number(data.position),
+position:Number(position),
 
 
 points:totalPoints
 
 
-}
 
+}
 
 
 });
@@ -214,6 +185,10 @@ points:totalPoints
 
 
 
+return result;
+
+
+
 }
 
 
@@ -224,11 +199,11 @@ points:totalPoints
 
 
 
-positionPoints(position:number){
+calculatePositionPoints(position:number){
 
 
 
-const points:any={
+const points={
 
 
 1:15,
