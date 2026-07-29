@@ -32,6 +32,11 @@ ResultService
 } from './result.service';
 
 
+import {
+QualificationService
+} from './qualification.service';
+
+
 
 
 
@@ -56,7 +61,10 @@ private matchGeneratorService:MatchGeneratorService,
 private matchManagementService:MatchManagementService,
 
 
-private resultService:ResultService
+private resultService:ResultService,
+
+
+private qualificationService:QualificationService
 
 
 ){}
@@ -74,7 +82,6 @@ findAll(){
 return this.tournamentsService.findAll();
 
 }
-
 
 
 
@@ -100,7 +107,6 @@ return this.plannerService.createPlan(id);
 
 
 
-
 @Post(':id/generate-matches')
 
 generateMatches(
@@ -119,10 +125,9 @@ return this.matchGeneratorService.generateMatches(id);
 
 
 
-
 @Get(':id/matches')
 
-getMatches(
+matches(
 
 @Param('id') id:string
 
@@ -138,18 +143,15 @@ return this.matchManagementService.getMatches(id);
 
 
 
-
 @Get('match/:id/teams')
 
-getMatchTeams(
+teams(
 
 @Param('id') id:string
 
 ){
 
-
 return this.resultService.getMatchTeams(id);
-
 
 }
 
@@ -159,10 +161,9 @@ return this.resultService.getMatchTeams(id);
 
 
 
-
 @Post('match/:id/result')
 
-addResult(
+result(
 
 @Param('id') id:string,
 
@@ -170,12 +171,55 @@ addResult(
 
 ){
 
-
 return this.resultService.addResult(
 
 id,
 
 body
+
+);
+
+}
+
+
+
+
+
+
+
+@Post('match/:id/complete')
+
+complete(
+
+@Param('id') id:string
+
+){
+
+return this.qualificationService.completeMatch(id);
+
+}
+
+
+
+
+
+
+
+@Post(':id/next-round')
+
+nextRound(
+
+@Param('id') id:string,
+
+@Body() body:any
+
+){
+
+return this.qualificationService.createNextRound(
+
+id,
+
+body.roundId
 
 );
 
