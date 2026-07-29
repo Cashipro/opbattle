@@ -23,12 +23,6 @@ TournamentsService
 
 
 import {
-TeamRoomService
-} from './team-room.service';
-
-
-
-import {
 PlannerService
 } from './planner.service';
 
@@ -43,6 +37,13 @@ MatchGeneratorService
 import {
 MatchManagementService
 } from './match-management.service';
+
+
+
+import {
+ResultService
+} from './result.service';
+
 
 
 
@@ -69,17 +70,24 @@ TournamentsController
 
 providers:[
 
+
 TournamentsService,
 
-TeamRoomService,
 
 PlannerService,
 
+
 MatchGeneratorService,
 
-MatchManagementService
+
+MatchManagementService,
+
+
+ResultService
+
 
 ]
+
 
 
 })
