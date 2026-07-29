@@ -1,36 +1,42 @@
 import {
-  Module
+Module
 } from '@nestjs/common';
 
 
 
 import {
-  PrismaModule
+PrismaModule
 } from '../prisma/prisma.module';
 
 
 
 import {
-  TournamentsController
+TournamentsController
 } from './tournaments.controller';
 
 
 
 import {
-  TournamentsService
+TournamentsService
 } from './tournaments.service';
 
 
 
 import {
-  JoinService
+JoinService
 } from './join.service';
 
 
 
 import {
-  TeamRoomService
+TeamRoomService
 } from './team-room.service';
+
+
+
+import {
+SelectSlotService
+} from './select-slot.service';
 
 
 
@@ -47,14 +53,11 @@ PrismaModule
 
 
 
-
 controllers:[
 
 TournamentsController
 
 ],
-
-
 
 
 
@@ -64,11 +67,11 @@ TournamentsService,
 
 JoinService,
 
-TeamRoomService
+TeamRoomService,
+
+SelectSlotService
 
 ],
-
-
 
 
 
@@ -77,7 +80,6 @@ exports:[
 TournamentsService
 
 ]
-
 
 
 })
