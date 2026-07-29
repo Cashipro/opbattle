@@ -3,6 +3,7 @@ Module
 } from '@nestjs/common';
 
 
+
 import {
 PrismaModule
 } from '../prisma/prisma.module';
@@ -14,9 +15,11 @@ TournamentsController
 } from './tournaments.controller';
 
 
+
 import {
 TournamentsService
 } from './tournaments.service';
+
 
 
 import {
@@ -24,9 +27,11 @@ PlannerService
 } from './planner.service';
 
 
+
 import {
 MatchGeneratorService
 } from './match-generator.service';
+
 
 
 import {
@@ -34,14 +39,23 @@ MatchManagementService
 } from './match-management.service';
 
 
+
 import {
 ResultService
 } from './result.service';
 
 
+
 import {
 QualificationService
 } from './qualification.service';
+
+
+
+import {
+ResultBoardService
+} from './result-board.service';
+
 
 
 
@@ -84,10 +98,14 @@ MatchManagementService,
 ResultService,
 
 
-QualificationService
+QualificationService,
+
+
+ResultBoardService
 
 
 ]
+
 
 
 })
