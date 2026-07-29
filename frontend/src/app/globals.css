@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===========================
+   GOOGLE FONT
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ===========================
+   ROOT
+=========================== */
+
+:root{
+
+--background:#050505;
+
+--card:#111111;
+
+--border:#222222;
+
+--primary:#00FF84;
+
+--secondary:#00CFFF;
+
+--danger:#FF4D4F;
+
+--gold:#FFD700;
+
+--text:#ffffff;
+
+--muted:#8d8d8d;
+
+}
+
+
+/* ===========================
+   BODY
+=========================== */
+
+*{
+
+margin:0;
+
+padding:0;
+
+box-sizing:border-box;
+
+}
+
+html{
+
+scroll-behavior:smooth;
+
+}
+
+body{
+
+background:var(--background);
+
+color:var(--text);
+
+font-family:'Inter',sans-serif;
+
+overflow-x:hidden;
+
+}
+
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+::-webkit-scrollbar{
+
+width:8px;
+
+}
+
+::-webkit-scrollbar-track{
+
+background:#080808;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+background:var(--primary);
+
+border-radius:100px;
+
+}
+
+
+/* ===========================
+   LINKS
+=========================== */
+
+a{
+
+color:inherit;
+
+text-decoration:none;
+
+}
+
+
+/* ===========================
+   BUTTON
+=========================== */
+
+button{
+
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+button:hover{
+
+transform:translateY(-2px);
+
+}
+
+
+/* ===========================
+   INPUT
+=========================== */
+
+input,
+textarea,
+select{
+
+outline:none;
+
+border:none;
+
+font-family:inherit;
+
+}
+
+
+/* ===========================
+   SELECTION
+=========================== */
+
+::selection{
+
+background:var(--primary);
+
+color:black;
+
+}
+
+
+/* ===========================
+   CONTAINER
+=========================== */
+
+.container{
+
+width:100%;
+
+max-width:1400px;
+
+margin:auto;
+
+padding-left:24px;
+
+padding-right:24px;
+
+}
+
+
+/* ===========================
+   GAMING CARD
+=========================== */
+
+.game-card{
+
+background:#111111;
+
+border:1px solid #222;
+
+border-radius:20px;
+
+transition:.3s;
+
+}
+
+.game-card:hover{
+
+border-color:#00FF84;
+
+box-shadow:0 0 20px rgba(0,255,132,.25);
+
+}
+
+
+/* ===========================
+   PRIMARY BUTTON
+=========================== */
+
+.primary-btn{
+
+background:#00FF84;
+
+color:black;
+
+padding:14px 24px;
+
+border-radius:14px;
+
+font-weight:700;
+
+}
+
+.primary-btn:hover{
+
+box-shadow:0 0 18px rgba(0,255,132,.45);
+
+}
+
+
+/* ===========================
+   SECONDARY BUTTON
+=========================== */
+
+.secondary-btn{
+
+background:#1a1a1a;
+
+border:1px solid #333;
+
+color:white;
+
+padding:14px 24px;
+
+border-radius:14px;
+
+}
+
+
+/* ===========================
+   BADGES
+=========================== */
+
+.badge{
+
+display:inline-flex;
+
+align-items:center;
+
+padding:6px 14px;
+
+border-radius:100px;
+
+background:#00FF84;
+
+color:black;
+
+font-size:12px;
+
+font-weight:700;
+
+}
+
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media(max-width:768px){
+
+.container{
+
+padding-left:16px;
+
+padding-right:16px;
+
+}
+
+}
