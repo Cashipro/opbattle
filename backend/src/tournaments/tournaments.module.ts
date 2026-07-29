@@ -40,6 +40,13 @@ SelectSlotService
 
 
 
+import {
+MyTournamentsService
+} from './my-tournaments.service';
+
+
+
+
 
 
 
@@ -69,17 +76,12 @@ JoinService,
 
 TeamRoomService,
 
-SelectSlotService
+SelectSlotService,
 
-],
-
-
-
-exports:[
-
-TournamentsService
+MyTournamentsService
 
 ]
+
 
 
 })
