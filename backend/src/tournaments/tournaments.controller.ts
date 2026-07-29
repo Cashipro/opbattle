@@ -13,11 +13,9 @@ TournamentsService
 } from './tournaments.service';
 
 
-
 import {
 JoinService
 } from './join.service';
-
 
 
 import {
@@ -25,17 +23,19 @@ TeamRoomService
 } from './team-room.service';
 
 
-
 import {
 SelectSlotService
 } from './select-slot.service';
-
 
 
 import {
 MyTournamentsService
 } from './my-tournaments.service';
 
+
+import {
+PlannerService
+} from './planner.service';
 
 
 
@@ -62,7 +62,10 @@ private teamRoomService:TeamRoomService,
 private selectSlotService:SelectSlotService,
 
 
-private myTournamentsService:MyTournamentsService
+private myTournamentsService:MyTournamentsService,
+
+
+private plannerService:PlannerService
 
 
 ){}
@@ -77,10 +80,8 @@ private myTournamentsService:MyTournamentsService
 
 findAll(){
 
-
 return this.tournamentsService.findAll();
 
-
 }
 
 
@@ -88,71 +89,19 @@ return this.tournamentsService.findAll();
 
 
 
+@Post(':id/create-plan')
 
-@Get(':id')
-
-findOne(
+createPlan(
 
 @Param('id') id:string
 
 ){
 
 
-return this.tournamentsService.findOne(id);
+return this.plannerService.createPlan(id);
 
 
 }
-
-
-
-
-
-
-
-
-@Post(':id/join')
-
-joinTournament(
-
-@Param('id') id:string,
-
-@Body() body:any
-
-){
-
-
-return this.joinService.joinTournament(
-
-body.userId,
-
-id
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-@Post(':id/create-teams')
-
-createTeams(
-
-@Param('id') id:string
-
-){
-
-
-return this.teamRoomService.createTeams(id);
-
-
-}
-
 
 
 
@@ -161,18 +110,15 @@ return this.teamRoomService.createTeams(id);
 
 @Get(':id/room')
 
-getRoom(
+room(
 
 @Param('id') id:string
 
 ){
 
-
 return this.teamRoomService.getRoom(id);
 
-
 }
-
 
 
 
@@ -200,28 +146,6 @@ body.slotId
 }
 
 
-
-
-
-
-
-@Get('user/:userId/my')
-
-myTournaments(
-
-@Param('userId') userId:string
-
-){
-
-
-return this.myTournamentsService.getMyTournaments(
-
-userId
-
-);
-
-
-}
 
 
 
