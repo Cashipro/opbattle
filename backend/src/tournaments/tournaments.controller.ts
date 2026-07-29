@@ -7,11 +7,9 @@ Body
 } from '@nestjs/common';
 
 
-
 import {
 TournamentsService
 } from './tournaments.service';
-
 
 
 import {
@@ -19,17 +17,14 @@ PlannerService
 } from './planner.service';
 
 
-
 import {
 MatchGeneratorService
 } from './match-generator.service';
 
 
-
 import {
 MatchManagementService
 } from './match-management.service';
-
 
 
 import {
@@ -86,6 +81,7 @@ return this.tournamentsService.findAll();
 
 
 
+
 @Post(':id/create-plan')
 
 createPlan(
@@ -123,9 +119,10 @@ return this.matchGeneratorService.generateMatches(id);
 
 
 
+
 @Get(':id/matches')
 
-matches(
+getMatches(
 
 @Param('id') id:string
 
@@ -141,9 +138,10 @@ return this.matchManagementService.getMatches(id);
 
 
 
+
 @Get('match/:id/teams')
 
-matchTeams(
+getMatchTeams(
 
 @Param('id') id:string
 
@@ -154,6 +152,7 @@ return this.resultService.getMatchTeams(id);
 
 
 }
+
 
 
 
@@ -182,6 +181,7 @@ body
 
 
 }
+
 
 
 
