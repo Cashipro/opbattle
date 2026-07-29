@@ -1,41 +1,165 @@
 "use client";
 
+
+import {
+useState
+} from "react";
+
+
+import {
+registerUser
+} from "@/services/auth";
+
+
+import {
+useRouter
+} from "next/navigation";
+
+
+
 import Link from "next/link";
 
+
+
 import Navbar from "@/components/Navbar";
+
 import Footer from "@/components/Footer";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+
 
 
 export default function RegisterPage(){
+
+
+
+const router=useRouter();
+
+
+
+const [form,setForm]=useState({
+
+name:"",
+
+email:"",
+
+pubg_uid:"",
+
+password:""
+
+
+});
+
+
+
+const [loading,setLoading]=useState(false);
+
+
+
+
+
+function change(
+e:any
+){
+
+
+setForm({
+
+...form,
+
+[e.target.name]:e.target.value
+
+});
+
+
+}
+
+
+
+
+
+
+async function submit(
+e:any
+){
+
+
+e.preventDefault();
+
+
+try{
+
+
+setLoading(true);
+
+
+
+await registerUser(form);
+
+
+
+alert(
+"Account Created Successfully"
+);
+
+
+
+router.push("/login");
+
+
+
+}
+
+catch(error:any){
+
+
+alert(
+
+error.response?.data?.message ||
+"Registration Failed"
+
+);
+
+
+}
+
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
+
+}
+
+
+
+
 
 return(
 
 <>
 
+
 <Navbar />
 
 
-<main className="min-h-screen flex items-center justify-center py-20">
+
+<div className="min-h-screen flex items-center justify-center">
 
 
-<div className="w-full max-w-lg game-card p-8">
+<form
 
+onSubmit={submit}
 
+className="game-card w-full max-w-lg p-8 space-y-5"
 
-<div className="text-center mb-8">
-
-
-<div className="w-20 h-20 rounded-3xl bg-[#00FF84] flex items-center justify-center text-black font-black text-3xl mx-auto">
-
-O
-
-</div>
+>
 
 
 
-<h1 className="text-3xl font-black mt-6">
+<h1 className="text-3xl font-bold">
 
 Create Account
 
@@ -43,105 +167,115 @@ Create Account
 
 
 
-<p className="text-gray-400 mt-2">
+<input
 
-Join OpBattle PUBG Tournament Platform
+name="name"
 
-</p>
+placeholder="Full Name"
 
+onChange={change}
 
+className="input"
 
-</div>
-
-
-
-
-
-
-
-<form className="space-y-5">
-
-
-
-<Input
-
-label="Full Name"
-
-type="text"
-
-placeholder="Enter your name"
+required
 
 />
 
 
 
+<input
 
-<Input
+name="email"
 
-label="Email Address"
+placeholder="Email"
 
 type="email"
 
-placeholder="Enter your email"
+onChange={change}
+
+className="input"
+
+required
 
 />
 
 
 
+<input
 
+name="pubg_uid"
 
-<Input
+placeholder="PUBG UID"
 
-label="PUBG UID"
+onChange={change}
 
-type="text"
+className="input"
 
-placeholder="Enter PUBG ID"
+required
 
 />
 
 
 
+<input
 
+name="password"
 
-<Input
-
-label="Password"
+placeholder="Password"
 
 type="password"
 
-placeholder="Create password"
+onChange={change}
+
+className="input"
+
+required
 
 />
 
 
 
+<button
+
+disabled={loading}
+
+className="btn-primary w-full"
+
+>
 
 
-<Input
-
-label="Confirm Password"
-
-type="password"
-
-placeholder="Confirm password"
-
-/>
+{
+loading
+?
+"Creating..."
+:
+"Create Account"
+}
 
 
-
+</button>
 
 
 
-<Button
 
-title="Create Account"
+<p>
 
-className="w-full"
+Already have account?
 
-/>
+<Link
+
+href="/login"
+
+className="text-[#00ff84]"
+
+>
+
+ Login
+
+</Link>
 
 
+</p>
 
 
 
@@ -149,44 +283,7 @@ className="w-full"
 
 
 
-
-
-
-
-<div className="text-center mt-8">
-
-
-<p className="text-gray-400">
-
-Already have an account?
-
-</p>
-
-
-
-<Link
-
-href="/login"
-
-className="text-[#00FF84] font-bold mt-2 inline-block"
-
->
-
-Login Now
-
-</Link>
-
-
-
 </div>
-
-
-
-
-</div>
-
-
-</main>
 
 
 
@@ -194,6 +291,8 @@ Login Now
 
 </>
 
+
 );
+
 
 }
