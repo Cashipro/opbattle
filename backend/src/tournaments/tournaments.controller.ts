@@ -19,11 +19,6 @@ TeamRoomService
 
 
 import {
-SelectSlotService
-} from './select-slot.service';
-
-
-import {
 PlannerService
 } from './planner.service';
 
@@ -31,6 +26,11 @@ PlannerService
 import {
 MatchGeneratorService
 } from './match-generator.service';
+
+
+import {
+MatchManagementService
+} from './match-management.service';
 
 
 
@@ -51,13 +51,13 @@ private tournamentsService:TournamentsService,
 private teamRoomService:TeamRoomService,
 
 
-private selectSlotService:SelectSlotService,
-
-
 private plannerService:PlannerService,
 
 
-private matchGeneratorService:MatchGeneratorService
+private matchGeneratorService:MatchGeneratorService,
+
+
+private matchManagementService:MatchManagementService
 
 
 ){}
@@ -75,6 +75,7 @@ findAll(){
 return this.tournamentsService.findAll();
 
 }
+
 
 
 
@@ -100,6 +101,7 @@ return this.plannerService.createPlan(id);
 
 
 
+
 @Post(':id/generate-matches')
 
 generateMatches(
@@ -108,8 +110,56 @@ generateMatches(
 
 ){
 
-
 return this.matchGeneratorService.generateMatches(id);
+
+}
+
+
+
+
+
+
+
+
+@Get(':id/matches')
+
+matches(
+
+@Param('id') id:string
+
+){
+
+return this.matchManagementService.getMatches(id);
+
+}
+
+
+
+
+
+
+
+
+@Post('match/update-room')
+
+updateRoom(
+
+@Body() body:any
+
+){
+
+
+return this.matchManagementService.updateRoom(
+
+body.matchId,
+
+body.room_id,
+
+body.room_password,
+
+body.status
+
+);
 
 
 }
@@ -129,32 +179,6 @@ room(
 ){
 
 return this.teamRoomService.getRoom(id);
-
-}
-
-
-
-
-
-
-
-@Post(':id/select-slot')
-
-selectSlot(
-
-@Body() body:any
-
-){
-
-
-return this.selectSlotService.selectSlot(
-
-body.userId,
-
-body.slotId
-
-);
-
 
 }
 
