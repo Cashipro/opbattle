@@ -1,141 +1,67 @@
-generator client {
-  provider = "prisma-client-js"
-}
+model TournamentTeam {
 
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+id String @id @default(uuid())
 
 
+tournament_id String
 
 
-
-model User {
-
-  id String @id @default(uuid())
-
-  name String
-
-  email String @unique
-
-  pubg_uid String @unique
-
-  password String
+team_number Int
 
 
-  profile_pic String?
-
-
-  balance Decimal @default(0)
-
-
-  is_active Boolean @default(true)
-
-
-  created_at DateTime @default(now())
-
-
-  updated_at DateTime @updatedAt
+team_name String?
 
 
 
-  tournamentSlots TournamentSlot[]
-
-}
+created_at DateTime @default(now())
 
 
 
+slots TournamentSlot[]
 
-
-
-
-model Tournament {
-
-
-  id String @id @default(uuid())
-
-
-  name String
-
-
-  entry_fee Decimal
-
-
-  prize_pool Decimal
-
-
-  start_date DateTime
-
-
-  start_time String
-
-
-
-  max_teams Int @default(25)
-
-
-  status String @default("upcoming")
-
-
-
-  created_at DateTime @default(now())
-
-
-
-  slots TournamentSlot[]
 
 
 }
-
-
-
-
 
 
 
 model TournamentSlot {
 
 
-  id String @id @default(uuid())
+id String @id @default(uuid())
+
+
+tournament_id String
+
+
+team_id String
+
+
+slot_number Int
 
 
 
-  tournament_id String
+user_id String?
 
 
 
-  tournament Tournament @relation(
-    fields:[tournament_id],
-    references:[id]
-  )
+joined_at DateTime?
 
 
 
-  user_id String?
+team TournamentTeam @relation(
+fields:[team_id],
+references:[id]
+)
 
 
 
-  user User? @relation(
-    fields:[user_id],
-    references:[id]
-  )
+user User? @relation(
+fields:[user_id],
+references:[id]
+)
 
-
-
-  team_number Int
-
-
-  slot_number Int
-
-
-
-  joined_at DateTime?
-
-
-
-  created_at DateTime @default(now())
 
 
 }
