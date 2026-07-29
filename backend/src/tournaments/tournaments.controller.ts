@@ -1,32 +1,25 @@
 import {
-
-Controller,
-
-Get,
-
-Param,
-
-Post,
-
-Body
-
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
 } from '@nestjs/common';
 
 
-
 import {
-
-TournamentsService
-
+  TournamentsService
 } from './tournaments.service';
 
 
+import {
+  JoinService
+} from './join.service';
+
 
 import {
-
-JoinService
-
-} from './join.service';
+  TeamRoomService
+} from './team-room.service';
 
 
 
@@ -42,9 +35,12 @@ constructor(
 
 private tournamentsService:TournamentsService,
 
-private joinService:JoinService
+private joinService:JoinService,
+
+private teamRoomService:TeamRoomService
 
 ){}
+
 
 
 
@@ -56,9 +52,15 @@ private joinService:JoinService
 
 findAll(){
 
+
 return this.tournamentsService.findAll();
 
+
 }
+
+
+
+
 
 
 
@@ -72,7 +74,9 @@ findOne(
 
 ){
 
+
 return this.tournamentsService.findOne(id);
+
 
 }
 
@@ -82,9 +86,11 @@ return this.tournamentsService.findOne(id);
 
 
 
+
+
 @Post(':id/join')
 
-join(
+joinTournament(
 
 @Param('id') id:string,
 
@@ -103,8 +109,64 @@ id
 );
 
 
+
 }
 
+
+
+
+
+
+
+
+
+@Post(':id/create-teams')
+
+createTeams(
+
+@Param('id') id:string
+
+){
+
+
+
+return this.teamRoomService.createTeams(
+
+id
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+@Get(':id/room')
+
+getRoom(
+
+@Param('id') id:string
+
+){
+
+
+
+return this.teamRoomService.getRoom(
+
+id
+
+);
+
+
+
+}
 
 
 
