@@ -1,25 +1,34 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Body,
+Controller,
+Get,
+Param,
+Post,
+Body
 } from '@nestjs/common';
 
 
+
 import {
-  TournamentsService
+TournamentsService
 } from './tournaments.service';
 
 
+
 import {
-  JoinService
+JoinService
 } from './join.service';
 
 
+
 import {
-  TeamRoomService
+TeamRoomService
 } from './team-room.service';
+
+
+
+import {
+SelectSlotService
+} from './select-slot.service';
 
 
 
@@ -35,9 +44,15 @@ constructor(
 
 private tournamentsService:TournamentsService,
 
+
 private joinService:JoinService,
 
-private teamRoomService:TeamRoomService
+
+private teamRoomService:TeamRoomService,
+
+
+private selectSlotService:SelectSlotService
+
 
 ){}
 
@@ -57,8 +72,6 @@ return this.tournamentsService.findAll();
 
 
 }
-
-
 
 
 
@@ -86,8 +99,6 @@ return this.tournamentsService.findOne(id);
 
 
 
-
-
 @Post(':id/join')
 
 joinTournament(
@@ -99,7 +110,6 @@ joinTournament(
 ){
 
 
-
 return this.joinService.joinTournament(
 
 body.userId,
@@ -109,10 +119,7 @@ id
 );
 
 
-
 }
-
-
 
 
 
@@ -129,18 +136,10 @@ createTeams(
 ){
 
 
-
-return this.teamRoomService.createTeams(
-
-id
-
-);
-
+return this.teamRoomService.createTeams(id);
 
 
 }
-
-
 
 
 
@@ -157,17 +156,36 @@ getRoom(
 ){
 
 
-
-return this.teamRoomService.getRoom(
-
-id
-
-);
-
+return this.teamRoomService.getRoom(id);
 
 
 }
 
+
+
+
+
+
+
+@Post(':id/select-slot')
+
+selectSlot(
+
+@Body() body:any
+
+){
+
+
+return this.selectSlotService.selectSlot(
+
+body.userId,
+
+body.slotId
+
+);
+
+
+}
 
 
 
