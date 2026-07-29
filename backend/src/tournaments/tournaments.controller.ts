@@ -14,11 +14,6 @@ TournamentsService
 
 
 import {
-JoinService
-} from './join.service';
-
-
-import {
 TeamRoomService
 } from './team-room.service';
 
@@ -29,13 +24,13 @@ SelectSlotService
 
 
 import {
-MyTournamentsService
-} from './my-tournaments.service';
+PlannerService
+} from './planner.service';
 
 
 import {
-PlannerService
-} from './planner.service';
+MatchGeneratorService
+} from './match-generator.service';
 
 
 
@@ -53,19 +48,16 @@ constructor(
 private tournamentsService:TournamentsService,
 
 
-private joinService:JoinService,
-
-
 private teamRoomService:TeamRoomService,
 
 
 private selectSlotService:SelectSlotService,
 
 
-private myTournamentsService:MyTournamentsService,
+private plannerService:PlannerService,
 
 
-private plannerService:PlannerService
+private matchGeneratorService:MatchGeneratorService
 
 
 ){}
@@ -89,6 +81,7 @@ return this.tournamentsService.findAll();
 
 
 
+
 @Post(':id/create-plan')
 
 createPlan(
@@ -97,11 +90,30 @@ createPlan(
 
 ){
 
-
 return this.plannerService.createPlan(id);
+
+}
+
+
+
+
+
+
+
+@Post(':id/generate-matches')
+
+generateMatches(
+
+@Param('id') id:string
+
+){
+
+
+return this.matchGeneratorService.generateMatches(id);
 
 
 }
+
 
 
 
@@ -119,6 +131,7 @@ room(
 return this.teamRoomService.getRoom(id);
 
 }
+
 
 
 
@@ -144,8 +157,6 @@ body.slotId
 
 
 }
-
-
 
 
 
