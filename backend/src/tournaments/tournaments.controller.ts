@@ -7,6 +7,7 @@ Body
 } from '@nestjs/common';
 
 
+
 import {
 TournamentsService
 } from './tournaments.service';
@@ -37,6 +38,12 @@ QualificationService
 } from './qualification.service';
 
 
+import {
+ResultBoardService
+} from './result-board.service';
+
+
+
 
 
 
@@ -64,10 +71,14 @@ private matchManagementService:MatchManagementService,
 private resultService:ResultService,
 
 
-private qualificationService:QualificationService
+private qualificationService:QualificationService,
+
+
+private resultBoardService:ResultBoardService
 
 
 ){}
+
 
 
 
@@ -82,6 +93,8 @@ findAll(){
 return this.tournamentsService.findAll();
 
 }
+
+
 
 
 
@@ -107,6 +120,7 @@ return this.plannerService.createPlan(id);
 
 
 
+
 @Post(':id/generate-matches')
 
 generateMatches(
@@ -118,6 +132,7 @@ generateMatches(
 return this.matchGeneratorService.generateMatches(id);
 
 }
+
 
 
 
@@ -143,6 +158,7 @@ return this.matchManagementService.getMatches(id);
 
 
 
+
 @Get('match/:id/teams')
 
 teams(
@@ -161,9 +177,10 @@ return this.resultService.getMatchTeams(id);
 
 
 
+
 @Post('match/:id/result')
 
-result(
+addResult(
 
 @Param('id') id:string,
 
@@ -187,9 +204,10 @@ body
 
 
 
+
 @Post('match/:id/complete')
 
-complete(
+completeMatch(
 
 @Param('id') id:string
 
@@ -198,6 +216,7 @@ complete(
 return this.qualificationService.completeMatch(id);
 
 }
+
 
 
 
@@ -223,6 +242,43 @@ body.roundId
 
 );
 
+}
+
+
+
+
+
+
+
+
+@Get(':id/result-board')
+
+resultBoard(
+
+@Param('id') id:string
+
+){
+
+return this.resultBoardService.tournamentResults(id);
+
+}
+
+
+
+
+
+
+
+
+@Get(':id/final-ranking')
+
+finalRanking(
+
+@Param('id') id:string
+
+){
+
+return this.resultBoardService.finalRanking(id);
 
 }
 
