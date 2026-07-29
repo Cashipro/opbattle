@@ -1,4 +1,4 @@
-model TournamentTeam {
+model TournamentRound {
 
 
 id String @id @default(uuid())
@@ -7,10 +7,10 @@ id String @id @default(uuid())
 tournament_id String
 
 
-team_number Int
+round_number Int
 
 
-team_name String?
+name String
 
 
 
@@ -18,7 +18,17 @@ created_at DateTime @default(now())
 
 
 
-slots TournamentSlot[]
+tournament Tournament @relation(
+
+fields:[tournament_id],
+
+references:[id]
+
+)
+
+
+
+matches TournamentMatch[]
 
 
 
@@ -26,7 +36,8 @@ slots TournamentSlot[]
 
 
 
-model TournamentSlot {
+
+model TournamentMatch {
 
 
 id String @id @default(uuid())
@@ -35,31 +46,119 @@ id String @id @default(uuid())
 tournament_id String
 
 
-team_id String
+round_id String
 
 
-slot_number Int
+match_number Int
 
 
-
-user_id String?
-
-
-
-joined_at DateTime?
+status String @default("pending")
 
 
 
-team TournamentTeam @relation(
-fields:[team_id],
+room_id String?
+
+
+
+room_password String?
+
+
+
+created_at DateTime @default(now())
+
+
+
+round TournamentRound @relation(
+
+fields:[round_id],
+
 references:[id]
+
 )
 
 
 
-user User? @relation(
-fields:[user_id],
+teams MatchTeam[]
+
+
+
+results MatchResult[]
+
+
+
+}
+
+
+
+
+model MatchTeam {
+
+
+id String @id @default(uuid())
+
+
+match_id String
+
+
+team_id String
+
+
+
+match TournamentMatch @relation(
+
+fields:[match_id],
+
 references:[id]
+
+)
+
+
+
+team TournamentTeam @relation(
+
+fields:[team_id],
+
+references:[id]
+
+)
+
+
+
+}
+
+
+
+
+
+
+model MatchResult {
+
+
+id String @id @default(uuid())
+
+
+match_id String
+
+
+team_id String
+
+
+kills Int @default(0)
+
+
+position Int @default(0)
+
+
+points Int @default(0)
+
+
+
+match TournamentMatch @relation(
+
+fields:[match_id],
+
+references:[id]
+
 )
 
 
