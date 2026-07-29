@@ -1,81 +1,344 @@
 "use client";
 
+
+import {
+useState
+} from "react";
+
+
+import {
+useRouter
+} from "next/navigation";
+
+
 import Link from "next/link";
+
+
 import Navbar from "@/components/Navbar";
+
 import Footer from "@/components/Footer";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
-export default function LoginPage() {
 
-  return (
-    <>
-      <Navbar />
+import {
+loginUser
+} from "@/services/auth";
 
-      <main className="min-h-screen flex items-center justify-center py-20">
 
-        <div className="w-full max-w-md game-card p-8">
 
-          <div className="text-center mb-8">
 
-            <div className="w-20 h-20 rounded-3xl bg-[#00FF84] flex items-center justify-center text-black font-black text-3xl mx-auto">
-              O
-            </div>
 
-            <h1 className="text-3xl font-black mt-6">
-              Welcome Back
-            </h1>
+export default function LoginPage(){
 
-            <p className="text-gray-400 mt-2">
-              Login to your OpBattle account
-            </p>
 
-          </div>
+const router=useRouter();
 
-          <form className="space-y-5">
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="Enter your email"
-            />
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="Enter your password"
-            />
+const [form,setForm]=useState({
 
-            <Button
-              title="Login"
-              className="w-full"
-            />
+email:"",
 
-          </form>
+password:""
 
-          <div className="text-center mt-8">
+});
 
-            <p className="text-gray-400">
 
-              Don't have an account?
 
-            </p>
+const [loading,setLoading]=useState(false);
 
-            <Link
-              href="/register"
-              className="text-[#00FF84] font-bold mt-2 inline-block"
-            >
-              Create Account
-            </Link>
 
-          </div>
 
-        </div>
 
-      </main>
 
-      <Footer />
 
-    </>
-  );
+
+function change(e:any){
+
+
+setForm({
+
+...form,
+
+[e.target.name]:e.target.value
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+async function submit(e:any){
+
+
+e.preventDefault();
+
+
+
+try{
+
+
+setLoading(true);
+
+
+
+const res =
+await loginUser(form);
+
+
+
+
+
+localStorage.setItem(
+
+"token",
+
+res.token
+
+);
+
+
+
+
+
+localStorage.setItem(
+
+"user",
+
+JSON.stringify(res.user)
+
+);
+
+
+
+
+
+
+alert(
+"Login Successful"
+);
+
+
+
+
+router.push("/dashboard");
+
+
+
+
+
+}
+
+catch(error:any){
+
+
+alert(
+
+error.response?.data?.message ||
+"Login Failed"
+
+);
+
+
+}
+
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+return(
+
+<>
+
+
+<Navbar />
+
+
+
+<main className="min-h-screen flex items-center justify-center">
+
+
+
+<form
+
+onSubmit={submit}
+
+className="game-card w-full max-w-lg p-8 space-y-5"
+
+>
+
+
+
+<div className="text-center">
+
+
+<h1 className="text-3xl font-black">
+
+Welcome Back
+
+</h1>
+
+
+<p className="text-gray-400 mt-2">
+
+Login to your OpBattle account
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<input
+
+
+name="email"
+
+type="email"
+
+placeholder="Email Address"
+
+value={form.email}
+
+onChange={change}
+
+className="input"
+
+required
+
+
+/>
+
+
+
+
+
+
+<input
+
+
+name="password"
+
+type="password"
+
+placeholder="Password"
+
+value={form.password}
+
+onChange={change}
+
+className="input"
+
+required
+
+
+/>
+
+
+
+
+
+
+
+<button
+
+className="btn-primary w-full"
+
+disabled={loading}
+
+>
+
+
+{
+
+loading
+
+?
+
+"Logging in..."
+
+:
+
+"Login"
+
+}
+
+
+</button>
+
+
+
+
+
+
+
+
+<p className="text-center text-gray-400">
+
+
+Don't have account?
+
+
+<Link
+
+href="/register"
+
+className="text-[#00ff84] ml-2"
+
+>
+
+Register
+
+</Link>
+
+
+</p>
+
+
+
+
+
+</form>
+
+
+
+</main>
+
+
+
+<Footer />
+
+
+
+</>
+
+
+);
+
+
 }
