@@ -3,7 +3,6 @@ Module
 } from '@nestjs/common';
 
 
-
 import {
 PrismaModule
 } from '../prisma/prisma.module';
@@ -21,11 +20,9 @@ TournamentsService
 } from './tournaments.service';
 
 
-
 import {
 JoinService
 } from './join.service';
-
 
 
 import {
@@ -33,11 +30,9 @@ TeamRoomService
 } from './team-room.service';
 
 
-
 import {
 SelectSlotService
 } from './select-slot.service';
-
 
 
 import {
@@ -45,6 +40,9 @@ MyTournamentsService
 } from './my-tournaments.service';
 
 
+import {
+PlannerService
+} from './planner.service';
 
 
 
@@ -52,12 +50,7 @@ MyTournamentsService
 
 @Module({
 
-imports:[
-
-PrismaModule
-
-],
-
+imports:[PrismaModule],
 
 
 controllers:[
@@ -78,13 +71,13 @@ TeamRoomService,
 
 SelectSlotService,
 
-MyTournamentsService
+MyTournamentsService,
+
+PlannerService
 
 ]
-
-
 
 })
 
 
-export class TournamentsModule {}
+export class TournamentsModule{}
