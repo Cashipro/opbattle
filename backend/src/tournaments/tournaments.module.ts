@@ -46,6 +46,49 @@ SelectSlotService
 
 
 
+import {
+PlannerService
+} from './planner.service';
+
+
+
+import {
+MatchGeneratorService
+} from './match-generator.service';
+
+
+
+import {
+MatchManagementService
+} from './match-management.service';
+
+
+
+import {
+ResultService
+} from './result.service';
+
+
+
+import {
+ResultBoardService
+} from './result-board.service';
+
+
+
+import {
+QualificationService
+} from './qualification.service';
+
+
+
+import {
+NextRoundService
+} from './next-round.service';
+
+
+
+
 
 
 
@@ -82,7 +125,28 @@ TournamentsService,
 MyTournamentsService,
 
 
-SelectSlotService
+SelectSlotService,
+
+
+PlannerService,
+
+
+MatchGeneratorService,
+
+
+MatchManagementService,
+
+
+ResultService,
+
+
+ResultBoardService,
+
+
+QualificationService,
+
+
+NextRoundService
 
 
 ],
@@ -95,7 +159,10 @@ exports:[
 TeamRoomService,
 
 
-JoinService
+JoinService,
+
+
+TournamentsService
 
 
 ]
