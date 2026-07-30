@@ -3,62 +3,19 @@ import api from "@/lib/api";
 
 
 
-
-export interface RegisterData {
-
-
-name:string;
-
-
-email:string;
-
-
-pubg_uid:string;
-
-
-password:string;
-
-
-}
-
-
-
-
-export interface LoginData {
-
-
-email:string;
-
-
-password:string;
-
-
-}
-
-
-
-
-
-
+// REGISTER
 
 export async function registerUser(
-data:RegisterData
+data:any
 ){
 
-
-const response =
-await api.post(
-
+const res = await api.post(
 "/auth/register",
-
 data
-
 );
 
 
-
-return response.data;
-
+return res.data;
 
 }
 
@@ -67,26 +24,36 @@ return response.data;
 
 
 
-
-
+// LOGIN
 
 export async function loginUser(
-data:LoginData
+data:any
 ){
 
-
-const response =
-await api.post(
-
+const res = await api.post(
 "/auth/login",
-
 data
-
 );
 
 
+return res.data;
 
-return response.data;
+}
 
+
+
+
+
+
+// CURRENT USER
+
+export async function getCurrentUser(){
+
+const res = await api.get(
+"/auth/me"
+);
+
+
+return res.data;
 
 }
