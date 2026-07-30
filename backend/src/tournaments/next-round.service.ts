@@ -14,7 +14,6 @@ PrismaService
 
 
 
-
 @Injectable()
 
 export class NextRoundService {
@@ -37,9 +36,7 @@ private prisma:PrismaService
 
 async generateNextRound(
 
-tournamentId:string,
-
-previousRoundId:string
+tournamentId:string
 
 ){
 
@@ -47,26 +44,22 @@ previousRoundId:string
 
 
 
-const previousRound =
+const rounds =
 
-await this.prisma.tournamentRound.findUnique({
+await this.prisma.tournamentRound.findMany({
 
 where:{
 
-
-id:previousRoundId
-
+tournament_id:tournamentId
 
 },
 
 
 
-include:{
+orderBy:{
 
 
-
-matches:true
-
+round_number:"desc"
 
 
 }
@@ -81,11 +74,11 @@ matches:true
 
 
 
-if(!previousRound){
+if(!rounds.length){
 
 throw new BadRequestException(
 
-"Previous round not found"
+"No previous round found"
 
 );
 
@@ -97,9 +90,16 @@ throw new BadRequestException(
 
 
 
+const lastRound = rounds[0];
 
 
-const existingNext =
+
+
+
+
+
+
+const existing =
 
 await this.prisma.tournamentRound.findFirst({
 
@@ -109,12 +109,7 @@ where:{
 tournament_id:tournamentId,
 
 
-round_number:{
-
-gt:previousRound.round_number
-
-}
-
+round_number:lastRound.round_number + 1
 
 
 }
@@ -127,11 +122,11 @@ gt:previousRound.round_number
 
 
 
-if(existingNext){
+if(existing){
 
 throw new BadRequestException(
 
-"Next round already created"
+"Next round already exists"
 
 );
 
@@ -145,91 +140,36 @@ throw new BadRequestException(
 
 
 
-let qualifiedTeams:any[]=[];
+const matches =
 
-
-
-
-
-
-
-
-
-for(const match of previousRound.matches){
-
-
-
-
-
-const results =
-
-await this.prisma.matchResult.findMany({
+await this.prisma.tournamentMatch.findMany({
 
 where:{
 
 
-match_id:match.id
+round_id:lastRound.id
 
 
 },
-
-
-
-orderBy:[
-
-
-{
-
-
-points:"desc"
-
-},
-
-
-{
-
-
-kills:"desc"
-
-}
-
-
-
-],
-
-
-
-take:10,
 
 
 
 include:{
 
 
-
-team:{
-
+results:{
 
 
-select:{
+orderBy:{
 
 
-id:true,
-
-
-team_number:true,
-
-
-name:true
+points:"desc"
 
 
 }
 
 
-
 }
-
-
 
 }
 
@@ -243,43 +183,34 @@ name:true
 
 
 
-
-qualifiedTeams.push(
-
-...results.map(item=>({
+let qualifiedTeams:any[] = [];
 
 
 
-team_id:item.team.id,
-
-
-team_number:item.team.team_number,
-
-
-team_name:item.team.name,
-
-
-points:item.points,
-
-
-kills:item.kills
 
 
 
-}))
 
 
+for(const match of matches){
+
+
+
+const topTeams = match.results.slice(
+
+0,
+
+10
 
 );
 
 
 
+qualifiedTeams.push(...topTeams);
 
 
 
 }
-
-
 
 
 
@@ -291,7 +222,7 @@ if(!qualifiedTeams.length){
 
 throw new BadRequestException(
 
-"No qualified teams found"
+"No qualified teams"
 
 );
 
@@ -305,42 +236,25 @@ throw new BadRequestException(
 
 
 
-const newRoundNumber =
-
-previousRound.round_number + 1;
-
-
-
-
-
-
-
-
-
-const newRound =
+const nextRound =
 
 await this.prisma.tournamentRound.create({
 
 data:{
 
 
-
 tournament_id:tournamentId,
 
 
-
-round_number:newRoundNumber,
-
+round_number:lastRound.round_number + 1,
 
 
-name:`Round ${newRoundNumber}`
-
+name:`Round ${lastRound.round_number + 1}`
 
 
 }
 
 });
-
 
 
 
@@ -353,7 +267,7 @@ let index = 0;
 
 let matchNumber = 1;
 
-
+const matchLimit = 25;
 
 
 
@@ -365,8 +279,6 @@ while(index < qualifiedTeams.length){
 
 
 
-
-
 const match =
 
 await this.prisma.tournamentMatch.create({
@@ -374,28 +286,21 @@ await this.prisma.tournamentMatch.create({
 data:{
 
 
-
 tournament_id:tournamentId,
 
 
-
-round_id:newRound.id,
-
+round_id:nextRound.id,
 
 
 match_number:matchNumber,
 
 
-
 status:"pending"
-
 
 
 }
 
 });
-
-
 
 
 
@@ -407,7 +312,7 @@ const teams = qualifiedTeams.slice(
 
 index,
 
-index + 25
+index + matchLimit
 
 );
 
@@ -418,8 +323,7 @@ index + 25
 
 
 
-
-for(const team of teams){
+for(const item of teams){
 
 
 
@@ -428,18 +332,13 @@ await this.prisma.matchTeam.create({
 data:{
 
 
-
 match_id:match.id,
 
 
-
-team_id:team.team_id
-
+team_id:item.team_id
 
 
 }
-
-
 
 });
 
@@ -453,19 +352,14 @@ team_id:team.team_id
 
 
 
-
-index += 25;
+index += matchLimit;
 
 
 matchNumber++;
 
 
 
-
-
-
 }
-
 
 
 
@@ -480,25 +374,17 @@ return {
 message:"Next round generated successfully",
 
 
-round:newRound.name,
+round:nextRound.name,
 
 
-qualifiedTeams:qualifiedTeams.length,
-
-
-matches:matchNumber - 1
-
+qualifiedTeams:qualifiedTeams.length
 
 
 };
 
 
 
-
-
-
 }
-
 
 
 
