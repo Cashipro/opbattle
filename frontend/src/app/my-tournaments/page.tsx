@@ -7,12 +7,20 @@ useState
 } from "react";
 
 
-import api from "@/lib/api";
-
-
 import Navbar from "@/components/Navbar";
 
 import Footer from "@/components/Footer";
+
+
+import {
+getMyTournaments
+} from "@/services/tournament";
+
+
+
+import Link from "next/link";
+
+
 
 
 
@@ -22,7 +30,12 @@ export default function MyTournaments(){
 
 
 
-const [data,setData]=useState<any[]>([]);
+const [data,setData] = useState<any[]>([]);
+
+const [loading,setLoading] = useState(true);
+
+
+
 
 
 
@@ -41,32 +54,42 @@ load();
 
 
 
+
+
+
 async function load(){
 
 
-const user =
-JSON.parse(
-
-localStorage.getItem("user") || "{}"
-
-);
+try{
 
 
+const res = await getMyTournaments();
 
-const res =
-await api.get(
 
-`/tournaments/user/${user.id}/my`
-
-);
+setData(res);
 
 
 
-setData(res.data);
+}catch(error){
+
+
+console.log(error);
+
+
+
+}finally{
+
+
+setLoading(false);
+
+
+}
 
 
 
 }
+
+
 
 
 
@@ -83,11 +106,22 @@ return(
 
 
 
-<main className="min-h-screen p-6">
+<main className="
+min-h-screen
+bg-black
+text-white
+p-6
+">
 
 
 
-<h1 className="text-4xl font-black mb-8">
+
+
+<h1 className="
+text-4xl
+font-black
+mb-8
+">
 
 My Tournaments
 
@@ -97,7 +131,54 @@ My Tournaments
 
 
 
-<div className="grid md:grid-cols-2 gap-6">
+
+
+{
+
+loading ?
+
+(
+
+<div className="text-center">
+
+Loading...
+
+</div>
+
+)
+
+
+:
+
+data.length === 0
+
+?
+
+(
+
+<div className="
+bg-zinc-900
+rounded-2xl
+p-8
+text-center
+">
+
+No tournaments joined yet
+
+</div>
+
+)
+
+
+:
+
+(
+
+<div className="
+grid
+md:grid-cols-2
+gap-6
+">
 
 
 
@@ -105,7 +186,7 @@ My Tournaments
 
 {
 
-data.map((item)=>(
+data.map((item:any)=>(
 
 
 
@@ -113,27 +194,55 @@ data.map((item)=>(
 
 key={item.id}
 
-className="game-card p-6"
+className="
+game-card
+p-6
+bg-zinc-900
+rounded-3xl
+border
+border-zinc-700
+"
 
 >
 
 
 
-<h2 className="text-2xl font-bold">
+<h2 className="
+text-2xl
+font-bold
+mb-4
+">
 
-{item.tournament.name}
+{
+item.tournament?.name
+}
 
 </h2>
 
 
 
+
+
+
+
 <p>
 
-Team:
+Entry Fee:
 
-<span className="text-[#00ff84] ml-2">
+<span className="
+text-green-400
+ml-2
+">
 
-{item.team.team_number}
+{
+item.tournament?.entry_fee
+}
+
+{" "}
+
+{
+item.tournament?.currency
+}
 
 </span>
 
@@ -142,11 +251,24 @@ Team:
 
 
 
+
+
+
 <p>
 
-Team Name:
+Status:
 
-{item.team.team_name}
+<span className="
+text-yellow-400
+ml-2
+uppercase
+">
+
+{
+item.tournament?.status
+}
+
+</span>
 
 </p>
 
@@ -154,36 +276,69 @@ Team Name:
 
 
 
-<p>
-
-Slot:
-
-{item.slot_number}
-
-</p>
 
 
 
 
-
-<p>
-
-Room ID:
-
-{item.tournament.room_id || "Not Added"}
-
-</p>
+<div className="
+mt-6
+flex
+gap-3
+flex-wrap
+">
 
 
 
+<Link
 
-<p>
+href={`/team-room/${item.tournament_id}`}
 
-Room Password:
+className="
+bg-blue-600
+px-5
+py-3
+rounded-xl
+font-bold
+"
 
-{item.tournament.room_password || "Not Added"}
+>
 
-</p>
+Team Room
+
+</Link>
+
+
+
+
+
+
+
+<Link
+
+href={`/tournaments/${item.tournament_id}`}
+
+className="
+bg-zinc-700
+px-5
+py-3
+rounded-xl
+font-bold
+"
+
+>
+
+Details
+
+</Link>
+
+
+
+
+
+
+</div>
+
+
 
 
 
@@ -199,11 +354,11 @@ Room Password:
 
 
 
-
-
 </div>
 
+)
 
+}
 
 
 
