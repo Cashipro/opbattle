@@ -7,11 +7,14 @@ Body
 } from '@nestjs/common';
 
 
-
 import {
 AdminTournamentService
 } from './admin-tournament.service';
 
+
+import {
+AutoPlannerService
+} from '../tournaments/auto-planner.service';
 
 
 
@@ -25,7 +28,12 @@ export class AdminTournamentController {
 
 constructor(
 
-private service:AdminTournamentService
+
+private adminTournamentService:AdminTournamentService,
+
+
+private autoPlannerService:AutoPlannerService
+
 
 ){}
 
@@ -35,17 +43,23 @@ private service:AdminTournamentService
 
 
 
+
 @Post()
 
-create(
+createTournament(
 
 @Body() body:any
 
 ){
 
-return this.service.createTournament(body);
+return this.adminTournamentService.createTournament(
+
+body
+
+);
 
 }
+
 
 
 
@@ -56,11 +70,12 @@ return this.service.createTournament(body);
 
 @Get()
 
-all(){
+getAllTournaments(){
 
-return this.service.allTournaments();
+return this.adminTournamentService.allTournaments();
 
 }
+
 
 
 
@@ -71,15 +86,20 @@ return this.service.allTournaments();
 
 @Post(':id/close')
 
-close(
+closeEntries(
 
 @Param('id') id:string
 
 ){
 
-return this.service.closeEntries(id);
+return this.adminTournamentService.closeEntries(
+
+id
+
+);
 
 }
+
 
 
 
@@ -90,13 +110,17 @@ return this.service.closeEntries(id);
 
 @Get(':id/teams')
 
-teams(
+getTeams(
 
 @Param('id') id:string
 
 ){
 
-return this.service.getTournamentTeams(id);
+return this.adminTournamentService.getTournamentTeams(
+
+id
+
+);
 
 }
 
@@ -107,9 +131,10 @@ return this.service.getTournamentTeams(id);
 
 
 
+
 @Post('match/:id/room')
 
-room(
+addRoom(
 
 @Param('id') id:string,
 
@@ -117,7 +142,7 @@ room(
 
 ){
 
-return this.service.addRoom(
+return this.adminTournamentService.addRoom(
 
 id,
 
@@ -134,17 +159,49 @@ body
 
 
 
+
 @Post('match/:id/finish')
 
-finish(
+finishMatch(
 
 @Param('id') id:string
 
 ){
 
-return this.service.finishMatch(id);
+return this.adminTournamentService.finishMatch(
+
+id
+
+);
 
 }
+
+
+
+
+
+
+
+
+
+@Post(':id/calculate-plan')
+
+calculatePlan(
+
+@Param('id') id:string
+
+){
+
+return this.autoPlannerService.calculatePlan(
+
+id
+
+);
+
+}
+
+
+
 
 
 
