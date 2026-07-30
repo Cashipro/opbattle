@@ -1,13 +1,14 @@
 "use client";
 
+
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react";
 
 
 import {
-  useParams
+useParams
 } from "next/navigation";
 
 
@@ -15,10 +16,12 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-  getTeamRoom,
-  selectSlot,
-  leaveSlot
+getTeamRoom,
+selectSlot,
+leaveSlot
 } from "@/services/tournament";
+
+
 
 
 
@@ -27,221 +30,211 @@ import {
 export default function TeamRoom(){
 
 
-  const params = useParams<{ id: string }>();
 
-  const id = params?.id;
+const params = useParams<{id:string}>();
 
+const id = params?.id;
 
 
-  const [teams,setTeams] = useState<any[]>([]);
 
-  const [loading,setLoading] = useState(true);
 
 
+const [teams,setTeams] = useState<any[]>([]);
 
+const [loading,setLoading] = useState(true);
 
 
 
 
 
-  useEffect(()=>{
 
 
-    if(id){
 
-      load();
 
-    }
+useEffect(()=>{
 
 
-  },[id]);
+if(id){
 
+load();
 
+}
 
 
+},[id]);
 
 
 
 
-  async function load(){
 
 
-    try{
 
 
-      if(!id) return;
 
+async function load(){
 
-      const data =
-        await getTeamRoom(id);
 
+try{
 
-      setTeams(data);
 
+if(!id) return;
 
 
-    }catch(error){
+const data = await getTeamRoom(id);
 
 
-      console.log(error);
+setTeams(data);
 
 
 
-    }finally{
+}catch(error){
 
 
-      setLoading(false);
+console.log(error);
 
 
-    }
 
+}finally{
 
 
-  }
+setLoading(false);
 
 
+}
 
 
 
+}
 
 
 
 
-  async function join(slotId:string){
 
 
-    try{
 
 
-      await selectSlot(slotId);
 
+async function join(slotId:string){
 
-      load();
 
+try{
 
 
-    }catch(error:any){
+await selectSlot(slotId);
 
 
-      alert(
+load();
 
-        error?.response?.data?.message ||
 
-        "Unable to select slot"
 
-      );
+}catch(error:any){
 
 
+alert(
 
-    }
+error?.response?.data?.message ||
 
+"Unable to select slot"
 
+);
 
-  }
 
+}
 
 
 
+}
 
 
 
 
 
-  async function leave(slotId:string){
 
 
-    try{
 
 
-      await leaveSlot(slotId);
+async function leave(slotId:string){
 
 
-      load();
+try{
 
 
+await leaveSlot(slotId);
 
-    }catch(error){
 
+load();
 
-      console.log(error);
 
 
-    }
+}catch(error){
 
 
+console.log(error);
 
-  }
 
+}
 
 
 
+}
 
 
 
 
 
-  return (
 
 
-    <div
-      className="
-      flex
-      min-h-screen
-      bg-black
-      text-white
-      "
-    >
 
 
+return (
 
+<div
+className="
+flex
+min-h-screen
+bg-black
+text-white
+"
+>
 
-      <Sidebar />
 
 
 
 
 
 
+<Sidebar />
 
-      <main
-        className="
-        flex-1
-        p-4
-        pt-20
-        md:p-10
-        md:pt-10
-        "
-      >
 
 
 
 
-        <div
-          className="
-          max-w-7xl
-          mx-auto
-          "
-        >
 
 
 
+<main
+className="
+flex-1
+p-4
+pt-20
+md:ml-64
+md:p-10
+md:pt-10
+"
+>
 
 
 
-          <h1
-            className="
-            text-3xl
-            md:text-4xl
-            font-black
-            mb-8
-            "
-          >
 
-            👥 Team Room
 
-          </h1>
 
 
+<div
+className="
+max-w-7xl
+mx-auto
+"
+>
 
 
 
@@ -249,77 +242,88 @@ export default function TeamRoom(){
 
 
 
-          {
+<h1
+className="
+text-3xl
+md:text-4xl
+font-black
+mb-8
+"
+>
 
+👥 Team Room
 
-            loading
+</h1>
 
-            ?
 
 
-            <div
-              className="
-              text-gray-400
-              "
-            >
 
-              Loading teams...
 
-            </div>
 
 
-            :
 
 
-            <div
-              className="
-              grid
-              grid-cols-1
-              md:grid-cols-2
-              xl:grid-cols-3
-              gap-6
-              "
-            >
+{
 
+loading
 
+?
 
+(
 
-              {
+<div
+className="
+text-gray-400
+text-center
+"
+>
 
+Loading teams...
 
-                teams.map((team:any)=>(
+</div>
 
+)
 
+:
 
-                  <div
+teams.length===0
 
-                    key={team.id}
+?
 
-                    className="
-                    bg-zinc-900
-                    border
-                    border-zinc-800
-                    rounded-3xl
-                    p-6
-                    "
+(
 
-                  >
+<div
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-8
+text-center
+text-gray-400
+"
+>
 
+No Teams Generated
 
+</div>
 
+)
 
+:
 
-                    <h2
-                      className="
-                      text-2xl
-                      font-bold
-                      mb-5
-                      "
-                    >
+(
 
-                      {team.name}
+<div
+className="
+grid
+grid-cols-1
+md:grid-cols-2
+xl:grid-cols-3
+gap-6
+"
+>
 
-                    </h2>
 
 
 
@@ -327,103 +331,103 @@ export default function TeamRoom(){
 
 
 
+{
 
-                    <div
-                      className="
-                      space-y-3
-                      "
-                    >
+teams.map((team:any)=>(
 
 
 
-                      {
+<div
 
+key={team.id}
 
-                        team.slots?.map((slot:any)=>(
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+"
 
+>
 
 
 
-                          <div
 
-                            key={slot.id}
 
-                            className="
-                            bg-zinc-800
-                            rounded-xl
-                            p-4
-                            flex
-                            justify-between
-                            items-center
-                            "
 
-                          >
 
+<h2
+className="
+text-2xl
+font-bold
+mb-5
+"
+>
 
+{team.name}
 
+</h2>
 
 
-                            <div>
 
 
-                              <p
-                                className="
-                                font-bold
-                                "
-                              >
 
-                                Slot {slot.slot_number}
 
-                              </p>
 
 
+<div
+className="
+space-y-3
+"
+>
 
 
-                              {
 
 
-                                slot.user
 
 
-                                ?
 
+{
 
-                                <p
-                                  className="
-                                  text-green-400
-                                  text-sm
-                                  "
-                                >
+team.slots?.map((slot:any)=>(
 
-                                  {slot.user.name}
 
-                                </p>
 
+<div
 
-                                :
+key={slot.id}
 
+className="
+bg-zinc-800
+rounded-xl
+p-4
+flex
+justify-between
+items-center
+gap-3
+"
 
-                                <p
-                                  className="
-                                  text-gray-400
-                                  text-sm
-                                  "
-                                >
+>
 
-                                  Empty
 
-                                </p>
 
 
-                              }
 
 
 
+<div>
 
 
-                            </div>
+<p
+className="
+font-bold
+"
+>
 
+Slot {slot.slot_number}
 
+</p>
 
 
 
@@ -431,129 +435,173 @@ export default function TeamRoom(){
 
 
 
-                            {
+{
 
+slot.user
 
-                              slot.user
+?
 
+<p
+className="
+text-green-400
+text-sm
+"
+>
 
-                              ?
+{slot.user.name}
 
+</p>
 
-                              <button
+:
 
-                                onClick={() => leave(slot.id)}
+<p
+className="
+text-gray-400
+text-sm
+"
+>
 
-                                className="
-                                bg-red-600
-                                px-4
-                                py-2
-                                rounded-lg
-                                text-sm
-                                font-bold
-                                "
+Empty
 
-                              >
+</p>
 
-                                Leave
+}
 
-                              </button>
 
 
-                              :
 
 
-                              <button
+</div>
 
-                                onClick={() => join(slot.id)}
 
-                                className="
-                                bg-green-600
-                                px-4
-                                py-2
-                                rounded-lg
-                                text-sm
-                                font-bold
-                                "
 
-                              >
 
-                                Join
 
-                              </button>
 
 
 
-                            }
 
+{
 
+slot.user
 
+?
 
+<button
 
-                          </div>
+onClick={()=>leave(slot.id)}
 
+className="
+bg-red-600
+px-4
+py-2
+rounded-lg
+text-sm
+font-bold
+"
 
+>
 
+Leave
 
-                        ))
+</button>
 
+:
 
+<button
 
-                      }
+onClick={()=>join(slot.id)}
 
+className="
+bg-green-600
+px-4
+py-2
+rounded-lg
+text-sm
+font-bold
+"
 
+>
 
+Join
 
-                    </div>
+</button>
 
+}
 
 
 
+</div>
 
 
 
-                  </div>
+))
 
 
 
-                ))
+}
 
 
 
-              }
 
 
 
 
 
-            </div>
+</div>
 
 
 
-          }
 
 
 
 
+</div>
 
-        </div>
 
 
+))
 
 
 
-      </main>
+}
 
 
 
 
 
 
-    </div>
 
+</div>
 
+)
 
-  );
+}
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</main>
+
+
+
+
+
+
+
+</div>
+
+);
 
 
 }
