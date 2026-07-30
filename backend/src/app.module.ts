@@ -10,6 +10,8 @@ import { TournamentsModule } from './tournaments/tournaments.module';
 
 import { AdminModule } from './admin/admin.module';
 
+import { DepositModule } from './deposit/deposit.module';
+
 
 
 @Module({
@@ -20,13 +22,21 @@ ConfigModule.forRoot({
   isGlobal:true
 }),
 
+
 PrismaModule,
+
 
 AuthModule,
 
+
 TournamentsModule,
 
-AdminModule
+
+AdminModule,
+
+
+DepositModule
+
 
 ]
 
