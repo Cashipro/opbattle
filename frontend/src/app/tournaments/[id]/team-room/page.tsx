@@ -28,10 +28,10 @@ import {
 export default function TeamRoom(){
 
 
+const params = useParams();
 
-const params = useParams<{id:string}>();
 
-const id = params?.id;
+const id = params?.id as string;
 
 
 
@@ -69,6 +69,13 @@ async function loadRoom(){
 
 
 try{
+
+
+if(!id){
+
+return;
+
+}
 
 
 const data = await getTeamRoom(id);
@@ -114,7 +121,7 @@ try{
 await selectSlot(slotId);
 
 
-loadRoom();
+await loadRoom();
 
 
 
@@ -278,7 +285,7 @@ gap-6
 
 {
 
-teams.map((team:any,index:number)=>(
+teams.map((team:any)=>(
 
 
 
@@ -382,7 +389,6 @@ border
 transition
 
 ${
-
 slot.user
 
 ?
