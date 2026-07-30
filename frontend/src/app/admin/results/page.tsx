@@ -5,21 +5,28 @@ import {
   useState
 } from "react";
 
+
 import api from "@/lib/api";
+
 
 import {
   Medal,
-  Trophy,
   Save
 } from "lucide-react";
+
+
+
+
 
 
 
 export default function AdminResultsPage(){
 
 
+
 const [matches,setMatches] =
 useState<any[]>([]);
+
 
 
 const [loading,setLoading] =
@@ -29,6 +36,7 @@ useState(true);
 
 const [results,setResults] =
 useState<any>({});
+
 
 
 
@@ -47,6 +55,7 @@ loadMatches();
 
 
 
+
 async function loadMatches(){
 
 
@@ -55,14 +64,44 @@ try{
 
 const res =
 await api.get(
-"/admin/results"
+"/admin/tournaments"
 );
 
 
 
-setMatches(
-res.data || []
+let allMatches:any[]=[];
+
+
+
+(res.data || []).forEach((t:any)=>{
+
+
+if(t.matches){
+
+
+allMatches.push(
+
+...t.matches.map((m:any)=>({
+
+...m,
+
+tournamentName:t.name
+
+}))
+
 );
+
+
+}
+
+
+
+});
+
+
+
+
+setMatches(allMatches);
 
 
 
@@ -91,9 +130,13 @@ setLoading(false);
 
 
 function updateResult(
-matchId:string,
+
+id:string,
+
 field:string,
+
 value:string
+
 ){
 
 
@@ -101,29 +144,20 @@ setResults({
 
 ...results,
 
-[matchId]:{
+[id]:{
 
-...results[matchId],
+...results[id],
 
 [field]:value
 
 }
 
+
 });
 
 
 }
-
-
-
-
-
-
-
-
-async function saveResult(
-matchId:string
-){
+  async function saveResult(id:string){
 
 
 try{
@@ -131,15 +165,31 @@ try{
 
 await api.post(
 
-`/admin/results/${matchId}`,
+`/admin/results/${id}`,
 
-results[matchId]
+{
+
+team_id:
+results[id]?.team_id,
+
+
+kills:
+Number(results[id]?.kills || 0),
+
+
+points:
+Number(results[id]?.points || 0)
+
+
+}
 
 );
 
 
 
-loadMatches();
+alert(
+"Result saved"
+);
 
 
 
@@ -152,8 +202,8 @@ console.log(error);
 }
 
 
-
 }
+
 
 
 
@@ -183,13 +233,13 @@ items-center
 gap-3
 ">
 
-
-<Trophy className="text-yellow-400"/>
+<Medal className="
+text-yellow-400
+"/>
 
 Results
 
 </h1>
-
 
 
 <p className="
@@ -197,16 +247,55 @@ text-zinc-400
 mt-2
 ">
 
-Update match rankings and points
+Manage match results and points
 
 </p>
-
 
 
 </div>
 
 
 
+
+
+
+
+
+{
+
+loading
+
+?
+
+<p className="
+text-zinc-400
+">
+
+Loading matches...
+
+</p>
+
+
+
+:
+
+
+
+matches.length===0
+
+?
+
+<p className="
+text-zinc-400
+">
+
+No matches found
+
+</p>
+
+
+
+:
 
 
 <div className="
@@ -216,19 +305,8 @@ space-y-5
 
 {
 
-loading
-
-?
-
-<p className="text-zinc-400">
-Loading results...
-</p>
-
-
-:
-
-
 matches.map((match:any)=>(
+
 
 
 <div
@@ -246,110 +324,30 @@ p-6
 >
 
 
+
 <h2 className="
 text-2xl
 font-black
+">
+
+{match.tournamentName}
+
+</h2>
+
+
+
+<p className="
+text-zinc-400
 mb-5
 ">
 
-{match.tournament?.name}
+Match:
 
-</h2>
-          <div className="
-        grid
-        md:grid-cols-3
-        gap-4
-        ">
+{" "}
 
+{match.id.slice(0,8)}
 
-          <input
-
-          placeholder="Team ID"
-
-          className="
-          bg-zinc-800
-          rounded-xl
-          p-4
-          "
-
-          value={
-            results[match.id]?.team_id || ""
-          }
-
-          onChange={(e)=>
-            updateResult(
-              match.id,
-              "team_id",
-              e.target.value
-            )
-          }
-
-          />
-
-
-
-
-
-          <input
-
-          placeholder="Kills"
-
-          type="number"
-
-          className="
-          bg-zinc-800
-          rounded-xl
-          p-4
-          "
-
-          value={
-            results[match.id]?.kills || ""
-          }
-
-          onChange={(e)=>
-            updateResult(
-              match.id,
-              "kills",
-              e.target.value
-            )
-          }
-
-          />
-
-
-
-
-
-
-          <input
-
-          placeholder="Points"
-
-          type="number"
-
-          className="
-          bg-zinc-800
-          rounded-xl
-          p-4
-          "
-
-          value={
-            results[match.id]?.points || ""
-          }
-
-          onChange={(e)=>
-            updateResult(
-              match.id,
-              "points",
-              e.target.value
-            )
-          }
-
-          />
-
-
-
-        </div>
+</p>
 
 
 
@@ -357,51 +355,196 @@ mb-5
 
 
 
-        <button
-
-        onClick={()=>
-          saveResult(match.id)
-        }
-
-        className="
-        mt-5
-        bg-green-600
-        px-6
-        py-3
-        rounded-xl
-        font-black
-        flex
-        items-center
-        gap-2
-        "
-
-        >
-
-        <Save className="w-5 h-5"/>
-
-        Save Result
-
-        </button>
+<div className="
+grid
+md:grid-cols-3
+gap-4
+">
 
 
 
 
 
-      </div>
+<input
+
+placeholder="Team ID"
+
+className="
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={
+results[match.id]?.team_id || ""
+}
+
+onChange={(e)=>
+
+updateResult(
+
+match.id,
+
+"team_id",
+
+e.target.value
+
+)
+
+}
+
+/>
 
 
-    ))
-
-
-    }
 
 
 
-    </div>
 
 
-  </div>
+
+<input
+
+placeholder="Kills"
+
+type="number"
+
+className="
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={
+results[match.id]?.kills || ""
+}
+
+onChange={(e)=>
+
+updateResult(
+
+match.id,
+
+"kills",
+
+e.target.value
+
+)
+
+}
+
+/>
+
+
+
+
+
+
+
+
+<input
+
+placeholder="Points"
+
+type="number"
+
+className="
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={
+results[match.id]?.points || ""
+}
+
+onChange={(e)=>
+
+updateResult(
+
+match.id,
+
+"points",
+
+e.target.value
+
+)
+
+}
+
+/>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<button
+
+onClick={()=>saveResult(match.id)}
+
+className="
+mt-5
+bg-green-600
+px-6
+py-3
+rounded-xl
+font-black
+flex
+items-center
+gap-2
+"
+
+>
+
+
+<Save className="
+w-5
+h-5
+"/>
+
+
+Save Result
+
+
+</button>
+
+
+
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+}
+
+
+
+
+
+</div>
+
 
 );
+
 
 }
