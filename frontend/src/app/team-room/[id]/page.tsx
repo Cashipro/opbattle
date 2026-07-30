@@ -1,5 +1,6 @@
 "use client";
 
+
 import {
 useEffect,
 useState
@@ -11,8 +12,11 @@ useParams
 } from "next/navigation";
 
 
-import api from "@/lib/api";
-
+import {
+getTeamRoom,
+selectSlot,
+leaveSlot
+} from "@/services/tournament";
 
 
 
@@ -31,6 +35,7 @@ const id = params.id as string;
 const [teams,setTeams] = useState<any[]>([]);
 
 const [loading,setLoading] = useState(true);
+
 
 
 
@@ -63,14 +68,10 @@ async function loadRoom(){
 try{
 
 
-const res = await api.get(
-
-`/tournaments/${id}/team-room`
-
-);
+const res = await getTeamRoom(id);
 
 
-setTeams(res.data);
+setTeams(res);
 
 
 
@@ -78,6 +79,7 @@ setTeams(res.data);
 
 
 console.log(error);
+
 
 
 }finally{
@@ -99,27 +101,16 @@ setLoading(false);
 
 
 
-async function selectSlot(slotId:string){
+async function handleJoin(slotId:string){
 
 
 try{
 
 
-await api.post(
-
-"/tournaments/team/select-slot",
-
-{
-
-slotId
-
-}
-
-);
+await selectSlot(slotId);
 
 
-
-alert("Slot selected");
+alert("Slot selected successfully");
 
 
 loadRoom();
@@ -133,18 +124,48 @@ alert(
 
 error?.response?.data?.message ||
 
-"Slot select failed"
+"Slot selection failed"
 
 );
 
 
-
 }
 
 
 
 }
 
+
+
+
+
+
+
+
+async function handleLeave(slotId:string){
+
+
+try{
+
+
+await leaveSlot(slotId);
+
+
+loadRoom();
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+}
+
+
+
+}
 
 
 
@@ -198,12 +219,12 @@ p-6
 
 <h1 className="
 text-3xl
-font-bold
+font-black
 text-center
 mb-8
 ">
 
-PUBG TEAM ROOM
+🔥 PUBG TEAM ROOM
 
 </h1>
 
@@ -215,10 +236,9 @@ PUBG TEAM ROOM
 
 <div className="
 grid
-grid-cols-1
 md:grid-cols-2
 gap-6
-max-w-5xl
+max-w-6xl
 mx-auto
 ">
 
@@ -228,7 +248,7 @@ mx-auto
 
 {
 
-teams.map((team)=>(
+teams.map((team:any)=>(
 
 
 
@@ -242,7 +262,6 @@ border
 border-zinc-700
 rounded-3xl
 p-6
-shadow-xl
 "
 
 >
@@ -250,10 +269,10 @@ shadow-xl
 
 
 <h2 className="
-text-xl
+text-2xl
 font-bold
-mb-4
 text-blue-400
+mb-5
 ">
 
 #{team.team_number} {team.name}
@@ -275,53 +294,39 @@ team.slots.map((slot:any)=>(
 
 
 
-<button
+<div
 
 key={slot.id}
 
-disabled={!!slot.user}
-
-onClick={()=>selectSlot(slot.id)}
-
-className={`
-
-w-full
-
+className="
+bg-zinc-800
 rounded-xl
-
 p-4
-
-text-left
-
-border
-
-${
-
-slot.user
-
-?
-
-"bg-green-900 border-green-600"
-
-:
-
-"bg-zinc-800 border-zinc-600 hover:bg-zinc-700"
-
-}
-
-`}
+"
 
 >
 
 
 
+<div className="
+flex
+justify-between
+items-center
+">
 
-<div className="font-bold">
 
+
+
+
+<div>
+
+
+<p className="font-bold">
 
 Slot {slot.slot_number}
 
-</div>
+</p>
+
 
 
 
@@ -335,21 +340,24 @@ slot.user
 
 <div className="text-sm text-gray-300">
 
+
 {slot.user.name}
 
 <br/>
 
 PUBG ID:
+
 {slot.user.pubg_uid}
+
 
 </div>
 
 
 :
 
-<div className="text-gray-400">
+<div className="text-gray-500">
 
-Empty - Select Slot
+Empty Slot
 
 </div>
 
@@ -358,8 +366,73 @@ Empty - Select Slot
 
 
 
+</div>
+
+
+
+
+
+
+
+
+
+{
+
+slot.user
+
+?
+
+<button
+
+onClick={()=>handleLeave(slot.id)}
+
+className="
+bg-red-600
+px-4
+py-2
+rounded-lg
+"
+
+>
+
+Leave
 
 </button>
+
+
+:
+
+<button
+
+onClick={()=>handleJoin(slot.id)}
+
+className="
+bg-green-600
+px-4
+py-2
+rounded-lg
+"
+
+>
+
+Join
+
+</button>
+
+
+}
+
+
+
+
+
+</div>
+
+
+
+
+
+</div>
 
 
 
@@ -396,7 +469,6 @@ Empty - Select Slot
 </div>
 
 );
-
 
 
 }
