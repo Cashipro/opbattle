@@ -1,15 +1,25 @@
 "use client";
 
+
 import {
 useEffect,
 useState
 } from "react";
 
+
 import Sidebar from "@/components/Sidebar";
 
+
+import api from "@/lib/api";
+
+
 import {
-getMyTournaments
-} from "@/services/tournament";
+Wallet,
+Trophy,
+Activity
+} from "lucide-react";
+
+
 
 
 
@@ -18,9 +28,12 @@ getMyTournaments
 export default function Dashboard(){
 
 
+
 const [user,setUser] = useState<any>({});
 
+
 const [joined,setJoined] = useState(0);
+
 
 const [loading,setLoading] = useState(true);
 
@@ -29,11 +42,16 @@ const [loading,setLoading] = useState(true);
 
 
 
+
+
+
 useEffect(()=>{
+
 
 loadUser();
 
 loadTournaments();
+
 
 },[]);
 
@@ -42,21 +60,39 @@ loadTournaments();
 
 
 
-function loadUser(){
-
-const savedUser =
-localStorage.getItem("user");
 
 
-if(savedUser){
 
-setUser(
-JSON.parse(savedUser)
+async function loadUser(){
+
+
+try{
+
+
+const res = await api.get(
+"/auth/me"
 );
 
-}
+
+setUser(res.data);
+
+
+
+
+
+}catch(error){
+
+
+console.log(error);
+
 
 }
+
+
+
+}
+
+
 
 
 
@@ -66,15 +102,19 @@ JSON.parse(savedUser)
 
 async function loadTournaments(){
 
+
 try{
 
 
-const data =
-await getMyTournaments();
+const res = await api.get(
+
+"/tournaments/user/my-tournaments"
+
+);
 
 
 setJoined(
-data.length
+res.data.length
 );
 
 
@@ -93,7 +133,9 @@ setLoading(false);
 
 }
 
+
 }
+
 
 
 
@@ -105,10 +147,15 @@ setLoading(false);
 return (
 
 <div className="
+flex
 min-h-screen
 bg-black
 text-white
 ">
+
+
+
+
 
 
 
@@ -118,13 +165,19 @@ text-white
 
 
 
+
+
+
+
 <main className="
-md:ml-72
+flex-1
 p-4
 pt-20
 md:p-10
 md:pt-10
 ">
+
+
 
 
 
@@ -138,6 +191,7 @@ mx-auto
 
 
 
+
 <h1 className="
 text-3xl
 md:text-4xl
@@ -145,9 +199,16 @@ font-black
 mb-2
 ">
 
-Welcome, {user.name || "Player"}
+Welcome,
+
+{" "}
+
+{user.name || "Player"}
 
 </h1>
+
+
+
 
 
 
@@ -167,6 +228,8 @@ PUBG Tournament Dashboard
 
 
 
+
+
 <div className="
 grid
 grid-cols-1
@@ -174,6 +237,8 @@ sm:grid-cols-2
 xl:grid-cols-3
 gap-5
 ">
+
+
 
 
 
@@ -187,7 +252,18 @@ rounded-3xl
 p-6
 ">
 
-<p className="text-gray-400">
+
+<Wallet className="
+text-green-400
+mb-4
+w-8
+h-8
+"/>
+
+
+<p className="
+text-gray-400
+">
 
 Balance
 
@@ -214,6 +290,8 @@ mt-3
 
 
 
+
+
 <div className="
 bg-zinc-900
 border
@@ -222,7 +300,18 @@ rounded-3xl
 p-6
 ">
 
-<p className="text-gray-400">
+
+<Trophy className="
+text-blue-400
+mb-4
+w-8
+h-8
+"/>
+
+
+<p className="
+text-gray-400
+">
 
 Joined Tournaments
 
@@ -236,12 +325,28 @@ text-blue-400
 mt-3
 ">
 
-{loading ? "..." : joined}
+
+{
+
+loading
+
+?
+
+"..."
+
+:
+
+joined
+
+}
+
 
 </h2>
 
 
 </div>
+
+
 
 
 
@@ -257,7 +362,18 @@ rounded-3xl
 p-6
 ">
 
-<p className="text-gray-400">
+
+<Activity className="
+text-yellow-400
+mb-4
+w-8
+h-8
+"/>
+
+
+<p className="
+text-gray-400
+">
 
 Player Status
 
@@ -283,7 +399,11 @@ ACTIVE
 
 
 
+
+
 </div>
+
+
 
 
 
@@ -308,6 +428,8 @@ Quick Actions
 
 
 
+
+
 <div className="
 grid
 grid-cols-1
@@ -315,6 +437,7 @@ sm:grid-cols-2
 xl:grid-cols-3
 gap-5
 ">
+
 
 
 
@@ -341,6 +464,9 @@ transition
 
 
 
+
+
+
 <a
 href="/deposit"
 className="
@@ -357,6 +483,9 @@ transition
 💰 Deposit
 
 </a>
+
+
+
 
 
 
@@ -383,16 +512,27 @@ transition
 
 
 
+
+</div>
+
+
+
+
+
+
+
+
 </div>
 
 
 
 
-
-</div>
 
 
 </main>
+
+
+
 
 
 
