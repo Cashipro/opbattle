@@ -3,15 +3,17 @@ import api from "@/lib/api";
 
 
 
+
 // GET ALL TOURNAMENTS
 
 export async function getTournaments(){
 
-    const res = await api.get(
-        "/tournaments"
-    );
+const res = await api.get(
+"/tournaments"
+);
 
-    return res.data;
+
+return res.data;
 
 }
 
@@ -25,16 +27,15 @@ export async function getTournaments(){
 // GET SINGLE TOURNAMENT
 
 export async function getTournament(
-
-    id:string
-
+id:string
 ){
 
-    const res = await api.get(
-        `/tournaments/${id}`
-    );
+const res = await api.get(
+`/tournaments/${id}`
+);
 
-    return res.data;
+
+return res.data;
 
 }
 
@@ -48,16 +49,15 @@ export async function getTournament(
 // JOIN TOURNAMENT
 
 export async function joinTournament(
-
-    id:string
-
+id:string
 ){
 
-    const res = await api.post(
-        `/tournaments/${id}/join`
-    );
+const res = await api.post(
+`/tournaments/${id}/join`
+);
 
-    return res.data;
+
+return res.data;
 
 }
 
@@ -72,14 +72,12 @@ export async function joinTournament(
 
 export async function getMyTournaments(){
 
+const res = await api.get(
+"/tournaments/user/my-tournaments"
+);
 
-    const res = await api.get(
-        "/tournaments/user/my-tournaments"
-    );
 
-
-    return res.data;
-
+return res.data;
 
 }
 
@@ -93,19 +91,15 @@ export async function getMyTournaments(){
 // GENERATE TEAMS
 
 export async function generateTeams(
-
-    id:string
-
+id:string
 ){
 
-    const res = await api.post(
-
-        `/tournaments/${id}/generate-teams`
-
-    );
+const res = await api.post(
+`/tournaments/${id}/generate-teams`
+);
 
 
-    return res.data;
+return res.data;
 
 }
 
@@ -119,53 +113,15 @@ export async function generateTeams(
 // GET TEAM ROOM
 
 export async function getTeamRoom(
-
-    id:string
-
+id:string
 ){
 
-    const res = await api.get(
-
-        `/tournaments/${id}/team-room`
-
-    );
+const res = await api.get(
+`/tournaments/${id}/team-room`
+);
 
 
-    return res.data;
-
-}
-
-
-
-
-
-
-
-
-// UPDATE TEAM NAME
-
-export async function updateTeamName(
-
-    teamId:string,
-
-    name:string
-
-){
-
-
-    const res = await api.put(
-
-        `/tournaments/team/${teamId}/name`,
-
-        {
-            name
-        }
-
-    );
-
-
-    return res.data;
-
+return res.data;
 
 }
 
@@ -179,25 +135,18 @@ export async function updateTeamName(
 // SELECT SLOT
 
 export async function selectSlot(
-
-    slotId:string
-
+slotId:string
 ){
 
-
-    const res = await api.post(
-
-        "/tournaments/team/select-slot",
-
-        {
-            slotId
-        }
-
-    );
+const res = await api.post(
+"/tournaments/team/select-slot",
+{
+slotId
+}
+);
 
 
-    return res.data;
-
+return res.data;
 
 }
 
@@ -211,24 +160,17 @@ export async function selectSlot(
 // LEAVE SLOT
 
 export async function leaveSlot(
-
-    slotId:string
-
+slotId:string
 ){
 
-
-    const res = await api.post(
-
-        "/tournaments/team/leave-slot",
-
-        {
-            slotId
-        }
-
-    );
+const res = await api.post(
+"/tournaments/team/leave-slot",
+{
+slotId
+}
+);
 
 
-    return res.data;
-
+return res.data;
 
 }
