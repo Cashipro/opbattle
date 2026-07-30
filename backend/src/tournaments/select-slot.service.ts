@@ -1,11 +1,11 @@
 import {
-  Injectable,
-  BadRequestException
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
 import {
-  PrismaService
+PrismaService
 } from '../prisma/prisma.service';
 
 
@@ -15,6 +15,7 @@ import {
 
 
 @Injectable()
+
 export class SelectSlotService {
 
 
@@ -43,16 +44,7 @@ slotId:string
 
 
 
-return this.prisma.$transaction(async(tx:any)=>{
-
-
-
-
-
-
-const slot =
-
-await tx.teamSlot.findUnique({
+const slot = await this.prisma.teamSlot.findUnique({
 
 where:{
 
@@ -61,10 +53,24 @@ id:slotId
 },
 
 
+
 include:{
 
 
-team:true
+team:{
+
+
+include:{
+
+
+tournament:true
+
+
+}
+
+
+}
+
 
 
 }
@@ -88,7 +94,9 @@ throw new BadRequestException(
 
 );
 
+
 }
+
 
 
 
@@ -102,10 +110,11 @@ if(slot.user_id){
 
 throw new BadRequestException(
 
-"This slot is already occupied"
+"Slot already occupied"
 
 );
 
+
 }
 
 
@@ -116,53 +125,19 @@ throw new BadRequestException(
 
 
 
-// CHECK USER ALREADY IN SAME TOURNAMENT
+// REMOVE USER FROM OLD POSITION
 
-const oldSlot =
-
-await tx.teamSlot.findFirst({
+await this.prisma.teamSlot.updateMany({
 
 where:{
 
 
-user_id:userId,
-
-
-team:{
-
-
-tournament_id:slot.team.tournament_id
-
-
-}
-
-
-}
-
-});
-
-
-
-
-
-
-
-
-
-// REMOVE OLD POSITION
-
-if(oldSlot){
-
-
-await tx.teamSlot.update({
-
-where:{
-
-
-id:oldSlot.id
+user_id:userId
 
 
 },
+
+
 
 data:{
 
@@ -176,10 +151,10 @@ joined_at:null
 }
 
 
+
 });
 
 
-}
 
 
 
@@ -187,13 +162,9 @@ joined_at:null
 
 
 
+// ADD USER TO NEW SLOT
 
-
-// ASSIGN NEW POSITION
-
-const updated =
-
-await tx.teamSlot.update({
+const updated = await this.prisma.teamSlot.update({
 
 where:{
 
@@ -202,6 +173,8 @@ id:slotId
 
 
 },
+
+
 
 data:{
 
@@ -213,6 +186,7 @@ joined_at:new Date()
 
 
 },
+
 
 
 include:{
@@ -242,7 +216,9 @@ pubg_uid:true
 }
 
 
+
 }
+
 
 
 });
@@ -258,7 +234,8 @@ pubg_uid:true
 return {
 
 
-message:"Slot selected successfully",
+message:"Position selected successfully",
+
 
 
 team:{
@@ -276,24 +253,22 @@ team_number:updated.team.team_number
 },
 
 
-slot:updated.slot_number,
+
+slot_number:updated.slot_number,
+
 
 
 player:updated.user
+
 
 
 };
 
 
 
-
-
-
-});
-
-
-
 }
+
+
 
 
 
