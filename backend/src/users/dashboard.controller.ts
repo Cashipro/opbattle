@@ -1,7 +1,6 @@
 import {
 Controller,
 Get,
-Req,
 UseGuards
 } from '@nestjs/common';
 
@@ -14,8 +13,14 @@ DashboardService
 
 
 import {
-JwtAuthGuard
+JwtGuard
 } from '../auth/jwt.guard';
+
+
+
+import {
+CurrentUser
+} from '../auth/current-user.decorator';
 
 
 
@@ -41,26 +46,76 @@ private dashboardService:DashboardService
 
 
 
-@Get()
 
-@UseGuards(JwtAuthGuard)
+@Get('profile')
 
-getDashboard(
+@UseGuards(JwtGuard)
 
-@Req() req:any
+profile(
+
+@CurrentUser() user:any
 
 ){
 
+return this.dashboardService.getProfile(
 
-
-return this.dashboardService.getDashboard(
-
-req.user.id
+user.id
 
 );
 
+}
+
+
+
+
+
+
+
+
+@Get('my-tournaments')
+
+@UseGuards(JwtGuard)
+
+myTournaments(
+
+@CurrentUser() user:any
+
+){
+
+return this.dashboardService.getMyTournaments(
+
+user.id
+
+);
 
 }
+
+
+
+
+
+
+
+
+
+@Get('matches')
+
+@UseGuards(JwtGuard)
+
+matches(
+
+@CurrentUser() user:any
+
+){
+
+return this.dashboardService.getMyMatches(
+
+user.id
+
+);
+
+}
+
 
 
 
