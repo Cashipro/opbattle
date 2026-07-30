@@ -10,7 +10,6 @@ import api from "@/lib/api";
 import {
   Swords,
   Save,
-  Play,
   CheckCircle
 } from "lucide-react";
 
@@ -55,13 +54,34 @@ try{
 
 const res =
 await api.get(
-"/admin/matches"
+"/admin/tournaments"
 );
 
 
-setMatches(
-res.data || []
+
+let allMatches:any[] = [];
+
+
+
+for(const tournament of res.data || []){
+
+
+if(tournament.matches){
+
+
+allMatches.push(
+...tournament.matches
 );
+
+
+}
+
+
+}
+
+
+
+setMatches(allMatches);
 
 
 
@@ -131,7 +151,7 @@ try{
 
 await api.post(
 
-`/admin/matches/${id}/room`,
+`/admin/tournaments/match/${id}/room`,
 
 {
 
@@ -179,9 +199,9 @@ id:string
 try{
 
 
-await api.patch(
+await api.post(
 
-`/admin/matches/${id}/finish`
+`/admin/tournaments/match/${id}/finish`
 
 );
 
@@ -244,266 +264,285 @@ Manage rooms and match status
 
 
 </div>
-        <div className="space-y-5">
 
 
-      {
 
-      loading
 
-      ?
 
-      <p className="text-zinc-400">
-        Loading matches...
-      </p>
+<div className="space-y-5">
 
 
-      :
+{
 
+loading
 
-      matches.map((match:any)=>(
+?
 
+<p className="text-zinc-400">
+Loading matches...
+</p>
 
-        <div
 
-        key={match.id}
+:
 
-        className="
-        bg-zinc-900
-        border
-        border-zinc-800
-        rounded-3xl
-        p-6
-        "
 
-        >
+matches.length === 0
 
+?
 
+<p className="text-zinc-400">
+No matches found
+</p>
 
-          <div className="
-          flex
-          justify-between
-          items-center
-          mb-6
-          ">
 
+:
 
-            <div>
 
+matches.map((match:any)=>(
 
-              <h2 className="
-              text-2xl
-              font-black
-              ">
 
-              {match.tournament?.name || "Tournament"}
+<div
 
-              </h2>
+key={match.id}
 
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+"
 
+>
 
-              <p className="
-              text-zinc-400
-              mt-1
-              ">
 
-              Status:
-              {" "}
-              {match.status}
 
-              </p>
+<div className="
+flex
+justify-between
+items-center
+mb-6
+">
 
 
-            </div>
+<div>
 
 
+<h2 className="
+text-2xl
+font-black
+">
 
+{match.tournament?.name || "Tournament Match"}
 
-            <div className="
-            bg-zinc-800
-            px-4
-            py-2
-            rounded-xl
-            "
-            >
+</h2>
 
-            Match ID:
-            {" "}
-            {match.id.slice(0,8)}
 
-            </div>
 
+<p className="
+text-zinc-400
+mt-1
+">
 
-          </div>
+Status:
+{" "}
+{match.status}
 
+</p>
 
 
+</div>
 
 
 
 
-          <div className="
-          grid
-          md:grid-cols-2
-          gap-4
-          ">
+<div className="
+bg-zinc-800
+px-4
+py-2
+rounded-xl
+">
 
+ID:
+{" "}
+{match.id.slice(0,8)}
 
+</div>
 
-            <input
 
-            placeholder="Room ID"
 
-            className="
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
+</div>
 
-            value={
-              rooms[match.id]?.room_id || ""
-            }
 
-            onChange={(e)=>
-              updateRoom(
-                match.id,
-                "room_id",
-                e.target.value
-              )
-            }
 
-            />
 
 
 
 
+<div className="
+grid
+md:grid-cols-2
+gap-4
+">
 
 
-            <input
 
-            placeholder="Room Password"
+<input
 
-            className="
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
+placeholder="Room ID"
 
-            value={
-              rooms[match.id]?.room_password || ""
-            }
+className="
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
-            onChange={(e)=>
-              updateRoom(
-                match.id,
-                "room_password",
-                e.target.value
-              )
-            }
+value={
+rooms[match.id]?.room_id || ""
+}
 
-            />
+onChange={(e)=>
 
+updateRoom(
+match.id,
+"room_id",
+e.target.value
+)
 
+}
 
-          </div>
+/>
 
 
 
 
 
 
+<input
 
+placeholder="Room Password"
 
-          <div className="
-          flex
-          gap-3
-          mt-5
-          flex-wrap
-          ">
+className="
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
+value={
+rooms[match.id]?.room_password || ""
+}
 
+onChange={(e)=>
 
-            <button
+updateRoom(
+match.id,
+"room_password",
+e.target.value
+)
 
-            onClick={()=>
-              addRoom(match.id)
-            }
+}
 
-            className="
-            bg-green-600
-            px-5
-            py-3
-            rounded-xl
-            font-bold
-            flex
-            items-center
-            gap-2
-            "
+/>
 
-            >
 
-            <Save className="w-5 h-5"/>
 
-            Save Room
+</div>
 
-            </button>
 
 
 
 
 
 
+<div className="
+flex
+gap-3
+mt-5
+flex-wrap
+">
 
-            <button
 
-            onClick={()=>
-              finishMatch(match.id)
-            }
 
-            className="
-            bg-blue-600
-            px-5
-            py-3
-            rounded-xl
-            font-bold
-            flex
-            items-center
-            gap-2
-            "
+<button
 
-            >
+onClick={()=>
+addRoom(match.id)
+}
 
-            <CheckCircle className="w-5 h-5"/>
+className="
+bg-green-600
+px-5
+py-3
+rounded-xl
+font-bold
+flex
+items-center
+gap-2
+"
 
-            Finish
+>
 
-            </button>
+<Save className="w-5 h-5"/>
 
+Save Room
 
+</button>
 
 
 
-          </div>
 
 
 
+<button
 
+onClick={()=>
+finishMatch(match.id)
+}
 
-        </div>
+className="
+bg-blue-600
+px-5
+py-3
+rounded-xl
+font-bold
+flex
+items-center
+gap-2
+"
 
+>
 
+<CheckCircle className="w-5 h-5"/>
 
-      ))
+Finish
 
+</button>
 
-      }
 
 
+</div>
 
-      </div>
 
 
-    </div>
+
+
+</div>
+
+
+
+))
+
+
+}
+
+
+
+</div>
+
+
+</div>
 
 );
 
