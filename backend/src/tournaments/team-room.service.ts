@@ -1,22 +1,25 @@
 import {
-  Injectable,
-  BadRequestException
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
 import {
-  PrismaService
+PrismaService
 } from '../prisma/prisma.service';
 
 
 
 
+
 @Injectable()
+
 export class TeamRoomService {
 
 
+
 constructor(
-  private prisma: PrismaService
+private prisma:PrismaService
 ){}
 
 
@@ -24,179 +27,8 @@ constructor(
 
 
 
-// CREATE 100 PUBG STYLE TEAMS
 
-async generateTeams(
-  tournamentId:string
-){
 
-
-const tournament =
-
-await this.prisma.tournament.findUnique({
-
-where:{
-id:tournamentId
-}
-
-});
-
-
-
-
-if(!tournament){
-
-throw new BadRequestException(
-"Tournament not found"
-);
-
-}
-
-
-
-
-
-
-const already =
-
-await this.prisma.tournamentTeam.count({
-
-where:{
-tournament_id:tournamentId
-}
-
-});
-
-
-
-
-
-if(already){
-
-return {
-message:"Teams already created"
-};
-
-}
-
-
-
-
-
-
-
-
-// CREATE 100 TEAMS
-
-for(
-let teamNumber = 1;
-teamNumber <= 100;
-teamNumber++
-){
-
-
-
-const team =
-
-await this.prisma.tournamentTeam.create({
-
-data:{
-
-
-tournament_id:tournamentId,
-
-
-team_number:teamNumber,
-
-
-name:`Team ${teamNumber}`
-
-
-}
-
-});
-
-
-
-
-
-
-
-
-// CREATE 4 EMPTY SLOTS
-
-for(
-let slot=1;
-slot<=4;
-slot++
-){
-
-
-
-await this.prisma.teamSlot.create({
-
-data:{
-
-
-team_id:team.id,
-
-
-slot_number:slot,
-
-
-user_id:null,
-
-
-joined_at:null
-
-
-}
-
-});
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-return {
-
-
-message:"100 Teams created successfully",
-
-
-teams:100,
-
-
-slots:400
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// GET PUBG ROOM
 
 async getRoom(
 
@@ -206,13 +38,50 @@ tournamentId:string
 
 
 
-return this.prisma.tournamentTeam.findMany({
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
 
 where:{
 
+id:tournamentId
+
+}
+
+});
+
+
+
+
+
+
+
+if(!tournament){
+
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+}
+
+
+
+
+
+
+
+
+const teams =
+
+await this.prisma.tournamentTeam.findMany({
+
+where:{
 
 tournament_id:tournamentId
-
 
 },
 
@@ -220,9 +89,7 @@ tournament_id:tournamentId
 
 orderBy:{
 
-
 team_number:"asc"
-
 
 },
 
@@ -231,16 +98,16 @@ team_number:"asc"
 include:{
 
 
+
 slots:{
 
 
 orderBy:{
 
-
 slot_number:"asc"
 
-
 },
+
 
 
 include:{
@@ -254,18 +121,14 @@ select:{
 
 id:true,
 
-
 name:true,
-
 
 pubg_uid:true
 
 
 }
 
-
 }
-
 
 
 }
@@ -284,6 +147,15 @@ pubg_uid:true
 
 
 
+
+
+
+
+
+return teams;
+
+
+
 }
 
 
@@ -293,10 +165,6 @@ pubg_uid:true
 
 
 
-
-
-
-// UPDATE TEAM NAME
 
 async updateTeamName(
 
@@ -307,16 +175,17 @@ name:string
 ){
 
 
-if(!name || name.length < 3){
+
+if(!name || name.trim().length < 3){
+
 
 throw new BadRequestException(
 
-"Team name minimum 3 characters"
+"Team name minimum 3 characters required"
 
 );
 
 }
-
 
 
 
@@ -327,6 +196,7 @@ where:{
 id:teamId
 
 },
+
 
 data:{
 
@@ -347,15 +217,45 @@ name:name.trim()
 
 
 
-
-
-// LEAVE SLOT
-
 async leaveSlot(
 
 slotId:string
 
 ){
+
+
+
+const slot =
+
+await this.prisma.teamSlot.findUnique({
+
+where:{
+
+id:slotId
+
+}
+
+});
+
+
+
+
+
+
+if(!slot){
+
+throw new BadRequestException(
+
+"Slot not found"
+
+);
+
+}
+
+
+
+
+
 
 
 
@@ -367,14 +267,12 @@ id:slotId
 
 },
 
-data:{
 
+data:{
 
 user_id:null,
 
-
 joined_at:null
-
 
 }
 
@@ -382,6 +280,182 @@ joined_at:null
 
 
 }
+
+
+
+
+
+
+
+
+
+// ADMIN OPTIONAL
+// agar admin teams increase karna chahe
+
+
+async increaseTeams(
+
+tournamentId:string,
+
+amount:number
+
+){
+
+
+
+
+
+const lastTeam =
+
+await this.prisma.tournamentTeam.findFirst({
+
+where:{
+
+tournament_id:tournamentId
+
+},
+
+
+orderBy:{
+
+team_number:"desc"
+
+}
+
+});
+
+
+
+
+
+
+
+let start =
+
+lastTeam
+
+?
+
+lastTeam.team_number + 1
+
+:
+
+1;
+
+
+
+
+
+
+
+
+const created:any[]=[];
+
+
+
+
+
+
+
+
+for(
+
+let t=start;
+
+t<start+amount;
+
+t++
+
+){
+
+
+
+
+
+const team =
+
+await this.prisma.tournamentTeam.create({
+
+data:{
+
+tournament_id:tournamentId,
+
+team_number:t,
+
+name:`Team ${t}`
+
+}
+
+});
+
+
+
+
+
+
+
+
+for(
+
+let slot=1;
+
+slot<=4;
+
+slot++
+
+){
+
+
+
+await this.prisma.teamSlot.create({
+
+data:{
+
+team_id:team.id,
+
+slot_number:slot
+
+}
+
+});
+
+
+}
+
+
+
+
+
+created.push(team);
+
+
+
+}
+
+
+
+
+
+
+
+
+return {
+
+
+message:"Teams added successfully",
+
+total:created.length
+
+
+
+};
+
+
+
+}
+
+
+
 
 
 
