@@ -1,142 +1,39 @@
-import {
-Module
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
+import { PrismaService } from '../prisma/prisma.service';
 
-import {
-PrismaModule
-} from '../prisma/prisma.module';
+import { AdminController } from './admin.controller';
 
+import { AdminTournamentService } from './admin-tournament.service';
 
-
-
-
-import {
-AdminTournamentController
-} from './admin-tournament.controller';
-
-
-import {
-AdminTournamentService
-} from './admin-tournament.service';
-
-
-
-
-
-import {
-AdminDepositController
-} from './admin-deposit.controller';
-
-
-import {
-AdminDepositService
-} from './admin-deposit.service';
-
-
-
-
-
-import {
-AdminStatsController
-} from './admin-stats.controller';
-
-
-import {
-AdminStatsService
-} from './admin-stats.service';
-
-
-
-
-
-import {
-AdminWithdrawalController
-} from './admin-withdrawal.controller';
-
-
-import {
-AdminWithdrawalService
-} from './admin-withdrawal.service';
-
-
-
-
-
-import {
-AutoPlannerService
-} from '../tournaments/auto-planner.service';
-
-
-import {
-NextRoundService
-} from '../tournaments/next-round.service';
-
-
-
-
-
-
+import { TeamRoomService } from '../tournaments/team-room.service';
 
 
 @Module({
 
-imports:[
-
-PrismaModule
-
-],
+  controllers:[
+    AdminController
+  ],
 
 
+  providers:[
+
+    PrismaService,
+
+    AdminTournamentService,
+
+    TeamRoomService
+
+  ],
 
 
+  exports:[
 
-controllers:[
+    AdminTournamentService
 
-
-AdminTournamentController,
-
-
-AdminDepositController,
-
-
-AdminStatsController,
-
-
-AdminWithdrawalController
-
-
-],
-
-
-
-
-
-providers:[
-
-
-AdminTournamentService,
-
-
-AdminDepositService,
-
-
-AdminStatsService,
-
-
-AdminWithdrawalService,
-
-
-AutoPlannerService,
-
-
-NextRoundService
-
-
-]
+  ]
 
 
 })
-
 
 export class AdminModule {}
