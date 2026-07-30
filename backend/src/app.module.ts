@@ -1,16 +1,40 @@
-import { Module } from '@nestjs/common';
+import {
+Module
+} from '@nestjs/common';
 
-import { ConfigModule } from '@nestjs/config';
 
-import { PrismaModule } from './prisma/prisma.module';
+import {
+ConfigModule
+} from '@nestjs/config';
 
-import { AuthModule } from './auth/auth.module';
 
-import { TournamentsModule } from './tournaments/tournaments.module';
+import {
+PrismaModule
+} from './prisma/prisma.module';
 
-import { AdminModule } from './admin/admin.module';
 
-import { DepositModule } from './deposit/deposit.module';
+import {
+AuthModule
+} from './auth/auth.module';
+
+
+import {
+TournamentsModule
+} from './tournaments/tournaments.module';
+
+
+import {
+AdminModule
+} from './admin/admin.module';
+
+
+import {
+WithdrawalModule
+} from './withdrawal/withdrawal.module';
+
+
+
+
 
 
 
@@ -18,28 +42,38 @@ import { DepositModule } from './deposit/deposit.module';
 
 imports:[
 
+
 ConfigModule.forRoot({
-  isGlobal:true
+
+isGlobal:true
+
 }),
+
 
 
 PrismaModule,
 
 
+
 AuthModule,
+
 
 
 TournamentsModule,
 
 
+
 AdminModule,
 
 
-DepositModule
+
+WithdrawalModule
 
 
 ]
 
+
 })
+
 
 export class AppModule {}
