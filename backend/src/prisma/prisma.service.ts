@@ -1,6 +1,7 @@
 import {
   Injectable,
   OnModuleInit,
+  OnModuleDestroy,
 } from '@nestjs/common';
 
 import {
@@ -13,20 +14,25 @@ import {
 
 export class PrismaService
 extends PrismaClient
-implements OnModuleInit {
+implements OnModuleInit, OnModuleDestroy {
 
 
 
 async onModuleInit(){
 
+  await this.$connect();
 
-await this.$connect();
+  console.log(
+    "Database Connected Successfully"
+  );
+
+}
 
 
-console.log(
-"Database Connected Successfully"
-);
 
+async onModuleDestroy(){
+
+  await this.$disconnect();
 
 }
 
