@@ -4,9 +4,12 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
 
 
 
@@ -23,6 +26,7 @@ constructor(
 private prisma:PrismaService
 
 ){}
+
 
 
 
@@ -60,13 +64,17 @@ id:tournamentId
 
 
 
+
 if(!tournament){
 
 throw new BadRequestException(
+
 "Tournament not found"
+
 );
 
 }
+
 
 
 
@@ -78,7 +86,7 @@ if(tournament.status !== "upcoming"){
 
 throw new BadRequestException(
 
-"Tournament entry closed"
+"Tournament already started"
 
 );
 
@@ -90,11 +98,15 @@ throw new BadRequestException(
 
 
 
-const already =
 
-await this.prisma.tournamentSlot.findFirst({
+const alreadyJoined =
+
+await this.prisma.tournamentJoin.findUnique({
 
 where:{
+
+
+tournament_id_user_id:{
 
 
 tournament_id:tournamentId,
@@ -106,6 +118,9 @@ user_id:userId
 }
 
 
+
+}
+
 });
 
 
@@ -113,7 +128,9 @@ user_id:userId
 
 
 
-if(already){
+
+
+if(alreadyJoined){
 
 throw new BadRequestException(
 
@@ -147,6 +164,7 @@ id:userId
 
 
 
+
 if(!user){
 
 throw new BadRequestException(
@@ -166,7 +184,6 @@ throw new BadRequestException(
 
 if(user.balance < tournament.entry_fee){
 
-
 throw new BadRequestException(
 
 "Insufficient balance"
@@ -179,13 +196,16 @@ throw new BadRequestException(
 
 
 
+
+
+
+
 return this.prisma.$transaction(async(tx)=>{
 
 
 
 
 
-// balance cut
 
 await tx.user.update({
 
@@ -194,6 +214,7 @@ where:{
 id:userId
 
 },
+
 
 
 data:{
@@ -208,7 +229,9 @@ decrement:tournament.entry_fee
 }
 
 
+
 }
+
 
 
 });
@@ -220,31 +243,22 @@ decrement:tournament.entry_fee
 
 
 
-// find empty slot
+const join =
 
-let slot =
+await tx.tournamentJoin.create({
 
-await tx.tournamentSlot.findFirst({
-
-where:{
+data:{
 
 
 tournament_id:tournamentId,
 
 
-user_id:null
+user_id:userId
 
-
-},
-
-
-orderBy:{
-
-
-team_number:"asc"
 
 
 }
+
 
 
 });
@@ -256,61 +270,6 @@ team_number:"asc"
 
 
 
-if(!slot){
-
-
-throw new BadRequestException(
-
-"No available slots"
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-// assign player
-
-await tx.tournamentSlot.update({
-
-where:{
-
-
-id:slot.id
-
-
-},
-
-
-data:{
-
-
-user_id:userId,
-
-
-joined_at:new Date()
-
-
-}
-
-
-});
-
-
-
-
-
-
-
-
-
-// wallet history
 
 await tx.walletTransaction.create({
 
@@ -320,7 +279,7 @@ data:{
 user_id:userId,
 
 
-type:"tournament_entry",
+type:"debit",
 
 
 amount:tournament.entry_fee,
@@ -328,11 +287,12 @@ amount:tournament.entry_fee,
 
 description:
 
-`Joined ${tournament.name}`
+`Tournament entry fee - ${tournament.name}`
 
 
 
 }
+
 
 
 });
@@ -353,13 +313,8 @@ message:
 "Tournament joined successfully",
 
 
-tournament:tournament.name,
+join
 
-
-team_number:slot.team_number,
-
-
-slot_number:slot.slot_number
 
 
 };
@@ -374,6 +329,7 @@ slot_number:slot.slot_number
 
 
 }
+
 
 
 
