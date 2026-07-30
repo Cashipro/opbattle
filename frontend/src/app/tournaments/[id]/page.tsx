@@ -2,14 +2,14 @@
 
 
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react";
 
 
 import {
-  useParams,
-  useRouter
+useParams,
+useRouter
 } from "next/navigation";
 
 
@@ -17,8 +17,8 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-  getTournament,
-  joinTournament
+getTournament,
+joinTournament
 } from "@/services/tournament";
 
 
@@ -30,22 +30,22 @@ import {
 export default function TournamentDetail(){
 
 
-  const params = useParams<{ id: string }>();
+const params = useParams<{ id:string }>();
 
-  const router = useRouter();
+const router = useRouter();
 
 
-  const id = params?.id;
+const id = params?.id;
 
 
 
 
 
-  const [tournament,setTournament] = useState<any>(null);
+const [tournament,setTournament] = useState<any>(null);
 
-  const [loading,setLoading] = useState(true);
+const [loading,setLoading] = useState(true);
 
-  const [joining,setJoining] = useState(false);
+const [joining,setJoining] = useState(false);
 
 
 
@@ -55,17 +55,17 @@ export default function TournamentDetail(){
 
 
 
-  useEffect(()=>{
+useEffect(()=>{
 
 
-    if(id){
+if(id){
 
-      loadTournament();
+loadTournament();
 
-    }
+}
 
 
-  },[id]);
+},[id]);
 
 
 
@@ -75,41 +75,41 @@ export default function TournamentDetail(){
 
 
 
-  async function loadTournament(){
+async function loadTournament(){
 
 
-    try{
+try{
 
 
-      if(!id) return;
+if(!id) return;
 
 
-      const data =
-        await getTournament(id);
+const data =
+await getTournament(id);
 
 
-      setTournament(data);
+setTournament(data);
 
 
 
-    }catch(error){
+}catch(error){
 
 
-      console.log(error);
+console.log(error);
 
 
+}finally{
 
-    }finally{
 
+setLoading(false);
 
-      setLoading(false);
 
+}
 
-    }
 
 
+}
 
-  }
 
 
 
@@ -118,60 +118,60 @@ export default function TournamentDetail(){
 
 
 
+async function handleJoin(){
 
-  async function handleJoin(){
 
+try{
 
-    try{
 
+if(!id) return;
 
-      if(!id) return;
 
+setJoining(true);
 
-      setJoining(true);
 
 
+await joinTournament(id);
 
-      await joinTournament(id);
 
 
+alert(
+"Tournament joined successfully"
+);
 
-      alert(
-        "Tournament joined successfully"
-      );
 
 
+router.push(
+"/my-tournaments"
+);
 
-      router.push(
-        "/my-tournaments"
-      );
 
 
+}catch(error:any){
 
-    }catch(error:any){
 
+alert(
 
-      alert(
+error?.response?.data?.message ||
 
-        error?.response?.data?.message ||
+"Unable to join tournament"
 
-        "Unable to join tournament"
+);
 
-      );
 
 
+}finally{
 
-    }finally{
 
+setJoining(false);
 
-      setJoining(false);
 
+}
 
-    }
 
 
+}
 
-  }
 
 
 
@@ -180,31 +180,31 @@ export default function TournamentDetail(){
 
 
 
+if(loading){
 
-  if(loading){
 
+return (
 
-    return (
+<div
+className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+"
+>
 
-      <div
-        className="
-        min-h-screen
-        bg-black
-        text-white
-        flex
-        items-center
-        justify-center
-        "
-      >
+Loading tournament...
 
-        Loading tournament...
+</div>
 
-      </div>
+);
 
-    );
 
+}
 
-  }
 
 
 
@@ -213,31 +213,31 @@ export default function TournamentDetail(){
 
 
 
+if(!tournament){
 
-  if(!tournament){
 
+return (
 
-    return (
+<div
+className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+"
+>
 
-      <div
-        className="
-        min-h-screen
-        bg-black
-        text-white
-        flex
-        items-center
-        justify-center
-        "
-      >
+Tournament not found
 
-        Tournament not found
+</div>
 
-      </div>
+);
 
-    );
 
+}
 
-  }
 
 
 
@@ -246,25 +246,25 @@ export default function TournamentDetail(){
 
 
 
+return (
 
-  return (
+<div
+className="
+flex
+min-h-screen
+bg-black
+text-white
+"
+>
 
 
-    <div
-      className="
-      flex
-      min-h-screen
-      bg-black
-      text-white
-      "
-    >
 
 
 
 
 
+<Sidebar />
 
-      <Sidebar />
 
 
 
@@ -272,27 +272,28 @@ export default function TournamentDetail(){
 
 
 
+<main
+className="
+flex-1
+p-4
+pt-20
+md:ml-64
+md:p-10
+md:pt-10
+"
+>
 
-      <main
-        className="
-        flex-1
-        p-4
-        pt-20
-        md:p-10
-        md:pt-10
-        "
-      >
 
 
 
 
+<div
+className="
+max-w-5xl
+mx-auto
+"
+>
 
-        <div
-          className="
-          max-w-5xl
-          mx-auto
-          "
-        >
 
 
 
@@ -300,16 +301,16 @@ export default function TournamentDetail(){
 
 
 
-          <div
-            className="
-            bg-zinc-900
-            border
-            border-zinc-800
-            rounded-3xl
-            p-6
-            md:p-10
-            "
-          >
+<div
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+md:p-10
+"
+>
 
 
 
@@ -317,18 +318,18 @@ export default function TournamentDetail(){
 
 
 
-            <h1
-              className="
-              text-3xl
-              md:text-5xl
-              font-black
-              mb-8
-              "
-            >
+<h1
+className="
+text-3xl
+md:text-5xl
+font-black
+mb-8
+"
+>
 
-              {tournament.name}
+{tournament.name}
 
-            </h1>
+</h1>
 
 
 
@@ -337,59 +338,59 @@ export default function TournamentDetail(){
 
 
 
-            <div
-              className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              gap-5
-              "
-            >
+<div
+className="
+grid
+grid-cols-1
+sm:grid-cols-2
+gap-5
+"
+>
 
 
 
 
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Entry Fee
+<div
+className="
+bg-zinc-800
+rounded-2xl
+p-5
+"
+>
 
-                </p>
+<p
+className="
+text-gray-400
+"
+>
 
+Entry Fee
 
-                <h2
-                  className="
-                  text-2xl
-                  font-bold
-                  text-green-400
-                  mt-2
-                  "
-                >
+</p>
 
-                  {tournament.entry_fee}
 
-                  {" "}
+<h2
+className="
+text-2xl
+font-bold
+text-green-400
+mt-2
+"
+>
 
-                  {tournament.currency || ""}
+{tournament.entry_fee}
 
-                </h2>
+{" "}
 
+{tournament.currency || ""}
 
-              </div>
+</h2>
 
 
+</div>
 
 
 
@@ -397,42 +398,42 @@ export default function TournamentDetail(){
 
 
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Reward
+<div
+className="
+bg-zinc-800
+rounded-2xl
+p-5
+"
+>
 
-                </p>
+<p
+className="
+text-gray-400
+"
+>
 
+Reward
 
-                <h2
-                  className="
-                  text-2xl
-                  font-bold
-                  text-yellow-400
-                  mt-2
-                  "
-                >
+</p>
 
-                  {tournament.reward}
 
-                </h2>
+<h2
+className="
+text-2xl
+font-bold
+text-yellow-400
+mt-2
+"
+>
 
+{tournament.reward}
 
-              </div>
+</h2>
 
 
+</div>
 
 
 
@@ -440,44 +441,44 @@ export default function TournamentDetail(){
 
 
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Start Date
+<div
+className="
+bg-zinc-800
+rounded-2xl
+p-5
+"
+>
 
-                </p>
+<p
+className="
+text-gray-400
+"
+>
 
+Start Date
 
-                <h2
-                  className="
-                  font-bold
-                  mt-2
-                  "
-                >
+</p>
 
-                  {
-                    new Date(
-                      tournament.start_date
-                    ).toLocaleDateString()
-                  }
 
-                </h2>
+<h2
+className="
+font-bold
+mt-2
+"
+>
 
+{
+new Date(
+tournament.start_date
+).toLocaleDateString()
+}
 
-              </div>
+</h2>
 
 
+</div>
 
 
 
@@ -485,49 +486,49 @@ export default function TournamentDetail(){
 
 
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Start Time
+<div
+className="
+bg-zinc-800
+rounded-2xl
+p-5
+"
+>
 
-                </p>
+<p
+className="
+text-gray-400
+"
+>
 
+Start Time
 
-                <h2
-                  className="
-                  font-bold
-                  mt-2
-                  "
-                >
+</p>
 
-                  {tournament.start_time}
 
-                </h2>
+<h2
+className="
+font-bold
+mt-2
+"
+>
 
+{tournament.start_time}
 
-              </div>
+</h2>
 
 
+</div>
 
 
 
 
 
 
-            </div>
 
 
+</div>
 
 
 
@@ -535,43 +536,43 @@ export default function TournamentDetail(){
 
 
 
-            <div
-              className="
-              mt-6
-              bg-zinc-800
-              rounded-2xl
-              p-5
-              "
-            >
 
-              <p
-                className="
-                text-gray-400
-                "
-              >
 
-                Tournament Status
+<div
+className="
+mt-6
+bg-zinc-800
+rounded-2xl
+p-5
+"
+>
 
-              </p>
+<p
+className="
+text-gray-400
+"
+>
 
+Tournament Status
 
-              <h2
-                className="
-                uppercase
-                font-bold
-                text-blue-400
-                mt-2
-                "
-              >
+</p>
 
-                {tournament.status}
 
-              </h2>
+<h2
+className="
+uppercase
+font-bold
+text-blue-400
+mt-2
+"
+>
 
+{tournament.status}
 
-            </div>
+</h2>
 
 
+</div>
 
 
 
@@ -579,43 +580,43 @@ export default function TournamentDetail(){
 
 
 
-            <button
 
-              onClick={handleJoin}
 
-              disabled={joining}
+<button
 
-              className="
-              w-full
-              mt-8
-              bg-green-600
-              hover:bg-green-700
-              py-4
-              rounded-2xl
-              font-black
-              text-lg
-              disabled:opacity-50
-              "
+onClick={handleJoin}
 
-            >
+disabled={joining}
 
-              {
+className="
+w-full
+mt-8
+bg-green-600
+hover:bg-green-700
+py-4
+rounded-2xl
+font-black
+text-lg
+disabled:opacity-50
+"
 
-                joining
+>
 
-                ?
+{
 
-                "Joining..."
+joining
 
-                :
+?
 
-                "JOIN TOURNAMENT"
+"Joining..."
 
-              }
+:
 
+"JOIN TOURNAMENT"
 
-            </button>
+}
 
+</button>
 
 
 
@@ -623,31 +624,31 @@ export default function TournamentDetail(){
 
 
 
-          </div>
 
+</div>
 
 
 
 
 
-        </div>
 
+</div>
 
 
 
 
 
-      </main>
 
+</main>
 
 
 
 
 
-    </div>
 
+</div>
 
-  );
+);
 
 
 }
