@@ -14,6 +14,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class PlannerService {
@@ -44,15 +45,13 @@ tournamentId:string
 
 
 
-const existing =
+const tournament =
 
-await this.prisma.tournamentRound.findFirst({
+await this.prisma.tournament.findUnique({
 
 where:{
 
-
-tournament_id:tournamentId
-
+id:tournamentId
 
 }
 
@@ -64,15 +63,16 @@ tournament_id:tournamentId
 
 
 
-if(existing){
+if(!tournament){
 
 throw new BadRequestException(
 
-"Tournament plan already exists"
+"Tournament not found"
 
 );
 
 }
+
 
 
 
@@ -103,8 +103,6 @@ team_number:"asc"
 
 }
 
-
-
 });
 
 
@@ -118,7 +116,7 @@ if(!teams.length){
 
 throw new BadRequestException(
 
-"No teams joined"
+"No teams available. Generate teams first"
 
 );
 
@@ -132,16 +130,55 @@ throw new BadRequestException(
 
 
 
-const maxTeamsPerMatch = 25;
+const existingRounds =
+
+await this.prisma.tournamentRound.count({
+
+where:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+});
 
 
 
 
 
 
-let index = 0;
 
-let matchNumber = 1;
+if(existingRounds > 0){
+
+throw new BadRequestException(
+
+"Tournament plan already exists"
+
+);
+
+}
+
+
+
+
+
+
+
+
+
+const teamsPerMatch = 25;
+
+
+const totalMatches = Math.ceil(
+
+teams.length / teamsPerMatch
+
+);
+
+
+
 
 
 
@@ -177,24 +214,19 @@ name:"Round 1"
 
 
 
+let index = 0;
+
+
+let matchNumber = 1;
+
+
+
+
+
+
+
+
 while(index < teams.length){
-
-
-
-
-
-const matchTeams =
-
-teams.slice(
-
-index,
-
-index + maxTeamsPerMatch
-
-);
-
-
-
 
 
 
@@ -223,6 +255,22 @@ status:"pending"
 }
 
 });
+
+
+
+
+
+
+
+
+const matchTeams = teams.slice(
+
+index,
+
+index + teamsPerMatch
+
+);
+
 
 
 
@@ -262,10 +310,14 @@ team_id:team.id
 
 
 
-index += maxTeamsPerMatch;
+
+index += teamsPerMatch;
 
 
 matchNumber++;
+
+
+
 
 
 
@@ -284,13 +336,13 @@ return {
 message:"Tournament plan created successfully",
 
 
-totalTeams:teams.length,
-
-
 round:"Round 1",
 
 
-matchesCreated:matchNumber-1
+totalTeams:teams.length,
+
+
+totalMatches
 
 
 
