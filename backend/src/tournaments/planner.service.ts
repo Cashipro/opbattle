@@ -81,25 +81,13 @@ throw new BadRequestException(
 
 
 
-const teams =
+const existing =
 
-await this.prisma.tournamentTeam.findMany({
+await this.prisma.tournamentRound.findFirst({
 
 where:{
 
-
 tournament_id:tournamentId
-
-
-},
-
-
-
-orderBy:{
-
-
-team_number:"asc"
-
 
 }
 
@@ -111,12 +99,11 @@ team_number:"asc"
 
 
 
-
-if(!teams.length){
+if(existing){
 
 throw new BadRequestException(
 
-"No teams available. Generate teams first"
+"Plan already created"
 
 );
 
@@ -130,17 +117,65 @@ throw new BadRequestException(
 
 
 
-const existingRounds =
+const teams =
 
-await this.prisma.tournamentRound.count({
+await this.prisma.tournamentTeam.findMany({
 
 where:{
 
 
-tournament_id:tournamentId
+
+tournament_id:tournamentId,
+
+
+
+slots:{
+
+
+
+some:{
+
+
+
+user_id:{
+
+
+not:null
+
+}
 
 
 }
+
+
+
+}
+
+
+
+},
+
+
+
+orderBy:{
+
+team_number:"asc"
+
+},
+
+
+
+include:{
+
+
+
+slots:true
+
+
+
+}
+
+
 
 });
 
@@ -150,11 +185,11 @@ tournament_id:tournamentId
 
 
 
-if(existingRounds > 0){
+if(!teams.length){
 
 throw new BadRequestException(
 
-"Tournament plan already exists"
+"No joined teams found"
 
 );
 
@@ -169,6 +204,9 @@ throw new BadRequestException(
 
 
 const teamsPerMatch = 25;
+
+
+
 
 
 const totalMatches = Math.ceil(
@@ -192,10 +230,13 @@ await this.prisma.tournamentRound.create({
 data:{
 
 
+
 tournament_id:tournamentId,
 
 
+
 round_number:1,
+
 
 
 name:"Round 1"
@@ -226,6 +267,7 @@ let matchNumber = 1;
 
 
 
+
 while(index < teams.length){
 
 
@@ -239,13 +281,17 @@ await this.prisma.tournamentMatch.create({
 data:{
 
 
+
 tournament_id:tournamentId,
+
 
 
 round_id:round.id,
 
 
+
 match_number:matchNumber,
+
 
 
 status:"pending"
@@ -255,6 +301,7 @@ status:"pending"
 }
 
 });
+
 
 
 
@@ -288,7 +335,9 @@ await this.prisma.matchTeam.create({
 data:{
 
 
+
 match_id:match.id,
+
 
 
 team_id:team.id
@@ -302,7 +351,6 @@ team_id:team.id
 
 
 }
-
 
 
 
@@ -330,19 +378,20 @@ matchNumber++;
 
 
 
+
 return {
 
 
-message:"Tournament plan created successfully",
+message:"Tournament plan generated",
 
 
-round:"Round 1",
+round:round.name,
 
 
-totalTeams:teams.length,
+teams:teams.length,
 
 
-totalMatches
+matches:totalMatches
 
 
 
