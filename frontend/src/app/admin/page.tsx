@@ -1,22 +1,22 @@
 "use client";
 
+
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react";
-
-
-import Link from "next/link";
 
 
 import api from "@/lib/api";
 
 
 import {
-  Trophy,
-  Swords,
-  Users,
-  Activity
+Trophy,
+Swords,
+Users,
+Activity,
+Wallet,
+Clock
 } from "lucide-react";
 
 
@@ -29,24 +29,27 @@ export default function AdminDashboard(){
 
 
 
-const [stats,setStats] =
-useState({
+const [stats,setStats] = useState({
+
+users:0,
 
 tournaments:0,
 
-matches:0,
-
 teams:0,
 
-users:0
+matches:0,
+
+pendingDeposits:0,
+
+approvedDeposits:0
 
 });
 
 
 
+const [loading,setLoading] = useState(true);
 
-const [loading,setLoading] =
-useState(true);
+
 
 
 
@@ -67,67 +70,20 @@ loadStats();
 
 
 
+
 async function loadStats(){
 
 
 try{
 
 
-const tournamentRes =
-await api.get(
-"/admin/tournaments"
+const res = await api.get(
+"/admin/stats"
 );
 
 
 
-let tournaments =
-tournamentRes.data || [];
-
-
-
-let matches:number = 0;
-
-
-let teams:number = 0;
-
-
-
-
-tournaments.forEach((item:any)=>{
-
-
-if(item.matches){
-
-matches += item.matches.length;
-
-}
-
-
-if(item.teams){
-
-teams += item.teams.length;
-
-}
-
-
-});
-
-
-
-
-
-setStats({
-
-tournaments:tournaments.length,
-
-matches,
-
-teams,
-
-users:0
-
-});
-
+setStats(res.data);
 
 
 
@@ -146,8 +102,109 @@ setLoading(false);
 }
 
 
+
 }
-  return (
+
+
+
+
+
+
+
+
+
+const cards = [
+
+
+{
+
+title:"Users",
+
+value:stats.users,
+
+icon:<Users className="text-blue-400 w-8 h-8"/>
+
+
+},
+
+
+
+{
+
+title:"Tournaments",
+
+value:stats.tournaments,
+
+icon:<Trophy className="text-yellow-400 w-8 h-8"/>
+
+
+},
+
+
+
+{
+
+title:"Teams",
+
+value:stats.teams,
+
+icon:<Users className="text-purple-400 w-8 h-8"/>
+
+
+},
+
+
+
+{
+
+title:"Matches",
+
+value:stats.matches,
+
+icon:<Swords className="text-green-400 w-8 h-8"/>
+
+
+},
+
+
+
+{
+
+title:"Pending Deposits",
+
+value:stats.pendingDeposits,
+
+icon:<Clock className="text-orange-400 w-8 h-8"/>
+
+
+},
+
+
+
+{
+
+title:"Approved Deposits",
+
+value:stats.approvedDeposits,
+
+icon:<Wallet className="text-green-400 w-8 h-8"/>
+
+
+}
+
+
+
+];
+
+
+
+
+
+
+
+
+
+return (
 
 <div className="
 space-y-10
@@ -158,7 +215,6 @@ space-y-10
 
 
 <div>
-
 
 <h1 className="
 text-4xl
@@ -194,29 +250,39 @@ Manage OPBATTLE platform
 grid
 grid-cols-1
 md:grid-cols-2
-xl:grid-cols-4
+xl:grid-cols-3
 gap-6
 ">
 
 
 
+{
+
+cards.map((card)=>(
 
 
-<div className="
+<div
+
+key={card.title}
+
+className="
 bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
 p-6
+"
+
+>
+
+
+<div className="
+mb-4
 ">
 
+{card.icon}
 
-<Trophy className="
-text-yellow-400
-mb-4
-w-8
-h-8
-"/>
+</div>
 
 
 
@@ -224,7 +290,7 @@ h-8
 text-zinc-400
 ">
 
-Tournaments
+{card.title}
 
 </p>
 
@@ -233,17 +299,37 @@ Tournaments
 <h2 className="
 text-4xl
 font-black
+mt-2
 ">
 
+
 {
+
 loading
+
 ?
+
 "..."
+
 :
-stats.tournaments
+
+card.value
+
 }
 
+
 </h2>
+
+
+
+</div>
+
+
+))
+
+
+}
+
 
 
 </div>
@@ -254,56 +340,6 @@ stats.tournaments
 
 
 
-<div className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-">
-
-
-<Swords className="
-text-green-400
-mb-4
-w-8
-h-8
-"/>
-
-
-
-<p className="
-text-zinc-400
-">
-
-Matches
-
-</p>
-
-
-
-<h2 className="
-text-4xl
-font-black
-">
-
-{
-loading
-?
-"..."
-:
-stats.matches
-}
-
-</h2>
-
-
-</div>
-
-
-
-
-
 
 
 <div className="
@@ -312,82 +348,27 @@ border
 border-zinc-800
 rounded-3xl
 p-6
+flex
+items-center
+gap-4
 ">
 
 
-<Users className="
-text-blue-400
-mb-4
-w-8
-h-8
-"/>
+<Activity className="text-green-400"/>
 
 
+<div>
 
 <p className="
 text-zinc-400
 ">
 
-Teams
+System Status
 
 </p>
 
 
-
 <h2 className="
-text-4xl
-font-black
-">
-
-{
-loading
-?
-"..."
-:
-stats.teams
-}
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-">
-
-
-<Activity className="
-text-red-400
-mb-4
-w-8
-h-8
-"/>
-
-
-
-<p className="
-text-zinc-400
-">
-
-Status
-
-</p>
-
-
-
-<h2 className="
-text-2xl
 font-black
 text-green-400
 ">
@@ -400,10 +381,6 @@ ONLINE
 </div>
 
 
-
-
-
-
 </div>
 
 
@@ -411,97 +388,7 @@ ONLINE
 
 
 
-
-
-
-<div className="
-grid
-md:grid-cols-3
-gap-5
-">
-
-
-
-
-
-<Link
-
-href="/admin/tournaments"
-
-className="
-bg-green-600
-rounded-2xl
-p-5
-font-black
-text-center
-"
-
->
-
-Manage Tournaments
-
-</Link>
-
-
-
-
-
-
-
-<Link
-
-href="/admin/matches"
-
-className="
-bg-blue-600
-rounded-2xl
-p-5
-font-black
-text-center
-"
-
->
-
-Manage Matches
-
-</Link>
-
-
-
-
-
-
-
-<Link
-
-href="/admin/teams"
-
-className="
-bg-purple-600
-rounded-2xl
-p-5
-font-black
-text-center
-"
-
->
-
-Manage Teams
-
-</Link>
-
-
-
-
-
 </div>
-
-
-
-
-
-</div>
-
 
 );
 
