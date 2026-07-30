@@ -3,9 +3,12 @@ Injectable
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
 
 
 
@@ -30,11 +33,14 @@ private prisma:PrismaService
 
 
 
+
 async tournamentResults(
 
 tournamentId:string
 
 ){
+
+
 
 
 
@@ -44,46 +50,101 @@ await this.prisma.tournamentRound.findMany({
 
 where:{
 
+
 tournament_id:tournamentId
+
 
 },
 
 
+
 orderBy:{
 
-round_number:'asc'
+
+round_number:"asc"
+
 
 },
 
 
 
 include:{
+
 
 
 matches:{
 
 
 
-include:{
+orderBy:{
 
 
-results:{
-
-
-include:{
-
-
-team:true
+match_number:"asc"
 
 
 },
 
 
 
-orderBy:{
+include:{
 
 
-points:'desc'
+
+teams:{
+
+
+
+include:{
+
+
+
+team:true
+
+
+
+}
+
+
+
+},
+
+
+
+results:{
+
+
+
+include:{
+
+
+
+team:true
+
+
+
+},
+
+
+
+orderBy:[
+
+
+{
+
+points:"desc"
+
+},
+
+
+{
+
+kills:"desc"
+
+}
+
+
+]
+
 
 
 }
@@ -100,12 +161,11 @@ points:'desc'
 
 }
 
-
-
-}
 
 
 });
+
+
 
 
 
@@ -133,6 +193,8 @@ tournamentId:string
 
 
 
+
+
 const results =
 
 await this.prisma.matchResult.findMany({
@@ -140,13 +202,17 @@ await this.prisma.matchResult.findMany({
 where:{
 
 
+
 match:{
+
 
 
 tournament_id:tournamentId
 
 
+
 }
+
 
 
 },
@@ -156,7 +222,9 @@ tournament_id:tournamentId
 include:{
 
 
+
 team:true
+
 
 
 }
@@ -179,11 +247,15 @@ const ranking:any={};
 
 
 
+
 for(const item of results){
 
 
 
+
+
 if(!ranking[item.team_id]){
+
 
 
 ranking[item.team_id]={
@@ -192,13 +264,20 @@ ranking[item.team_id]={
 team_id:item.team_id,
 
 
-team:item.team,
+team_number:item.team.team_number,
+
+
+team_name:item.team.name,
 
 
 kills:0,
 
 
-points:0
+points:0,
+
+
+matches:0
+
 
 
 };
@@ -211,10 +290,22 @@ points:0
 
 
 
-ranking[item.team_id].kills += item.kills;
 
 
-ranking[item.team_id].points += item.points;
+
+ranking[item.team_id].kills +=
+
+item.kills || 0;
+
+
+
+ranking[item.team_id].points +=
+
+item.points || 0;
+
+
+
+ranking[item.team_id].matches +=1;
 
 
 
@@ -227,16 +318,67 @@ ranking[item.team_id].points += item.points;
 
 
 
-return Object.values(ranking)
 
-.sort(
+const final =
 
-(a:any,b:any)=>
+Object.values(ranking)
+
+.sort((a:any,b:any)=>{
 
 
-b.points-a.points
 
-);
+if(b.points !== a.points){
+
+
+return b.points-a.points;
+
+
+}
+
+
+
+return b.kills-a.kills;
+
+
+
+});
+
+
+
+
+
+
+
+
+return final.map((team:any,index)=>({
+
+
+position:index+1,
+
+
+team_id:team.team_id,
+
+
+team_number:team.team_number,
+
+
+team_name:team.team_name,
+
+
+matches:team.matches,
+
+
+kills:team.kills,
+
+
+points:team.points
+
+
+
+}));
+
+
+
 
 
 
