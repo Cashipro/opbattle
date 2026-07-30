@@ -1,53 +1,46 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  Body,
-  UseGuards
+Controller,
+Get,
+Post,
+Put,
+Param,
+Body,
+UseGuards
 } from '@nestjs/common';
 
 
-
 import {
-  TournamentsService
+TournamentsService
 } from './tournaments.service';
 
 
-
 import {
-  JoinService
+JoinService
 } from './join.service';
 
 
-
 import {
-  TeamRoomService
+TeamRoomService
 } from './team-room.service';
 
 
-
 import {
-  MyTournamentsService
+MyTournamentsService
 } from './my-tournaments.service';
 
 
-
 import {
-  SelectSlotService
+SelectSlotService
 } from './select-slot.service';
 
 
-
 import {
-  JwtGuard
+JwtGuard
 } from '../auth/jwt.guard';
 
 
-
 import {
-  CurrentUser
+CurrentUser
 } from '../auth/current-user.decorator';
 
 
@@ -55,9 +48,8 @@ import {
 
 
 
-
-
 @Controller('tournaments')
+
 export class TournamentsController {
 
 
@@ -74,7 +66,6 @@ private myTournamentsService:MyTournamentsService,
 
 private selectSlotService:SelectSlotService
 
-
 ){}
 
 
@@ -85,27 +76,7 @@ private selectSlotService:SelectSlotService
 
 
 
-@Post()
-
-createTournament(
-
-@Body() body:any
-
-){
-
-
-return this.tournamentsService.create(body);
-
-
-}
-
-
-
-
-
-
-
-
+// ALL TOURNAMENTS
 
 @Get()
 
@@ -124,6 +95,8 @@ return this.tournamentsService.findAll();
 
 
 
+
+// DETAIL PAGE
 
 @Get(':id')
 
@@ -147,28 +120,22 @@ return this.tournamentsService.findOne(id);
 
 
 
-
-
-// JOIN TOURNAMENT + CREATE ROOM
+// JOIN TOURNAMENT
 
 @Post(':id/join')
 
 @UseGuards(JwtGuard)
 
-async join(
+join(
 
 @Param('id') id:string,
-
 
 @CurrentUser() user:any
 
 ){
 
 
-
-const result =
-
-await this.joinService.joinTournament(
+return this.joinService.joinTournament(
 
 user.id,
 
@@ -177,34 +144,6 @@ id
 );
 
 
-
-
-
-// AUTO CREATE 100 TEAMS
-
-try{
-
-
-await this.teamRoomService.generateTeams(id);
-
-
-}catch(error){
-
-
-// already created ignore
-
-}
-
-
-
-
-
-
-
-return result;
-
-
-
 }
 
 
@@ -214,12 +153,14 @@ return result;
 
 
 
+
+// MY TOURNAMENTS
 
 @Get('user/my-tournaments')
 
 @UseGuards(JwtGuard)
 
-myTournaments(
+myTournament(
 
 @CurrentUser() user:any
 
@@ -243,6 +184,8 @@ user.id
 
 
 
+// PUBG ROOM
+
 @Get(':id/team-room')
 
 teamRoom(
@@ -265,6 +208,8 @@ return this.teamRoomService.getRoom(id);
 
 
 
+// SELECT PLAYER POSITION
+
 @Post('team/select-slot')
 
 @UseGuards(JwtGuard)
@@ -272,7 +217,6 @@ return this.teamRoomService.getRoom(id);
 selectSlot(
 
 @Body() body:any,
-
 
 @CurrentUser() user:any
 
@@ -297,6 +241,8 @@ body.slotId
 
 
 
+
+// REMOVE POSITION
 
 @Post('team/leave-slot')
 
@@ -326,12 +272,13 @@ body.slotId
 
 
 
+// CHANGE TEAM NAME (ADMIN)
+
 @Put('team/:teamId/name')
 
-updateTeamName(
+updateName(
 
 @Param('teamId') teamId:string,
-
 
 @Body() body:any
 
@@ -343,6 +290,39 @@ return this.teamRoomService.updateTeamName(
 teamId,
 
 body.name
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+// ADMIN ADD MORE TEAMS
+
+@Post(':id/increase-teams')
+
+increaseTeams(
+
+@Param('id') id:string,
+
+@Body() body:any
+
+){
+
+
+
+return this.teamRoomService.increaseTeams(
+
+id,
+
+Number(body.amount || 0)
 
 );
 
