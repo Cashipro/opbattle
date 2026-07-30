@@ -5,7 +5,7 @@
 
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "prisma generate && nest build",
+    "build": "prisma generate && prisma db push && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
