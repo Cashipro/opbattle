@@ -8,7 +8,8 @@ useState
 
 
 import {
-useParams
+useParams,
+useRouter
 } from "next/navigation";
 
 
@@ -17,8 +18,7 @@ import Sidebar from "@/components/Sidebar";
 
 import {
 getTeamRoom,
-selectSlot,
-leaveSlot
+selectSlot
 } from "@/services/tournament";
 
 
@@ -33,7 +33,11 @@ export default function TeamRoom(){
 
 const params = useParams<{id:string}>();
 
+const router = useRouter();
+
+
 const id = params?.id;
+
 
 
 
@@ -42,7 +46,7 @@ const [teams,setTeams] = useState<any[]>([]);
 
 const [loading,setLoading] = useState(true);
 
-const [myTeam,setMyTeam] = useState<string | null>(null);
+const [error,setError] = useState("");
 
 
 
@@ -57,7 +61,7 @@ useEffect(()=>{
 
 if(id){
 
-load();
+loadRoom();
 
 }
 
@@ -72,7 +76,7 @@ load();
 
 
 
-async function load(){
+async function loadRoom(){
 
 
 try{
@@ -85,28 +89,17 @@ setTeams(data);
 
 
 
+}catch(err:any){
 
 
-const current = data.find((team:any)=>
+setError(
 
-team.slots.some((slot:any)=>slot.user)
+err?.response?.data?.message ||
+
+"You cannot access this room"
 
 );
 
-
-
-if(current){
-
-setMyTeam(current.id);
-
-}
-
-
-
-}catch(error){
-
-
-console.log(error);
 
 
 }finally{
@@ -129,7 +122,7 @@ setLoading(false);
 
 
 
-async function join(slotId:string){
+async function joinSlot(slotId:string){
 
 
 try{
@@ -138,277 +131,24 @@ try{
 await selectSlot(slotId);
 
 
-load();
+loadRoom();
 
 
-}catch(error:any){
+
+}catch(err:any){
 
 
 alert(
 
-error?.response?.data?.message ||
+err?.response?.data?.message ||
 
-"Slot unavailable"
+"Slot not available"
 
 );
 
 
 }
 
-
-}
-
-
-
-
-
-
-
-
-
-async function leave(slotId:string){
-
-
-await leaveSlot(slotId);
-
-
-load();
-
-}
-
-
-
-
-
-
-
-
-
-function TeamCard({team}:any){
-
-
-return (
-
-
-<div
-
-className={`
-rounded-3xl
-p-5
-border
-transition
-
-${
-myTeam===team.id
-
-?
-
-"border-green-500 bg-green-500/10"
-
-:
-
-"border-zinc-800 bg-zinc-900"
-
-}
-
-`}
-
->
-
-
-
-<div className="
-flex
-justify-between
-mb-5
-">
-
-
-<h2 className="
-font-black
-text-xl
-">
-
-{team.name}
-
-</h2>
-
-
-<span className="
-text-gray-400
-">
-
-#{team.team_number}
-
-</span>
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-grid
-grid-cols-2
-gap-3
-">
-
-
-
-{
-
-team.slots.map((slot:any)=>(
-
-
-<div
-
-key={slot.id}
-
-className="
-bg-zinc-800
-rounded-xl
-p-4
-min-h-[130px]
-text-center
-flex
-flex-col
-items-center
-justify-center
-"
-
->
-
-
-<div className="
-text-3xl
-">
-
-{
-
-slot.user
-
-?
-
-"👤"
-
-:
-
-"➕"
-
-}
-
-</div>
-
-
-
-
-
-
-
-{
-
-slot.user
-
-?
-
-<>
-
-<p className="
-font-bold
-text-green-400
-text-sm
-">
-
-{slot.user.name}
-
-</p>
-
-
-<p className="
-text-xs
-text-gray-400
-">
-
-{slot.user.pubg_uid}
-
-</p>
-
-
-<button
-
-onClick={()=>leave(slot.id)}
-
-className="
-mt-2
-bg-red-600
-px-3
-py-1
-rounded-lg
-text-xs
-"
-
->
-
-Leave
-
-</button>
-
-</>
-
-
-:
-
-<button
-
-onClick={()=>join(slot.id)}
-
-className="
-mt-2
-bg-green-600
-px-4
-py-2
-rounded-lg
-font-bold
-text-sm
-"
-
->
-
-Join Slot
-
-</button>
-
-
-
-}
-
-
-
-
-</div>
-
-
-))
-
-
-}
-
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-);
 
 
 }
@@ -435,7 +175,93 @@ items-center
 justify-center
 ">
 
-Loading PUBG Room...
+Loading room...
+
+</div>
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+if(error){
+
+
+return (
+
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+p-5
+">
+
+
+<div className="
+bg-zinc-900
+border
+border-red-600
+rounded-3xl
+p-8
+text-center
+">
+
+
+<h1 className="
+text-3xl
+font-black
+mb-4
+">
+
+🚫 Access Denied
+
+</h1>
+
+
+<p className="
+text-gray-400
+">
+
+{error}
+
+</p>
+
+
+<button
+
+onClick={()=>router.push("/tournaments")}
+
+className="
+mt-6
+bg-green-600
+px-6
+py-3
+rounded-xl
+font-bold
+"
+
+>
+
+Back To Tournaments
+
+</button>
+
+
+
+</div>
+
+
 
 </div>
 
@@ -483,41 +309,15 @@ mx-auto
 ">
 
 
-<div className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
+<h1 className="
+text-4xl
+font-black
 mb-8
 ">
 
-
-<h1 className="
-text-3xl
-md:text-5xl
-font-black
-">
-
-🎮 PUBG ROOM
+🎮 PUBG TEAM ROOM
 
 </h1>
-
-
-<p className="
-text-gray-400
-">
-
-Choose your squad position
-
-</p>
-
-
-</div>
-
-
-
-
 
 
 
@@ -535,13 +335,131 @@ gap-6
 
 teams.map((team:any)=>(
 
-<TeamCard
+
+<div
 
 key={team.id}
 
-team={team}
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-5
+"
 
-/>
+>
+
+
+<h2 className="
+text-xl
+font-black
+mb-5
+">
+
+{team.name}
+
+</h2>
+
+
+
+
+
+<div className="
+grid
+grid-cols-2
+gap-3
+">
+
+
+{
+
+team.slots.map((slot:any)=>(
+
+
+<div
+
+key={slot.id}
+
+className="
+bg-zinc-800
+rounded-xl
+p-4
+text-center
+"
+
+>
+
+
+<div className="
+text-3xl
+">
+
+{
+
+slot.user
+
+?
+
+"👤"
+
+:
+
+"➕"
+
+}
+
+</div>
+
+
+
+
+{
+
+slot.user
+
+?
+
+<p className="
+text-green-400
+font-bold
+text-sm
+">
+
+{slot.user.name}
+
+</p>
+
+
+:
+
+<button
+
+onClick={()=>joinSlot(slot.id)}
+
+className="
+bg-green-600
+px-3
+py-2
+rounded-lg
+text-sm
+font-bold
+"
+
+>
+
+Join
+
+</button>
+
+
+
+}
+
+
+
+</div>
+
 
 ))
 
@@ -549,8 +467,24 @@ team={team}
 }
 
 
+
 </div>
 
+
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+</div>
 
 
 
@@ -561,9 +495,7 @@ team={team}
 </main>
 
 
-
 </div>
-
 
 );
 
