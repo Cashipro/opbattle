@@ -1,3 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+
+
+
+model User {
+
+
+id String @id @default(uuid())
+
+
+name String
+
+
+email String @unique
+
+
+password String
+
+
+pubg_uid String @unique
+
+
+balance Float @default(0)
+
+
+
+slots TeamSlot[]
+
+
+
+walletTransactions WalletTransaction[]
+
+
+
+created_at DateTime @default(now())
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model Tournament {
+
+
+id String @id @default(uuid())
+
+
+name String
+
+
+entry_fee Float
+
+
+reward Float
+
+
+start_date DateTime
+
+
+start_time String
+
+
+status String @default("upcoming")
+
+
+
+teams TournamentTeam[]
+
+
+
+rounds TournamentRound[]
+
+
+
+matches TournamentMatch[]
+
+
+
+created_at DateTime @default(now())
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model WalletTransaction {
+
+
+id String @id @default(uuid())
+
+
+user_id String
+
+
+type String
+
+
+amount Float
+
+
+description String?
+
+
+
+user User @relation(
+
+fields:[user_id],
+
+references:[id]
+
+)
+
+
+
+created_at DateTime @default(now())
+
+
+}
+
+
+
+
+
+
+
+
+
 model TournamentTeam {
 
 
@@ -14,14 +167,31 @@ name String
 
 
 
+tournament Tournament @relation(
+
+fields:[tournament_id],
+
+references:[id]
+
+)
+
+
+
 slots TeamSlot[]
+
 
 
 matches MatchTeam[]
 
 
 
+
 }
+
+
+
+
+
 
 
 
@@ -39,6 +209,217 @@ slot_number Int
 
 
 user_id String?
+
+
+
+team TournamentTeam @relation(
+
+fields:[team_id],
+
+references:[id]
+
+)
+
+
+
+user User? @relation(
+
+fields:[user_id],
+
+references:[id]
+
+)
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TournamentRound {
+
+
+id String @id @default(uuid())
+
+
+tournament_id String
+
+
+round_number Int
+
+
+name String
+
+
+
+tournament Tournament @relation(
+
+fields:[tournament_id],
+
+references:[id]
+
+)
+
+
+
+matches TournamentMatch[]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TournamentMatch {
+
+
+id String @id @default(uuid())
+
+
+tournament_id String
+
+
+round_id String
+
+
+match_number Int
+
+
+room_id String?
+
+
+room_password String?
+
+
+status String @default("pending")
+
+
+
+
+tournament Tournament @relation(
+
+fields:[tournament_id],
+
+references:[id]
+
+)
+
+
+
+round TournamentRound @relation(
+
+fields:[round_id],
+
+references:[id]
+
+)
+
+
+
+teams MatchTeam[]
+
+
+
+results MatchResult[]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model MatchTeam {
+
+
+id String @id @default(uuid())
+
+
+match_id String
+
+
+team_id String
+
+
+
+
+match TournamentMatch @relation(
+
+fields:[match_id],
+
+references:[id]
+
+)
+
+
+
+team TournamentTeam @relation(
+
+fields:[team_id],
+
+references:[id]
+
+)
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model MatchResult {
+
+
+id String @id @default(uuid())
+
+
+match_id String
+
+
+team_id String
+
+
+
+kills Int @default(0)
+
+
+position Int
+
+
+points Int
+
+
+
+match TournamentMatch @relation(
+
+fields:[match_id],
+
+references:[id]
+
+)
 
 
 
