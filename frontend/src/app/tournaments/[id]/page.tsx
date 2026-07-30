@@ -1,5 +1,6 @@
 "use client";
 
+
 import {
   useEffect,
   useState
@@ -19,7 +20,6 @@ import {
   getTournament,
   joinTournament
 } from "@/services/tournament";
-
 
 
 
@@ -80,6 +80,9 @@ async function loadTournament(){
 try{
 
 
+if(!id) return;
+
+
 const data = await getTournament(id);
 
 
@@ -93,6 +96,7 @@ setTournament(data);
 console.log(error);
 
 
+
 }finally{
 
 
@@ -100,6 +104,7 @@ setLoading(false);
 
 
 }
+
 
 
 }
@@ -118,10 +123,15 @@ async function handleJoin(){
 try{
 
 
+if(!id) return;
+
+
 setJoining(true);
 
 
+
 await joinTournament(id);
+
 
 
 
@@ -131,12 +141,11 @@ alert(
 
 
 
-// OPEN PUBG ROOM
+
+// DIRECT TEAM ROOM
 
 router.push(
-
-`/team-room/${id}`
-
+`/tournaments/${id}/team-room`
 );
 
 
@@ -163,6 +172,7 @@ setJoining(false);
 }
 
 
+
 }
 
 
@@ -187,7 +197,9 @@ items-center
 justify-center
 ">
 
-Loading tournament...
+
+Loading Tournament...
+
 
 </div>
 
@@ -195,7 +207,6 @@ Loading tournament...
 
 
 }
-
 
 
 
@@ -218,7 +229,9 @@ items-center
 justify-center
 ">
 
-Tournament not found
+
+Tournament Not Found
+
 
 </div>
 
@@ -245,7 +258,13 @@ text-white
 ">
 
 
+
+
+
+
 <Sidebar />
+
+
 
 
 
@@ -256,6 +275,7 @@ flex-1
 p-4
 pt-20
 md:p-10
+md:pt-10
 ">
 
 
@@ -286,13 +306,15 @@ md:p-10
 
 
 
+
 <h1 className="
-text-4xl
+text-3xl
+md:text-5xl
 font-black
 mb-8
 ">
 
-{tournament.name}
+🏆 {tournament.name}
 
 </h1>
 
@@ -307,11 +329,9 @@ mb-8
 <div className="
 grid
 grid-cols-1
-md:grid-cols-2
+sm:grid-cols-2
 gap-5
 ">
-
-
 
 
 
@@ -332,10 +352,11 @@ Entry Fee
 </p>
 
 
-<p className="
-text-green-400
-font-black
+<h2 className="
 text-2xl
+font-bold
+text-green-400
+mt-2
 ">
 
 {tournament.entry_fee}
@@ -344,7 +365,7 @@ text-2xl
 
 {tournament.currency}
 
-</p>
+</h2>
 
 
 </div>
@@ -372,13 +393,53 @@ Reward
 </p>
 
 
-<p className="
-text-yellow-400
-font-black
+<h2 className="
 text-2xl
+font-bold
+text-yellow-400
+mt-2
 ">
 
 {tournament.reward || 0}
+
+</h2>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
+
+<p className="
+text-gray-400
+">
+
+Start Date
+
+</p>
+
+
+<p className="
+font-bold
+mt-2
+">
+
+{
+new Date(
+tournament.start_date
+).toLocaleDateString()
+}
 
 </p>
 
@@ -403,65 +464,65 @@ p-5
 text-gray-400
 ">
 
-Teams
+Start Time
+
+</p>
+
+
+<p className="
+font-bold
+mt-2
+">
+
+{tournament.start_time}
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
+mt-6
+bg-zinc-800
+rounded-2xl
+p-5
+">
+
+
+<p className="
+text-gray-400
+">
+
+Status
 
 </p>
 
 
 <p className="
 text-blue-400
+uppercase
 font-black
-text-2xl
+mt-2
 ">
 
-{tournament.totalTeams || 100}
+{tournament.status}
 
 </p>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div className="
-bg-zinc-800
-rounded-2xl
-p-5
-">
-
-<p className="
-text-gray-400
-">
-
-Players Joined
-
-</p>
-
-
-<p className="
-text-green-400
-font-black
-text-2xl
-">
-
-{tournament.players || 0}
-
-</p>
-
-
-</div>
-
-
-
-
-
-
 
 
 </div>
@@ -481,17 +542,19 @@ onClick={handleJoin}
 disabled={joining}
 
 className="
-mt-8
 w-full
+mt-8
 bg-green-600
 hover:bg-green-700
 py-4
 rounded-2xl
 font-black
 text-lg
+disabled:opacity-50
 "
 
 >
+
 
 {
 
@@ -507,35 +570,10 @@ joining
 
 }
 
+
+
 </button>
 
-
-
-
-
-
-
-
-
-<button
-
-onClick={()=>router.push(`/team-room/${id}`)}
-
-className="
-mt-4
-w-full
-bg-zinc-700
-hover:bg-zinc-600
-py-4
-rounded-2xl
-font-black
-"
-
->
-
-🎮 OPEN PUBG ROOM
-
-</button>
 
 
 
@@ -551,15 +589,14 @@ font-black
 
 
 
-
 </div>
-
 
 
 
 
 
 </main>
+
 
 
 
