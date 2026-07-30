@@ -28,6 +28,8 @@ const [user,setUser] = useState<any>({});
 
 const [joined,setJoined] = useState(0);
 
+const [loading,setLoading] = useState(true);
+
 
 
 
@@ -38,21 +40,9 @@ const [joined,setJoined] = useState(0);
 useEffect(()=>{
 
 
-const savedUser =
-localStorage.getItem("user");
+loadUser();
 
-
-if(savedUser){
-
-setUser(
-JSON.parse(savedUser)
-);
-
-}
-
-
-
-load();
+loadTournaments();
 
 
 },[]);
@@ -64,7 +54,33 @@ load();
 
 
 
-async function load(){
+function loadUser(){
+
+
+const savedUser =
+localStorage.getItem("user");
+
+
+
+if(savedUser){
+
+setUser(
+JSON.parse(savedUser)
+);
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+async function loadTournaments(){
 
 
 try{
@@ -85,6 +101,12 @@ data.length
 
 console.log(error);
 
+
+
+}finally{
+
+
+setLoading(false);
 
 
 }
@@ -125,8 +147,10 @@ text-white
 
 <main className="
 flex-1
-p-6
+p-4
+pt-20
 md:p-10
+md:pt-10
 ">
 
 
@@ -134,8 +158,21 @@ md:p-10
 
 
 
+
+<div className="
+max-w-7xl
+mx-auto
+">
+
+
+
+
+
+
+
 <h1 className="
-text-4xl
+text-3xl
+md:text-4xl
 font-black
 mb-2
 ">
@@ -147,6 +184,7 @@ Welcome,
 {user.name || "Player"}
 
 </h1>
+
 
 
 
@@ -173,9 +211,11 @@ PUBG Tournament Dashboard
 <div className="
 grid
 grid-cols-1
-md:grid-cols-3
-gap-6
+sm:grid-cols-2
+xl:grid-cols-3
+gap-5
 ">
+
 
 
 
@@ -245,7 +285,19 @@ text-blue-400
 mt-3
 ">
 
-{joined}
+{
+
+loading
+
+?
+
+"..."
+
+:
+
+joined
+
+}
 
 </h2>
 
@@ -272,7 +324,7 @@ p-6
 text-gray-400
 ">
 
-Status
+Player Status
 
 </p>
 
@@ -330,9 +382,11 @@ Quick Actions
 <div className="
 grid
 grid-cols-1
-md:grid-cols-3
+sm:grid-cols-2
+xl:grid-cols-3
 gap-5
 ">
+
 
 
 
@@ -355,7 +409,9 @@ transition
 
 >
 
-🏆 Browse Tournaments
+🏆
+
+Browse Tournaments
 
 </a>
 
@@ -382,7 +438,9 @@ transition
 
 >
 
-💰 Deposit
+💰
+
+Deposit
 
 </a>
 
@@ -409,10 +467,11 @@ transition
 
 >
 
-💸 Withdraw
+💸
+
+Withdraw
 
 </a>
-
 
 
 
@@ -424,6 +483,12 @@ transition
 
 
 
+
+
+
+
+
+</div>
 
 
 
