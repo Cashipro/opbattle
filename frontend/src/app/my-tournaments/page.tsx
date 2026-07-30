@@ -120,6 +120,7 @@ text-white
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
 ">
