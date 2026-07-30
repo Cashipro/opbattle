@@ -4,12 +4,9 @@ BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
 
 
 
@@ -33,9 +30,6 @@ private prisma:PrismaService
 
 
 
-
-
-// ALL TOURNAMENTS
 
 async findAll(){
 
@@ -67,28 +61,34 @@ created_at:"desc"
 
 
 
-include:{
-
-
-
-_count:{
-
-
-
 select:{
 
 
-teams:true,
+id:true,
 
 
-matches:true
+name:true,
 
 
-}
+entry_fee:true,
 
 
+currency:true,
 
-}
+
+reward:true,
+
+
+start_date:true,
+
+
+start_time:true,
+
+
+status:true,
+
+
+created_at:true
 
 
 
@@ -110,15 +110,11 @@ matches:true
 
 
 
-// SINGLE TOURNAMENT DETAILS
-
 async findOne(
 
 id:string
 
 ){
-
-
 
 
 
@@ -139,7 +135,6 @@ id
 include:{
 
 
-
 teams:{
 
 
@@ -157,27 +152,13 @@ team_number:"asc"
 include:{
 
 
-
 slots:{
-
-
-
-orderBy:{
-
-
-slot_number:"asc"
-
-
-},
-
 
 
 include:{
 
 
-
 user:{
-
 
 
 select:{
@@ -214,68 +195,14 @@ pubg_uid:true
 },
 
 
-
-rounds:{
-
+rounds:true,
 
 
-orderBy:{
-
-
-round_number:"asc"
-
-
-}
-
-
-
-},
-
-
-
-matches:{
-
-
-
-orderBy:{
-
-
-match_number:"asc"
-
-
-}
-
-
-
-},
-
-
-
-_count:{
-
-
-
-select:{
-
-
-teams:true,
-
-
-joins:true
-
-
-}
+matches:true
 
 
 
 }
-
-
-
-}
-
-
-
 
 
 
@@ -303,10 +230,8 @@ throw new BadRequestException(
 
 
 
+
 return tournament;
-
-
-
 
 
 
@@ -320,9 +245,37 @@ return tournament;
 
 
 
-// CREATE TOURNAMENT (ADMIN)
-
 async create(data:any){
+
+
+
+
+
+if(
+
+!data.name ||
+
+!data.entry_fee ||
+
+!data.currency ||
+
+!data.start_date ||
+
+!data.start_time
+
+){
+
+throw new BadRequestException(
+
+"Missing tournament fields"
+
+);
+
+}
+
+
+
+
 
 
 
@@ -340,11 +293,11 @@ entry_fee:Number(data.entry_fee),
 
 
 
-reward:Number(data.reward),
+currency:data.currency,
 
 
 
-total_teams:Number(data.total_teams || 25),
+reward:data.reward ? Number(data.reward) : null,
 
 
 
@@ -361,97 +314,6 @@ start_time:data.start_time
 
 
 });
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// UPDATE STATUS
-
-async updateStatus(
-
-id:string,
-
-status:string
-
-){
-
-
-
-const tournament =
-
-await this.prisma.tournament.findUnique({
-
-where:{
-
-
-id
-
-
-}
-
-});
-
-
-
-
-
-
-
-if(!tournament){
-
-
-throw new BadRequestException(
-
-"Tournament not found"
-
-);
-
-}
-
-
-
-
-
-
-
-return this.prisma.tournament.update({
-
-where:{
-
-
-id
-
-
-},
-
-
-
-data:{
-
-
-status
-
-
-}
-
-
-
-});
-
-
-
 
 
 
