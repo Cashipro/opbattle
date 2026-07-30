@@ -35,6 +35,191 @@ private prisma:PrismaService
 
 
 
+// AUTO CREATE TEAMS AFTER JOIN
+
+async generateTeams(
+
+tournamentId:string
+
+){
+
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
+
+where:{
+
+id:tournamentId
+
+}
+
+});
+
+
+
+
+
+
+if(!tournament){
+
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+}
+
+
+
+
+
+
+
+const existing =
+
+await this.prisma.tournamentTeam.count({
+
+where:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(existing > 0){
+
+throw new BadRequestException(
+
+"Teams already generated"
+
+);
+
+}
+
+
+
+
+
+
+
+
+for(
+
+let i=1;
+
+i<=tournament.total_teams;
+
+i++
+
+){
+
+
+
+
+
+const team =
+
+await this.prisma.tournamentTeam.create({
+
+data:{
+
+
+tournament_id:tournamentId,
+
+
+team_number:i,
+
+
+name:`Team ${i}`
+
+
+
+}
+
+});
+
+
+
+
+
+
+
+
+
+for(
+
+let slot=1;
+
+slot<=4;
+
+slot++
+
+){
+
+
+
+await this.prisma.teamSlot.create({
+
+data:{
+
+
+team_id:team.id,
+
+
+slot_number:slot
+
+
+}
+
+});
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+return {
+
+message:"Teams generated successfully",
+
+teams:tournament.total_teams
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// SHOW ROOM
+
 async getRoom(
 
 tournamentId:string
@@ -58,7 +243,7 @@ tournament_id:tournamentId
 orderBy:{
 
 
-team_number:'asc'
+team_number:"asc"
 
 
 },
@@ -72,10 +257,11 @@ include:{
 slots:{
 
 
+
 orderBy:{
 
 
-slot_number:'asc'
+slot_number:"asc"
 
 
 },
@@ -83,6 +269,7 @@ slot_number:'asc'
 
 
 include:{
+
 
 
 user:{
@@ -103,9 +290,6 @@ pubg_uid:true
 }
 
 
-}
-
-
 
 }
 
@@ -117,113 +301,6 @@ pubg_uid:true
 
 }
 
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-async createTeam(
-
-tournamentId:string,
-
-name:string
-
-){
-
-
-
-
-
-const count =
-
-await this.prisma.tournamentTeam.count({
-
-where:{
-
-
-tournament_id:tournamentId
-
-
-}
-
-});
-
-
-
-
-
-
-if(count >=25){
-
-
-throw new BadRequestException(
-
-"Maximum 25 teams allowed"
-
-);
-
-
-}
-
-
-
-
-
-
-
-const team =
-
-await this.prisma.tournamentTeam.create({
-
-data:{
-
-
-tournament_id:tournamentId,
-
-
-team_number:count+1,
-
-
-name:name
-
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
-for(let i=1;i<=4;i++){
-
-
-
-await this.prisma.teamSlot.create({
-
-data:{
-
-
-team_id:team.id,
-
-
-slot_number:i
 
 
 }
@@ -242,19 +319,9 @@ slot_number:i
 
 
 
-return team;
 
 
-
-}
-
-
-
-
-
-
-
-
+// EDIT TEAM NAME
 
 async updateTeamName(
 
@@ -263,6 +330,22 @@ teamId:string,
 name:string
 
 ){
+
+
+
+if(!name){
+
+throw new BadRequestException(
+
+"Team name required"
+
+);
+
+}
+
+
+
+
 
 
 
@@ -275,6 +358,7 @@ id:teamId
 
 
 },
+
 
 
 data:{
@@ -301,6 +385,8 @@ name
 
 
 
+// JOIN SLOT
+
 async joinSlot(
 
 slotId:string,
@@ -308,62 +394,6 @@ slotId:string,
 userId:string
 
 ){
-
-
-
-
-
-const existing =
-
-await this.prisma.teamSlot.findFirst({
-
-where:{
-
-
-user_id:userId
-
-
-}
-
-});
-
-
-
-
-
-
-
-if(existing){
-
-
-await this.prisma.teamSlot.update({
-
-where:{
-
-
-id:existing.id
-
-
-},
-
-
-data:{
-
-
-user_id:null
-
-
-}
-
-
-});
-
-
-}
-
-
-
-
 
 
 
@@ -381,8 +411,6 @@ id:slotId
 
 }
 
-
-
 });
 
 
@@ -390,8 +418,8 @@ id:slotId
 
 
 
-if(!slot){
 
+if(!slot){
 
 throw new BadRequestException(
 
@@ -407,10 +435,7 @@ throw new BadRequestException(
 
 
 
-
-
 if(slot.user_id){
-
 
 throw new BadRequestException(
 
@@ -418,8 +443,41 @@ throw new BadRequestException(
 
 );
 
+}
+
+
+
+
+
+
+
+
+// remove old slot
+
+await this.prisma.teamSlot.updateMany({
+
+where:{
+
+
+user_id:userId
+
+
+},
+
+
+
+data:{
+
+
+user_id:null
+
 
 }
+
+
+
+});
+
 
 
 
@@ -439,10 +497,14 @@ id:slotId
 },
 
 
+
 data:{
 
 
-user_id:userId
+user_id:userId,
+
+
+joined_at:new Date()
 
 
 }
@@ -453,6 +515,8 @@ user_id:userId
 
 
 
+
+
 }
 
 
@@ -462,6 +526,8 @@ user_id:userId
 
 
 
+
+// LEAVE SLOT
 
 async leaveSlot(
 
@@ -482,6 +548,7 @@ id:slotId
 },
 
 
+
 data:{
 
 
@@ -497,6 +564,8 @@ user_id:null
 
 
 }
+
+
 
 
 
