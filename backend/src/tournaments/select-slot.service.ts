@@ -62,17 +62,12 @@ id:slotId
 include:{
 
 
-
 team:true
-
 
 
 }
 
-
-
 });
-
 
 
 
@@ -96,9 +91,7 @@ throw new BadRequestException(
 
 
 
-
 if(slot.user_id){
-
 
 throw new BadRequestException(
 
@@ -115,15 +108,13 @@ throw new BadRequestException(
 
 
 
-
 return this.prisma.$transaction(async(tx)=>{
 
 
 
 
 
-
-// Remove previous slot if user changed team
+// remove previous slot
 
 await tx.teamSlot.updateMany({
 
@@ -159,6 +150,7 @@ joined_at:null
 
 
 
+// assign new slot
 
 const updated =
 
@@ -193,27 +185,23 @@ joined_at:new Date()
 
 
 
-
 return {
 
 
 message:"Slot selected successfully",
 
 
-team_number:slot.team.team_number,
+team_id:slot.team_id,
 
 
-team_name:slot.team.name,
+slot_number:slot.slot_number,
 
 
-slot_number:updated.slot_number
+slot:updated
 
 
 
 };
-
-
-
 
 
 
