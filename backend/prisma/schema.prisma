@@ -33,6 +33,8 @@ model User {
 
   deposits Deposit[]
 
+  withdrawals Withdrawal[]
+
 
   created_at DateTime @default(now())
 
@@ -123,6 +125,8 @@ model WalletTransaction {
 
 
 
+
+
 model Deposit {
 
   id String @id @default(uuid())
@@ -141,6 +145,45 @@ model Deposit {
   user User @relation(fields: [user_id], references: [id])
 
 }
+
+
+
+
+
+
+model Withdrawal {
+
+  id String @id @default(uuid())
+
+
+  user_id String
+
+
+  amount Float
+
+
+  method String
+
+
+  account String
+
+
+  status String @default("pending")
+
+
+  created_at DateTime @default(now())
+
+
+
+  user User @relation(fields: [user_id], references: [id])
+
+}
+
+
+
+
+
+
 
 model TournamentTeam {
 
@@ -167,6 +210,8 @@ model TournamentTeam {
 
 
 
+
+
 model TeamSlot {
 
   id String @id @default(uuid())
@@ -190,6 +235,9 @@ model TeamSlot {
 
 
 
+
+
+
 model TournamentRound {
 
   id String @id @default(uuid())
@@ -208,6 +256,9 @@ model TournamentRound {
   matches TournamentMatch[]
 
 }
+
+
+
 
 
 
@@ -243,6 +294,9 @@ model TournamentMatch {
 
 
 
+
+
+
 model MatchTeam {
 
   id String @id @default(uuid())
@@ -259,6 +313,9 @@ model MatchTeam {
   team TournamentTeam @relation(fields: [team_id], references: [id])
 
 }
+
+
+
 
 
 
