@@ -9,16 +9,27 @@ PrismaService
 
 
 
+
+
+
+
 @Injectable()
 
 export class MyTournamentsService {
 
 
+
 constructor(
 
-private prisma: PrismaService
+private prisma:PrismaService
 
 ){}
+
+
+
+
+
+
 
 
 
@@ -27,6 +38,7 @@ async getMyTournaments(
 userId:string
 
 ){
+
 
 
 return this.prisma.tournamentJoin.findMany({
@@ -41,22 +53,10 @@ user_id:userId
 
 
 
-include:{
-
-
-tournament:{
-
-
-include:{
-
-
-teams:{
-
-
 orderBy:{
 
 
-team_number:"asc"
+joined_at:"desc"
 
 
 },
@@ -66,13 +66,8 @@ team_number:"asc"
 include:{
 
 
-slots:{
 
-
-include:{
-
-
-user:{
+tournament:{
 
 
 select:{
@@ -84,50 +79,108 @@ id:true,
 name:true,
 
 
-pubg_uid:true
+entry_fee:true,
 
 
-}
+currency:true,
 
 
-}
+reward:true,
 
 
-}
+start_date:true,
 
 
-}
+start_time:true,
 
 
-}
+status:true,
 
 
-}
+max_teams:true,
 
 
-}
+players_per_team:true
 
-
-}
 
 
 },
 
 
 
-orderBy:{
+include:{
 
 
-joined_at:"desc"
+
+teams:{
+
+
+where:{
+
+
+
+slots:{
+
+
+
+some:{
+
+
+user_id:userId
 
 
 }
+
+
+}
+
+
+
+},
+
+
+
+select:{
+
+
+id:true,
+
+
+team_number:true,
+
+
+name:true
+
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+},
+
 
 
 });
 
 
+
 }
+
+
+
+
 
 
 
