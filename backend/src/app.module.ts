@@ -33,6 +33,10 @@ WithdrawalModule
 } from './withdrawal/withdrawal.module';
 
 
+import {
+DepositModule
+} from './deposit/deposit.module';
+
 
 
 
@@ -67,7 +71,11 @@ AdminModule,
 
 
 
-WithdrawalModule
+WithdrawalModule,
+
+
+
+DepositModule
 
 
 ]
