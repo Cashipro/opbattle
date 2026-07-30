@@ -13,6 +13,8 @@ PrismaService
 
 
 
+
+
 @Injectable()
 
 export class SelectSlotService {
@@ -24,6 +26,7 @@ constructor(
 private prisma:PrismaService
 
 ){}
+
 
 
 
@@ -46,7 +49,7 @@ slotId:string
 
 const slot =
 
-await this.prisma.tournamentSlot.findUnique({
+await this.prisma.teamSlot.findUnique({
 
 where:{
 
@@ -63,8 +66,6 @@ team:true
 
 
 }
-
-
 
 });
 
@@ -108,87 +109,20 @@ throw new BadRequestException(
 
 
 
-const tournament =
-
-await this.prisma.tournament.findUnique({
-
-where:{
-
-
-id:slot.team.tournament_id
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
-if(!tournament){
-
-throw new BadRequestException(
-
-"Tournament not found"
-
-);
-
-}
-
-
-
-
-
-
-
-if(tournament.status !== "upcoming"){
-
-
-throw new BadRequestException(
-
-"Slot selection closed"
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
 return this.prisma.$transaction(async(tx)=>{
 
 
 
 
 
-// remove old slot from same tournament
+// Remove old slot if user already selected one
 
-await tx.tournamentSlot.updateMany({
+await tx.teamSlot.updateMany({
 
 where:{
 
 
-user_id:userId,
-
-
-team:{
-
-
-tournament_id:slot.team.tournament_id
-
-
-}
+user_id:userId
 
 
 },
@@ -198,13 +132,11 @@ tournament_id:slot.team.tournament_id
 data:{
 
 
-user_id:null,
-
-
-joined_at:null
+user_id:null
 
 
 }
+
 
 
 });
@@ -216,12 +148,11 @@ joined_at:null
 
 
 
+// Assign new slot
 
-// assign new slot
+const updatedSlot =
 
-const updated =
-
-await tx.tournamentSlot.update({
+await tx.teamSlot.update({
 
 where:{
 
@@ -254,44 +185,23 @@ joined_at:new Date()
 
 
 
-
-
 return {
 
 
-message:
-
-"Slot selected successfully",
+message:"Slot selected successfully",
 
 
-
-team_id:
-
-slot.team.id,
+team_number:slot.team.team_number,
 
 
-
-team_number:
-
-slot.team.team_number,
+team_name:slot.team.name,
 
 
-
-team_name:
-
-slot.team.name,
-
-
-
-slot_number:
-
-updated.slot_number
+slot_number:updatedSlot.slot_number
 
 
 
 };
-
-
 
 
 
@@ -303,6 +213,10 @@ updated.slot_number
 
 
 }
+
+
+
+
 
 
 
