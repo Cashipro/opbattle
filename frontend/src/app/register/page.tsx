@@ -7,82 +7,47 @@ useState
 
 
 import {
-registerUser
-} from "@/services/auth";
-
-
-import {
 useRouter
 } from "next/navigation";
 
 
-
-import Link from "next/link";
-
-
-
-import Navbar from "@/components/Navbar";
-
-import Footer from "@/components/Footer";
-
-
-
-export default function RegisterPage(){
-
-
-
-const router=useRouter();
-
-
-
-const [form,setForm]=useState({
-
-name:"",
-
-email:"",
-
-pubg_uid:"",
-
-password:""
-
-
-});
-
-
-
-const [loading,setLoading]=useState(false);
-
-
-
-
-
-function change(
-e:any
-){
-
-
-setForm({
-
-...form,
-
-[e.target.name]:e.target.value
-
-});
-
-
-}
+import api from "@/lib/api";
 
 
 
 
 
 
-async function submit(
-e:any
-){
+
+export default function Register(){
+
+
+
+const router = useRouter();
+
+
+const [name,setName] = useState("");
+
+const [email,setEmail] = useState("");
+
+const [password,setPassword] = useState("");
+
+const [pubg_uid,setPubgUid] = useState("");
+
+const [loading,setLoading] = useState(false);
+
+
+
+
+
+
+
+
+async function handleRegister(e:any){
 
 
 e.preventDefault();
+
 
 
 try{
@@ -92,36 +57,56 @@ setLoading(true);
 
 
 
-await registerUser(form);
+await api.post(
 
+"/auth/register",
 
+{
 
-alert(
-"Account Created Successfully"
+name,
+
+email,
+
+password,
+
+pubg_uid
+
+}
+
 );
 
 
 
-router.push("/login");
+
+
+alert(
+"Registration successful"
+);
 
 
 
-}
+router.push(
+"/login"
+);
 
-catch(error:any){
+
+
+
+
+}catch(error:any){
 
 
 alert(
 
-error.response?.data?.message ||
-"Registration Failed"
+error?.response?.data?.message ||
+
+"Registration failed"
 
 );
 
 
-}
 
-finally{
+}finally{
 
 
 setLoading(false);
@@ -137,101 +122,268 @@ setLoading(false);
 
 
 
-return(
-
-<>
-
-
-<Navbar />
 
 
 
-<div className="min-h-screen flex items-center justify-center">
+return (
+
+<main className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+p-5
+">
 
 
-<form
-
-onSubmit={submit}
-
-className="game-card w-full max-w-lg p-8 space-y-5"
-
->
 
 
 
-<h1 className="text-3xl font-bold">
 
-Create Account
+<div className="
+w-full
+max-w-md
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+md:p-8
+">
+
+
+
+
+
+
+<h1 className="
+text-3xl
+font-black
+text-center
+text-green-400
+mb-2
+">
+
+TOURNAMENT HUB
 
 </h1>
 
 
 
+
+
+
+
+<p className="
+text-gray-400
+text-center
+mb-8
+">
+
+Create your player account
+
+</p>
+
+
+
+
+
+
+
+
+
+<form
+
+onSubmit={handleRegister}
+
+className="
+space-y-4
+"
+
+>
+
+
+
+
+
+
+
+
+<div>
+
+<label className="
+text-gray-400
+block
+mb-2
+">
+
+Name
+
+</label>
+
+
 <input
 
-name="name"
+value={name}
 
-placeholder="Full Name"
+onChange={(e)=>setName(e.target.value)}
 
-onChange={change}
+placeholder="Enter name"
 
-className="input"
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
 required
 
 />
 
+</div>
+
+
+
+
+
+
+
+
+
+<div>
+
+<label className="
+text-gray-400
+block
+mb-2
+">
+
+Email
+
+</label>
 
 
 <input
-
-name="email"
-
-placeholder="Email"
 
 type="email"
 
-onChange={change}
+value={email}
 
-className="input"
+onChange={(e)=>setEmail(e.target.value)}
 
-required
+placeholder="Enter email"
 
-/>
-
-
-
-<input
-
-name="pubg_uid"
-
-placeholder="PUBG UID"
-
-onChange={change}
-
-className="input"
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
 required
 
 />
 
+</div>
+
+
+
+
+
+
+
+
+
+<div>
+
+<label className="
+text-gray-400
+block
+mb-2
+">
+
+PUBG UID
+
+</label>
 
 
 <input
 
-name="password"
+value={pubg_uid}
 
-placeholder="Password"
+onChange={(e)=>setPubgUid(e.target.value)}
+
+placeholder="Enter PUBG UID"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
+
+required
+
+/>
+
+</div>
+
+
+
+
+
+
+
+
+
+<div>
+
+<label className="
+text-gray-400
+block
+mb-2
+">
+
+Password
+
+</label>
+
+
+<input
 
 type="password"
 
-onChange={change}
+value={password}
 
-className="input"
+onChange={(e)=>setPassword(e.target.value)}
+
+placeholder="Create password"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
 required
 
 />
+
+</div>
+
+
+
+
+
+
 
 
 
@@ -239,43 +391,38 @@ required
 
 disabled={loading}
 
-className="btn-primary w-full"
+className="
+w-full
+bg-green-600
+py-4
+rounded-xl
+font-black
+hover:bg-green-700
+disabled:opacity-50
+"
 
 >
 
-
 {
-loading
-?
-"Creating..."
-:
-"Create Account"
-}
 
+loading
+
+?
+
+"Creating..."
+
+:
+
+"Register"
+
+}
 
 </button>
 
 
 
 
-<p>
 
-Already have account?
-
-<Link
-
-href="/login"
-
-className="text-[#00ff84]"
-
->
-
- Login
-
-</Link>
-
-
-</p>
 
 
 
@@ -283,14 +430,53 @@ className="text-[#00ff84]"
 
 
 
+
+
+
+
+
+<p className="
+text-center
+text-gray-400
+mt-6
+">
+
+Already have account?
+
+{" "}
+
+<a
+
+href="/login"
+
+className="
+text-green-400
+font-bold
+"
+
+>
+
+Login
+
+</a>
+
+</p>
+
+
+
+
+
+
+
+
 </div>
 
 
 
-<Footer />
 
-</>
 
+
+</main>
 
 );
 
