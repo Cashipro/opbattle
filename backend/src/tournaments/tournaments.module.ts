@@ -174,6 +174,9 @@ exports:[
 TeamRoomService,
 
 
+JoinService,
+
+
 TournamentsService,
 
 
