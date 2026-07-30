@@ -12,6 +12,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class TournamentsService {
@@ -23,6 +24,8 @@ constructor(
 private prisma:PrismaService
 
 ){}
+
+
 
 
 
@@ -51,13 +54,47 @@ not:"completed"
 },
 
 
+
 orderBy:{
 
 
 created_at:"desc"
 
 
+},
+
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+entry_fee:true,
+
+
+reward:true,
+
+
+start_date:true,
+
+
+start_time:true,
+
+
+status:true,
+
+
+created_at:true
+
+
+
 }
+
 
 
 });
@@ -73,7 +110,12 @@ created_at:"desc"
 
 
 
-async findOne(id:string){
+
+async findOne(
+
+id:string
+
+){
 
 
 
@@ -88,19 +130,94 @@ id
 },
 
 
+
 include:{
 
 
-slots:true
+
+teams:{
+
+
+
+orderBy:{
+
+
+team_number:"asc"
+
+
+},
+
+
+
+include:{
+
+
+
+slots:{
+
+
+
+orderBy:{
+
+
+slot_number:"asc"
+
+
+},
+
+
+
+include:{
+
+
+user:{
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
 
 
 }
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
 
 
 });
 
 
+
 }
+
 
 
 
