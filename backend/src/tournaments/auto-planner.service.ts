@@ -4,9 +4,12 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
 
 
 
@@ -30,6 +33,8 @@ private prisma:PrismaService
 
 
 
+
+
 async calculatePlan(
 
 tournamentId:string
@@ -46,16 +51,22 @@ await this.prisma.tournamentTeam.findMany({
 
 where:{
 
+
 tournament_id:tournamentId
+
 
 },
 
 
+
 orderBy:{
 
-team_number:'asc'
+
+team_number:"asc"
+
 
 }
+
 
 
 });
@@ -65,7 +76,10 @@ team_number:'asc'
 
 
 
+
+
 if(!teams.length){
+
 
 throw new BadRequestException(
 
@@ -80,21 +94,72 @@ throw new BadRequestException(
 
 
 
+
+
+// check old plan
+
+const oldRound =
+
+await this.prisma.tournamentRound.findFirst({
+
+where:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+if(oldRound){
+
+
+throw new BadRequestException(
+
+"Plan already generated"
+
+);
+
+}
+
+
+
+
+
+
+
+
 const totalTeams = teams.length;
 
 
 
 
 
-let matchSize = 25;
+
+// maximum teams in one match
+
+const maxTeamsPerMatch = 25;
 
 
 
 
 
-let totalMatches = Math.ceil(
 
-totalTeams / matchSize
+
+const matchesNeeded =
+
+Math.ceil(
+
+totalTeams / maxTeamsPerMatch
 
 );
 
@@ -103,7 +168,12 @@ totalTeams / matchSize
 
 
 
-let round =
+
+
+
+// Create Round 1
+
+const round =
 
 await this.prisma.tournamentRound.create({
 
@@ -122,8 +192,6 @@ name:"Round 1"
 
 }
 
-
-
 });
 
 
@@ -132,9 +200,13 @@ name:"Round 1"
 
 
 
-let index=0;
 
-let matchNumber=1;
+let index = 0;
+
+
+let matchNumber = 1;
+
+
 
 
 
@@ -143,6 +215,36 @@ let matchNumber=1;
 
 
 while(index < totalTeams){
+
+
+
+
+
+const remaining =
+
+totalTeams - index;
+
+
+
+
+
+
+
+const currentMatchSize =
+
+Math.min(
+
+remaining,
+
+maxTeamsPerMatch
+
+);
+
+
+
+
+
+
 
 
 
@@ -179,13 +281,18 @@ status:"pending"
 
 
 
-const matchTeams = teams.slice(
+
+const matchTeams =
+
+teams.slice(
 
 index,
 
-index+matchSize
+index + currentMatchSize
 
 );
+
+
 
 
 
@@ -215,6 +322,7 @@ team_id:team.id
 });
 
 
+
 }
 
 
@@ -222,13 +330,18 @@ team_id:team.id
 
 
 
-index += matchSize;
+
+
+index += currentMatchSize;
 
 
 matchNumber++;
 
 
+
 }
+
+
 
 
 
@@ -239,13 +352,21 @@ matchNumber++;
 return {
 
 
-message:"Tournament Plan Created",
+message:"Tournament plan created successfully",
 
 
 totalTeams,
 
 
-rounds:"Auto Generated"
+roundsCreated:1,
+
+
+matchesCreated:matchesNeeded,
+
+
+matches:
+
+`${matchesNeeded} matches created for Round 1`
 
 
 
@@ -254,9 +375,9 @@ rounds:"Auto Generated"
 
 
 
+
+
 }
-
-
 
 
 
