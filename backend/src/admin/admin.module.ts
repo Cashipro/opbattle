@@ -22,6 +22,18 @@ AdminTournamentService
 
 
 import {
+AdminDepositController
+} from './admin-deposit.controller';
+
+
+
+import {
+AdminDepositService
+} from './admin-deposit.service';
+
+
+
+import {
 AutoPlannerService
 } from '../tournaments/auto-planner.service';
 
@@ -48,7 +60,9 @@ PrismaModule
 
 controllers:[
 
-AdminTournamentController
+AdminTournamentController,
+
+AdminDepositController
 
 ],
 
@@ -56,15 +70,13 @@ AdminTournamentController
 
 providers:[
 
-
 AdminTournamentService,
 
+AdminDepositService,
 
 AutoPlannerService,
 
-
 NextRoundService
-
 
 ]
 
