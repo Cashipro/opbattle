@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   useEffect,
   useState
@@ -30,22 +29,22 @@ import {
 export default function TournamentDetail(){
 
 
-  const params = useParams<{id:string}>();
+const params = useParams<{id:string}>();
 
-  const router = useRouter();
+const router = useRouter();
 
 
-  const id = params?.id;
+const id = params?.id;
 
 
 
 
 
-  const [tournament,setTournament] = useState<any>(null);
+const [tournament,setTournament] = useState<any>(null);
 
-  const [loading,setLoading] = useState(true);
+const [loading,setLoading] = useState(true);
 
-  const [joining,setJoining] = useState(false);
+const [joining,setJoining] = useState(false);
 
 
 
@@ -55,17 +54,17 @@ export default function TournamentDetail(){
 
 
 
-  useEffect(()=>{
+useEffect(()=>{
 
 
-    if(id){
+if(id){
 
-      loadTournament();
+loadTournament();
 
-    }
+}
 
 
-  },[id]);
+},[id]);
 
 
 
@@ -75,570 +74,502 @@ export default function TournamentDetail(){
 
 
 
-  async function loadTournament(){
+async function loadTournament(){
 
 
-    try{
+try{
 
 
-      if(!id) return;
+const data = await getTournament(id);
 
 
-      const data = await getTournament(id);
+setTournament(data);
 
 
-      setTournament(data);
 
+}catch(error){
 
 
-    }catch(error){
+console.log(error);
 
 
-      console.log(error);
+}finally{
 
 
+setLoading(false);
 
-    }finally{
 
+}
 
-      setLoading(false);
 
+}
 
-    }
 
 
-  }
 
 
 
 
 
 
+async function handleJoin(){
 
 
+try{
 
-  async function handleJoin(){
 
+setJoining(true);
 
-    try{
 
+await joinTournament(id);
 
-      if(!id) return;
 
 
-      setJoining(true);
+alert(
+"Tournament joined successfully"
+);
 
 
 
+// OPEN PUBG ROOM
 
-      await joinTournament(id);
+router.push(
 
+`/team-room/${id}`
 
+);
 
 
 
-      alert(
-        "Tournament joined successfully"
-      );
+}catch(error:any){
 
 
+alert(
 
+error?.response?.data?.message ||
 
+"Unable to join tournament"
 
-      // direct PUBG style room
+);
 
-      router.push(
-        `/team-room/${id}`
-      );
 
 
+}finally{
 
 
+setJoining(false);
 
-    }catch(error:any){
 
+}
 
-      alert(
 
-        error?.response?.data?.message ||
+}
 
-        "Unable to join tournament"
 
-      );
 
 
 
-    }finally{
 
 
-      setJoining(false);
 
 
-    }
+if(loading){
 
 
+return (
 
-  }
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
 
+Loading tournament...
 
+</div>
 
+);
 
 
+}
 
 
 
 
-  if(loading){
 
 
-    return (
 
-      <div
-        className="
-        min-h-screen
-        bg-black
-        text-white
-        flex
-        items-center
-        justify-center
-        "
-      >
 
-        Loading tournament...
 
-      </div>
+if(!tournament){
 
-    );
 
+return (
 
-  }
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
 
+Tournament not found
 
+</div>
 
+);
 
 
+}
 
 
 
 
-  if(!tournament){
 
 
-    return (
 
-      <div
-        className="
-        min-h-screen
-        bg-black
-        text-white
-        flex
-        items-center
-        justify-center
-        "
-      >
 
-        Tournament not found
 
-      </div>
+return (
 
-    );
+<div className="
+flex
+min-h-screen
+bg-black
+text-white
+">
 
 
-  }
+<Sidebar />
 
 
 
 
 
+<main className="
+flex-1
+p-4
+pt-20
+md:p-10
+">
 
 
 
 
-  return (
 
-    <div
-      className="
-      flex
-      min-h-screen
-      bg-black
-      text-white
-      "
-    >
+<div className="
+max-w-5xl
+mx-auto
+">
 
 
 
 
-      <Sidebar />
 
 
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+md:p-10
+">
 
 
 
 
 
-      <main
-        className="
-        flex-1
-        p-4
-        pt-20
-        md:p-10
-        md:pt-10
-        "
-      >
 
+<h1 className="
+text-4xl
+font-black
+mb-8
+">
 
+{tournament.name}
 
+</h1>
 
-        <div
-          className="
-          max-w-5xl
-          mx-auto
-          "
-        >
 
 
 
 
 
-          <div
-            className="
-            bg-zinc-900
-            border
-            border-zinc-800
-            rounded-3xl
-            p-6
-            md:p-10
-            "
-          >
 
 
 
+<div className="
+grid
+grid-cols-1
+md:grid-cols-2
+gap-5
+">
 
 
-            <h1
-              className="
-              text-3xl
-              md:text-5xl
-              font-black
-              mb-8
-              "
-            >
 
-              {tournament.name}
 
-            </h1>
 
 
 
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
 
+<p className="
+text-gray-400
+">
 
+Entry Fee
 
+</p>
 
 
+<p className="
+text-green-400
+font-black
+text-2xl
+">
 
-            <div
-              className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              gap-5
-              "
-            >
+{tournament.entry_fee}
 
+{" "}
 
+{tournament.currency}
 
+</p>
 
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
+</div>
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Entry Fee
 
-                </p>
 
 
-                <h2
-                  className="
-                  text-2xl
-                  font-bold
-                  text-green-400
-                  mt-2
-                  "
-                >
 
-                  {tournament.entry_fee}
 
-                  {" "}
 
-                  {tournament.currency || ""}
 
-                </h2>
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
 
+<p className="
+text-gray-400
+">
 
-              </div>
+Reward
 
+</p>
 
 
+<p className="
+text-yellow-400
+font-black
+text-2xl
+">
 
+{tournament.reward || 0}
 
+</p>
 
 
+</div>
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Reward
 
-                </p>
 
 
-                <h2
-                  className="
-                  text-2xl
-                  font-bold
-                  text-yellow-400
-                  mt-2
-                  "
-                >
 
-                  {tournament.reward || 0}
 
-                </h2>
 
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
 
-              </div>
+<p className="
+text-gray-400
+">
 
+Teams
 
+</p>
 
 
+<p className="
+text-blue-400
+font-black
+text-2xl
+">
 
+{tournament.totalTeams || 100}
 
+</p>
 
 
+</div>
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Start Date
 
-                </p>
 
 
-                <h2
-                  className="
-                  font-bold
-                  mt-2
-                  "
-                >
 
-                  {
-                    new Date(
-                      tournament.start_date
-                    ).toLocaleDateString()
-                  }
 
-                </h2>
 
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
 
-              </div>
+<p className="
+text-gray-400
+">
 
+Players Joined
 
+</p>
 
 
+<p className="
+text-green-400
+font-black
+text-2xl
+">
 
+{tournament.players || 0}
 
+</p>
 
 
+</div>
 
-              <div
-                className="
-                bg-zinc-800
-                rounded-2xl
-                p-5
-                "
-              >
 
-                <p
-                  className="
-                  text-gray-400
-                  "
-                >
 
-                  Start Time
 
-                </p>
 
 
-                <h2
-                  className="
-                  font-bold
-                  mt-2
-                  "
-                >
 
-                  {tournament.start_time}
 
-                </h2>
+</div>
 
 
-              </div>
 
 
 
 
 
-            </div>
 
 
+<button
 
+onClick={handleJoin}
 
+disabled={joining}
 
+className="
+mt-8
+w-full
+bg-green-600
+hover:bg-green-700
+py-4
+rounded-2xl
+font-black
+text-lg
+"
 
+>
 
+{
 
+joining
 
-            <div
-              className="
-              mt-6
-              bg-zinc-800
-              rounded-2xl
-              p-5
-              "
-            >
+?
 
-              <p
-                className="
-                text-gray-400
-                "
-              >
+"Joining..."
 
-                Status
+:
 
-              </p>
+"JOIN TOURNAMENT"
 
+}
 
-              <h2
-                className="
-                text-blue-400
-                uppercase
-                font-bold
-                mt-2
-                "
-              >
+</button>
 
-                {tournament.status}
 
-              </h2>
 
 
-            </div>
 
 
 
 
 
+<button
 
+onClick={()=>router.push(`/team-room/${id}`)}
 
+className="
+mt-4
+w-full
+bg-zinc-700
+hover:bg-zinc-600
+py-4
+rounded-2xl
+font-black
+"
 
+>
 
-            <button
+🎮 OPEN PUBG ROOM
 
-              onClick={handleJoin}
+</button>
 
-              disabled={joining}
 
-              className="
-              w-full
-              mt-8
-              bg-green-600
-              hover:bg-green-700
-              py-4
-              rounded-2xl
-              font-black
-              text-lg
-              disabled:opacity-50
-              "
 
-            >
 
 
-              {
 
-                joining
 
-                ?
 
-                "Joining..."
+</div>
 
-                :
 
-                "JOIN TOURNAMENT"
 
-              }
 
 
-            </button>
 
 
+</div>
 
 
 
 
 
-          </div>
 
+</main>
 
 
 
 
-        </div>
 
 
+</div>
 
 
-
-      </main>
-
-
-
-
-
-    </div>
-
-  );
+);
 
 
 }
