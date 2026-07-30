@@ -28,7 +28,7 @@ selectSlot
 
 
 
-export default function TeamRoom(){
+export default function TeamRoomPage(){
 
 
 const params = useParams<{id:string}>();
@@ -36,7 +36,7 @@ const params = useParams<{id:string}>();
 const router = useRouter();
 
 
-const id = params?.id;
+const id = params.id;
 
 
 
@@ -82,6 +82,14 @@ async function loadRoom(){
 try{
 
 
+if(!id){
+
+return;
+
+}
+
+
+
 const data = await getTeamRoom(id);
 
 
@@ -111,7 +119,6 @@ setLoading(false);
 }
 
 
-
 }
 
 
@@ -122,7 +129,7 @@ setLoading(false);
 
 
 
-async function joinSlot(slotId:string){
+async function handleSlot(slotId:string){
 
 
 try{
@@ -131,7 +138,7 @@ try{
 await selectSlot(slotId);
 
 
-loadRoom();
+await loadRoom();
 
 
 
@@ -142,7 +149,7 @@ alert(
 
 err?.response?.data?.message ||
 
-"Slot not available"
+"Slot unavailable"
 
 );
 
@@ -175,7 +182,7 @@ items-center
 justify-center
 ">
 
-Loading room...
+Loading PUBG Room...
 
 </div>
 
@@ -211,7 +218,7 @@ p-5
 <div className="
 bg-zinc-900
 border
-border-red-600
+border-red-700
 rounded-3xl
 p-8
 text-center
@@ -238,6 +245,7 @@ text-gray-400
 </p>
 
 
+
 <button
 
 onClick={()=>router.push("/tournaments")}
@@ -253,14 +261,12 @@ font-bold
 
 >
 
-Back To Tournaments
+Back
 
 </button>
 
 
-
 </div>
-
 
 
 </div>
@@ -294,6 +300,7 @@ text-white
 
 
 
+
 <main className="
 flex-1
 p-4
@@ -309,15 +316,35 @@ mx-auto
 ">
 
 
+<div className="
+mb-8
+">
+
+
 <h1 className="
 text-4xl
 font-black
-mb-8
 ">
 
 🎮 PUBG TEAM ROOM
 
 </h1>
+
+
+<p className="
+text-gray-400
+">
+
+Select your squad slot
+
+</p>
+
+
+</div>
+
+
+
+
 
 
 
@@ -348,18 +375,41 @@ rounded-3xl
 p-5
 "
 
+
 >
+
+
+<div className="
+flex
+justify-between
+mb-5
+">
 
 
 <h2 className="
 text-xl
 font-black
-mb-5
 ">
 
 {team.name}
 
 </h2>
+
+
+<span className="
+text-gray-400
+">
+
+Team {team.team_number}
+
+</span>
+
+
+</div>
+
+
+
+
 
 
 
@@ -386,43 +436,38 @@ bg-zinc-800
 rounded-xl
 p-4
 text-center
+min-h-[120px]
+flex
+flex-col
+justify-center
+items-center
 "
 
 >
+
+
+{
+
+
+slot.user
+
+?
+
+<>
 
 
 <div className="
 text-3xl
 ">
 
-{
-
-slot.user
-
-?
-
-"👤"
-
-:
-
-"➕"
-
-}
+👤
 
 </div>
 
 
-
-
-{
-
-slot.user
-
-?
-
 <p className="
-text-green-400
 font-bold
+text-green-400
 text-sm
 ">
 
@@ -431,15 +476,41 @@ text-sm
 </p>
 
 
+<p className="
+text-xs
+text-gray-500
+">
+
+{slot.user.pubg_uid}
+
+</p>
+
+
+</>
+
+
 :
+
+<>
+
+
+<div className="
+text-3xl
+">
+
+➕
+
+</div>
+
 
 <button
 
-onClick={()=>joinSlot(slot.id)}
+onClick={()=>handleSlot(slot.id)}
 
 className="
+mt-2
 bg-green-600
-px-3
+px-4
 py-2
 rounded-lg
 text-sm
@@ -452,6 +523,8 @@ Join
 
 </button>
 
+
+</>
 
 
 }
@@ -493,6 +566,7 @@ Join
 
 
 </main>
+
 
 
 </div>
