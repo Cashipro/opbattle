@@ -2,7 +2,8 @@ import {
 Controller,
 Post,
 Body,
-Get
+Get,
+UseGuards
 } from '@nestjs/common';
 
 
@@ -12,6 +13,16 @@ AuthService
 
 
 import * as bcrypt from 'bcrypt';
+
+
+import {
+JwtGuard
+} from './jwt.guard';
+
+
+import {
+CurrentUser
+} from './current-user.decorator';
 
 
 
@@ -92,11 +103,43 @@ body
 generateHash(){
 
 return bcrypt.hash(
+
 "Gateway297",
+
 10
+
 );
 
 }
+
+
+
+
+
+
+
+
+
+@Get('me')
+
+@UseGuards(JwtGuard)
+
+me(
+
+@CurrentUser() user:any
+
+){
+
+return this.authService.getUser(
+
+user.id
+
+);
+
+}
+
+
+
 
 
 
