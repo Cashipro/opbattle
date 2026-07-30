@@ -34,16 +34,11 @@ private prisma:PrismaService
 
 
 
-
-// GET MATCH TEAMS
-
 async getMatchTeams(
 
 matchId:string
 
 ){
-
-
 
 
 
@@ -53,9 +48,7 @@ await this.prisma.tournamentMatch.findUnique({
 
 where:{
 
-
 id:matchId
-
 
 },
 
@@ -164,10 +157,8 @@ throw new BadRequestException(
 
 
 
+
 return match;
-
-
-
 
 
 
@@ -181,8 +172,6 @@ return match;
 
 
 
-// ADD RESULT
-
 async addResult(
 
 matchId:string,
@@ -193,11 +182,9 @@ body:any
 
 
 
-
-
 const {
 
-matchTeamId,
+teamId,
 
 kills,
 
@@ -212,29 +199,20 @@ position
 
 
 
-const matchTeam =
+const team =
 
-await this.prisma.matchTeam.findUnique({
+await this.prisma.matchTeam.findFirst({
 
 where:{
 
 
-id:matchTeamId
+match_id:matchId,
 
 
-},
-
-
-
-include:{
-
-
-team:true
+team_id:teamId
 
 
 }
-
-
 
 });
 
@@ -244,12 +222,12 @@ team:true
 
 
 
-if(!matchTeam){
+if(!team){
 
 
 throw new BadRequestException(
 
-"Team not found"
+"Team not found in this match"
 
 );
 
@@ -261,30 +239,23 @@ throw new BadRequestException(
 
 
 
-
-
-const oldResult =
+const existing =
 
 await this.prisma.matchResult.findUnique({
 
 where:{
 
 
-
 match_id_team_id:{
-
 
 
 match_id:matchId,
 
 
-team_id:matchTeam.team_id
-
+team_id:teamId
 
 
 }
-
-
 
 }
 
@@ -296,11 +267,12 @@ team_id:matchTeam.team_id
 
 
 
-if(oldResult){
+if(existing){
+
 
 throw new BadRequestException(
 
-"Result already added for this team"
+"Result already added"
 
 );
 
@@ -353,67 +325,24 @@ return this.prisma.matchResult.create({
 data:{
 
 
-
 match_id:matchId,
 
 
-
-team_id:matchTeam.team_id,
-
+team_id:teamId,
 
 
 kills:Number(kills),
 
 
-
 position:Number(position),
-
 
 
 points:totalPoints
 
 
-
-},
-
-
-
-include:{
-
-
-
-team:{
-
-
-
-select:{
-
-
-id:true,
-
-
-team_number:true,
-
-
-name:true
-
-
 }
-
-
-
-}
-
-
-
-}
-
-
 
 });
-
-
-
 
 
 
@@ -435,44 +364,30 @@ position:number
 
 
 
-const points:any={
-
+const points:any = {
 
 
 1:15,
 
-
 2:12,
-
 
 3:10,
 
-
 4:8,
-
 
 5:6,
 
-
 6:5,
-
 
 7:4,
 
-
 8:3,
-
 
 9:2,
 
-
 10:1
 
-
-
 };
-
-
 
 
 
@@ -482,11 +397,7 @@ return points[position] || 0;
 
 
 
-
-
-
 }
-
 
 
 
