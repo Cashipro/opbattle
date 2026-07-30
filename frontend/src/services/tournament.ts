@@ -4,7 +4,7 @@ import api from "@/lib/api";
 
 
 
-
+// GET ALL TOURNAMENTS
 
 export async function getTournaments(){
 
@@ -28,6 +28,8 @@ return res.data;
 
 
 
+
+// GET SINGLE TOURNAMENT
 
 export async function getTournament(
 
@@ -56,6 +58,8 @@ return res.data;
 
 
 
+// JOIN TOURNAMENT
+
 export async function joinTournament(
 
 id:string
@@ -83,6 +87,8 @@ return res.data;
 
 
 
+// MY TOURNAMENTS
+
 export async function getMyTournaments(){
 
 
@@ -105,6 +111,8 @@ return res.data;
 
 
 
+
+// GET PUBG ROOM
 
 export async function getTeamRoom(
 
@@ -132,6 +140,8 @@ return res.data;
 
 
 
+
+// SELECT PLAYER SLOT
 
 export async function selectSlot(
 
@@ -166,6 +176,8 @@ return res.data;
 
 
 
+// LEAVE SLOT
+
 export async function leaveSlot(
 
 slotId:string
@@ -199,16 +211,26 @@ return res.data;
 
 
 
-export async function getTournamentMatches(
+// ADMIN ADD MORE TEAMS
 
-id:string
+export async function increaseTeams(
+
+id:string,
+
+amount:number
 
 ){
 
 
-const res = await api.get(
+const res = await api.post(
 
-`/tournaments/${id}/matches`
+`/tournaments/${id}/increase-teams`,
+
+{
+
+amount
+
+}
 
 );
 
