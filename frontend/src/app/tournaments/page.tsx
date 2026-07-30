@@ -1,22 +1,18 @@
 "use client";
 
-
 import {
 useEffect,
 useState
 } from "react";
 
 
-import api from "@/lib/api";
+import {
+getTournaments
+} from "@/services/tournament";
+
 
 
 import Link from "next/link";
-
-
-
-import Navbar from "@/components/Navbar";
-
-import Footer from "@/components/Footer";
 
 
 
@@ -25,11 +21,10 @@ import Footer from "@/components/Footer";
 export default function TournamentsPage(){
 
 
+const [tournaments,setTournaments] = useState<any[]>([]);
 
-const [tournaments,setTournaments]=useState<any[]>([]);
+const [loading,setLoading] = useState(true);
 
-
-const [loading,setLoading]=useState(true);
 
 
 
@@ -49,37 +44,29 @@ loadTournaments();
 
 
 
-async function loadTournaments(){
 
+
+async function loadTournaments(){
 
 
 try{
 
 
-const res =
-await api.get("/tournaments");
+const data = await getTournaments();
+
+
+setTournaments(data);
 
 
 
-setTournaments(
-
-res.data
-
-);
-
-
-
-}
-
-catch(error){
+}catch(error){
 
 
 console.log(error);
 
 
-}
 
-finally{
+}finally{
 
 
 setLoading(false);
@@ -88,6 +75,7 @@ setLoading(false);
 }
 
 
+
 }
 
 
@@ -95,20 +83,38 @@ setLoading(false);
 
 
 
-return(
-
-<>
 
 
-<Navbar />
+if(loading){
+
+
+return (
+
+<div className="min-h-screen bg-black text-white flex items-center justify-center">
+
+Loading Tournaments...
+
+</div>
+
+);
+
+
+}
 
 
 
-<main className="min-h-screen p-6 md:p-10">
 
 
 
-<h1 className="text-4xl font-black mb-8">
+
+
+return (
+
+<div className="min-h-screen bg-black text-white p-6">
+
+
+
+<h1 className="text-3xl font-bold mb-8 text-center">
 
 PUBG Tournaments
 
@@ -120,52 +126,39 @@ PUBG Tournaments
 
 
 
-{
 
-loading &&
-
-<p>
-
-Loading tournaments...
-
-</p>
-
-}
-
-
-
-
-
-
-
-
-<div className="grid md:grid-cols-3 gap-6">
-
-
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
 
 
 {
 
-tournaments.map((tour)=>(
-
+tournaments.map((item)=>(
 
 
 <div
 
-key={tour.id}
+key={item.id}
 
-className="game-card p-6"
+className="
+bg-zinc-900
+border
+border-zinc-700
+rounded-2xl
+p-6
+shadow-xl
+hover:scale-105
+transition
+"
+
 
 >
 
 
 
+<h2 className="text-xl font-bold mb-4">
 
-
-<h2 className="text-2xl font-black">
-
-{tour.name}
+{item.name}
 
 </h2>
 
@@ -173,32 +166,17 @@ className="game-card p-6"
 
 
 
-<div className="mt-5 space-y-2 text-gray-300">
 
+<div className="space-y-2 text-sm text-gray-300">
 
 
 <p>
 
 Entry Fee:
 
-<span className="text-[#00ff84] ml-2">
+<span className="text-green-400 ml-2">
 
-${tour.entry_fee}
-
-</span>
-
-</p>
-
-
-
-
-<p>
-
-Prize Pool:
-
-<span className="text-[#00ff84] ml-2">
-
-${tour.prize_pool}
+{item.entry_fee} {item.currency}
 
 </span>
 
@@ -206,30 +184,31 @@ ${tour.prize_pool}
 
 
 
-
 <p>
 
-Start Date:
+Start:
 
-{new Date(
+<span className="ml-2">
 
-tour.start_date
+{new Date(item.start_date).toLocaleDateString()}
 
-).toLocaleDateString()}
+</span>
 
 </p>
 
 
 
-
 <p>
 
-Start Time:
+Time:
 
-{tour.start_time}
+<span className="ml-2">
+
+{item.start_time}
+
+</span>
 
 </p>
-
 
 
 
@@ -237,14 +216,17 @@ Start Time:
 
 Status:
 
-<span className="text-[#00ff84] ml-2">
+<span className="
+ml-2
+text-yellow-400
+uppercase
+">
 
-{tour.status}
+{item.status}
 
 </span>
 
 </p>
-
 
 
 
@@ -255,24 +237,25 @@ Status:
 
 
 
+
 <Link
 
-href={`/tournaments/${tour.id}`}
+href={`/tournaments/${item.id}`}
 
->
-
-
-<button
-
-className="btn-primary w-full mt-6"
+className="
+block
+mt-6
+text-center
+bg-blue-600
+hover:bg-blue-700
+rounded-xl
+py-3
+font-semibold
+"
 
 >
 
 View Tournament
-
-</button>
-
-
 
 </Link>
 
@@ -285,54 +268,19 @@ View Tournament
 </div>
 
 
-
 ))
 
 }
 
 
 
-
 </div>
 
 
 
 
 
-
-
-{
-
-!loading && tournaments.length===0 &&
-
-
-<div className="game-card p-8">
-
-
-<p>
-
-No tournaments available.
-
-</p>
-
-
 </div>
-
-
-}
-
-
-
-
-</main>
-
-
-
-<Footer />
-
-
-
-</>
 
 );
 
