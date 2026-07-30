@@ -18,8 +18,11 @@ import {
 export class SelectSlotService {
 
 
+
 constructor(
-  private prisma:PrismaService
+
+private prisma:PrismaService
+
 ){}
 
 
@@ -40,9 +43,16 @@ slotId:string
 
 
 
+return this.prisma.$transaction(async(tx:any)=>{
+
+
+
+
+
+
 const slot =
 
-await this.prisma.teamSlot.findUnique({
+await tx.teamSlot.findUnique({
 
 where:{
 
@@ -53,13 +63,14 @@ id:slotId
 
 include:{
 
+
 team:true
+
 
 }
 
 
 });
-
 
 
 
@@ -78,7 +89,6 @@ throw new BadRequestException(
 );
 
 }
-
 
 
 
@@ -106,21 +116,26 @@ throw new BadRequestException(
 
 
 
-// REMOVE USER FROM OLD SLOT
+// CHECK USER ALREADY IN SAME TOURNAMENT
 
-await this.prisma.teamSlot.updateMany({
+const oldSlot =
+
+await tx.teamSlot.findFirst({
 
 where:{
 
-user_id:userId
 
-},
+user_id:userId,
 
-data:{
 
-user_id:null,
+team:{
 
-joined_at:null
+
+tournament_id:slot.team.tournament_id
+
+
+}
+
 
 }
 
@@ -134,15 +149,57 @@ joined_at:null
 
 
 
-// ASSIGN NEW SLOT
+// REMOVE OLD POSITION
 
-const updated =
+if(oldSlot){
 
-await this.prisma.teamSlot.update({
+
+await tx.teamSlot.update({
 
 where:{
 
+
+id:oldSlot.id
+
+
+},
+
+data:{
+
+
+user_id:null,
+
+
+joined_at:null
+
+
+}
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
+// ASSIGN NEW POSITION
+
+const updated =
+
+await tx.teamSlot.update({
+
+where:{
+
+
 id:slotId
+
 
 },
 
@@ -164,7 +221,25 @@ include:{
 team:true,
 
 
-user:true
+user:{
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
+
+
+}
+
+
+}
 
 
 }
@@ -186,18 +261,40 @@ return {
 message:"Slot selected successfully",
 
 
-team:updated.team,
+team:{
 
 
-slot:updated.slot_number
+id:updated.team.id,
 
+
+name:updated.team.name,
+
+
+team_number:updated.team.team_number
+
+
+},
+
+
+slot:updated.slot_number,
+
+
+player:updated.user
 
 
 };
 
 
 
+
+
+
+});
+
+
+
 }
+
 
 
 
