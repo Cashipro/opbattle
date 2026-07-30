@@ -1,12 +1,23 @@
-import { NextResponse } from "next/server";
+import {
+NextResponse
+} from "next/server";
 
-import type { NextRequest } from "next/server";
+
+import type {
+NextRequest
+} from "next/server";
+
+
+
+
+
 
 
 
 export function middleware(
-request:NextRequest
+request: NextRequest
 ){
+
 
 
 const token =
@@ -14,41 +25,68 @@ request.cookies.get("token")?.value;
 
 
 
-const protectedRoutes=[
-
-"/dashboard",
-
-"/my-tournaments",
-
-"/profile"
-
-];
 
 
-
-const path =
+const pathname =
 request.nextUrl.pathname;
 
 
 
 
-if(
 
+
+
+
+const protectedRoutes = [
+
+"/dashboard",
+
+"/my-tournaments",
+
+"/deposit",
+
+"/withdraw",
+
+"/profile",
+
+"/settings",
+
+"/matches",
+
+"/leaderboard"
+
+];
+
+
+
+
+
+
+
+
+const isProtected =
 protectedRoutes.some(
-
-(route)=>path.startsWith(route)
-
-)
-
-){
+(route)=>
+pathname.startsWith(route)
+);
 
 
-if(!token){
+
+
+
+
+
+
+if(isProtected && !token){
+
 
 
 return NextResponse.redirect(
 
-new URL("/login",request.url)
+new URL(
+"/login",
+request.url
+)
 
 );
 
@@ -57,7 +95,8 @@ new URL("/login",request.url)
 
 
 
-}
+
+
 
 
 
@@ -70,7 +109,10 @@ return NextResponse.next();
 
 
 
-export const config={
+
+
+
+export const config = {
 
 
 matcher:[
@@ -79,7 +121,17 @@ matcher:[
 
 "/my-tournaments/:path*",
 
-"/profile/:path*"
+"/deposit/:path*",
+
+"/withdraw/:path*",
+
+"/profile/:path*",
+
+"/settings/:path*",
+
+"/matches/:path*",
+
+"/leaderboard/:path*"
 
 ]
 
