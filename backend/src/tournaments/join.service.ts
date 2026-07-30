@@ -84,13 +84,16 @@ throw new BadRequestException(
 
 if(tournament.status !== "upcoming"){
 
+
 throw new BadRequestException(
 
-"Tournament already started"
+"Tournament joining closed"
 
 );
 
+
 }
+
 
 
 
@@ -106,13 +109,16 @@ await this.prisma.tournamentJoin.findUnique({
 where:{
 
 
+
 tournament_id_user_id:{
+
 
 
 tournament_id:tournamentId,
 
 
 user_id:userId
+
 
 
 }
@@ -139,6 +145,7 @@ throw new BadRequestException(
 );
 
 }
+
 
 
 
@@ -184,6 +191,7 @@ throw new BadRequestException(
 
 if(user.balance < tournament.entry_fee){
 
+
 throw new BadRequestException(
 
 "Insufficient balance"
@@ -216,7 +224,6 @@ id:userId
 },
 
 
-
 data:{
 
 
@@ -229,9 +236,7 @@ decrement:tournament.entry_fee
 }
 
 
-
 }
-
 
 
 });
@@ -259,10 +264,7 @@ user_id:userId
 
 }
 
-
-
 });
-
 
 
 
@@ -279,7 +281,7 @@ data:{
 user_id:userId,
 
 
-type:"debit",
+type:"tournament_entry",
 
 
 amount:tournament.entry_fee,
@@ -287,16 +289,13 @@ amount:tournament.entry_fee,
 
 description:
 
-`Tournament entry fee - ${tournament.name}`
+`Joined tournament ${tournament.name}`
 
 
 
 }
 
-
-
 });
-
 
 
 
@@ -308,16 +307,20 @@ description:
 return {
 
 
-message:
-
-"Tournament joined successfully",
+message:"Tournament joined successfully",
 
 
-join
+tournament_id:tournamentId,
+
+
+join_id:join.id
 
 
 
 };
+
+
+
 
 
 
