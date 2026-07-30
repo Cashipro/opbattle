@@ -29,7 +29,7 @@ private prisma:PrismaService
 
 
 
-// AUTO CREATE TEAMS
+// CREATE TEAMS AFTER USERS JOIN
 
 async generateTeams(
 
@@ -39,13 +39,25 @@ tournamentId:string
 
 
 
-const tournament = await this.prisma.tournament.findUnique({
+const tournament =
+
+await this.prisma.tournament.findUnique({
 
 where:{
+
 id:tournamentId
+
+},
+
+include:{
+
+joins:true
+
 }
 
 });
+
+
 
 
 
@@ -61,10 +73,30 @@ throw new BadRequestException(
 
 
 
-const count = await this.prisma.tournamentTeam.count({
+
+
+if(!tournament.joins.length){
+
+throw new BadRequestException(
+"No players joined"
+);
+
+}
+
+
+
+
+
+
+
+const existing =
+
+await this.prisma.tournamentTeam.count({
 
 where:{
+
 tournament_id:tournamentId
+
 }
 
 });
@@ -73,7 +105,9 @@ tournament_id:tournamentId
 
 
 
-if(count > 0){
+
+
+if(existing){
 
 throw new BadRequestException(
 "Teams already generated"
@@ -85,11 +119,31 @@ throw new BadRequestException(
 
 
 
-for(let i=1;i<=tournament.total_teams;i++){
+
+
+const players = tournament.joins;
 
 
 
-const team = await this.prisma.tournamentTeam.create({
+
+
+
+let teamNumber = 1;
+
+let index = 0;
+
+
+
+
+
+
+while(index < players.length){
+
+
+
+const team =
+
+await this.prisma.tournamentTeam.create({
 
 data:{
 
@@ -97,10 +151,10 @@ data:{
 tournament_id:tournamentId,
 
 
-team_number:i,
+team_number:teamNumber,
 
 
-name:`Team ${i}`
+name:`Team ${teamNumber}`
 
 
 }
@@ -111,7 +165,14 @@ name:`Team ${i}`
 
 
 
-for(let s=1;s<=4;s++){
+
+
+for(let slot=1; slot<=4; slot++){
+
+
+
+const player = players[index];
+
 
 
 await this.prisma.teamSlot.create({
@@ -122,7 +183,13 @@ data:{
 team_id:team.id,
 
 
-slot_number:s
+slot_number:slot,
+
+
+user_id:player?.user_id || null,
+
+
+joined_at:player ? new Date() : null
 
 
 }
@@ -130,11 +197,34 @@ slot_number:s
 });
 
 
+
+index++;
+
+
+
+
+if(index >= players.length){
+
+break;
+
 }
 
 
 
 }
+
+
+
+
+
+teamNumber++;
+
+
+
+
+
+}
+
 
 
 
@@ -143,11 +233,16 @@ slot_number:s
 
 return {
 
+
 message:"Teams generated successfully",
 
-totalTeams:tournament.total_teams
+
+totalTeams:teamNumber-1
+
+
 
 };
+
 
 
 }
@@ -160,7 +255,7 @@ totalTeams:tournament.total_teams
 
 
 
-// GET PUBG ROOM
+// PUBG ROOM VIEW
 
 async getRoom(
 
@@ -170,13 +265,16 @@ tournamentId:string
 
 
 
-const teams = await this.prisma.tournamentTeam.findMany({
+const teams =
+
+await this.prisma.tournamentTeam.findMany({
 
 where:{
 
 tournament_id:tournamentId
 
 },
+
 
 
 orderBy:{
@@ -186,12 +284,11 @@ team_number:"asc"
 },
 
 
+
 include:{
 
 
-
 slots:{
-
 
 
 orderBy:{
@@ -202,13 +299,10 @@ slot_number:"asc"
 },
 
 
-
 include:{
 
 
-
 user:{
-
 
 
 select:{
@@ -216,31 +310,20 @@ select:{
 
 id:true,
 
-
 name:true,
-
 
 pubg_uid:true
 
 
 }
 
+}
 
 }
 
-
-
 }
 
-
-
 }
-
-
-
-}
-
-
 
 });
 
@@ -250,38 +333,7 @@ pubg_uid:true
 
 
 
-return teams.map(team=>({
-
-
-
-id:team.id,
-
-
-team_number:team.team_number,
-
-
-name:team.name || `Team ${team.team_number}`,
-
-
-
-slots:team.slots.map(slot=>({
-
-
-id:slot.id,
-
-
-slot_number:slot.slot_number,
-
-
-user:slot.user
-
-
-
-}))
-
-
-
-}));
+return teams;
 
 
 
@@ -295,7 +347,7 @@ user:slot.user
 
 
 
-// UPDATE TEAM NAME
+// CHANGE TEAM NAME
 
 async updateTeamName(
 
@@ -321,6 +373,8 @@ throw new BadRequestException(
 
 
 
+
+
 return this.prisma.tournamentTeam.update({
 
 where:{
@@ -328,7 +382,6 @@ where:{
 id:teamId
 
 },
-
 
 data:{
 
@@ -338,8 +391,8 @@ name:name.trim()
 }
 
 
-
 });
+
 
 
 }
@@ -352,7 +405,7 @@ name:name.trim()
 
 
 
-// JOIN SLOT
+// SELECT SLOT
 
 async joinSlot(
 
@@ -364,7 +417,9 @@ userId:string
 
 
 
-const slot = await this.prisma.teamSlot.findUnique({
+const slot =
+
+await this.prisma.teamSlot.findUnique({
 
 where:{
 
@@ -373,6 +428,8 @@ id:slotId
 }
 
 });
+
+
 
 
 
@@ -387,6 +444,8 @@ throw new BadRequestException(
 );
 
 }
+
+
 
 
 
@@ -408,8 +467,6 @@ throw new BadRequestException(
 
 
 
-// remove old slot
-
 await this.prisma.teamSlot.updateMany({
 
 where:{
@@ -420,18 +477,18 @@ user_id:userId
 
 },
 
-
 data:{
 
 
-user_id:null
+user_id:null,
+
+
+joined_at:null
+
 
 }
 
-
-
 });
-
 
 
 
@@ -447,7 +504,6 @@ id:slotId
 
 },
 
-
 data:{
 
 
@@ -456,13 +512,13 @@ user_id:userId,
 
 joined_at:new Date()
 
+
 }
-
-
 
 });
 
 
+
 }
 
 
@@ -472,8 +528,6 @@ joined_at:new Date()
 
 
 
-
-// LEAVE SLOT
 
 async leaveSlot(
 
@@ -491,17 +545,19 @@ id:slotId
 
 },
 
-
 data:{
 
 
-user_id:null
+user_id:null,
+
+
+joined_at:null
+
 
 }
 
-
-
 });
+
 
 
 }
