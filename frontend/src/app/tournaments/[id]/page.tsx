@@ -1,5 +1,6 @@
 "use client";
 
+
 import {
 useEffect,
 useState
@@ -16,6 +17,8 @@ import {
 getTournament,
 joinTournament
 } from "@/services/tournament";
+
+
 
 
 
@@ -38,6 +41,7 @@ const [tournament,setTournament] = useState<any>(null);
 const [loading,setLoading] = useState(true);
 
 const [joining,setJoining] = useState(false);
+
 
 
 
@@ -70,10 +74,10 @@ async function loadTournament(){
 try{
 
 
-const data = await getTournament(id);
+const res = await getTournament(id);
 
 
-setTournament(data);
+setTournament(res);
 
 
 
@@ -112,15 +116,20 @@ try{
 setJoining(true);
 
 
+
 await joinTournament(id);
 
 
 
-alert("Tournament joined successfully");
+alert(
+"Tournament joined successfully"
+);
 
 
 
-router.push("/my-tournaments");
+router.push(
+"/my-tournaments"
+);
 
 
 
@@ -134,6 +143,7 @@ error?.response?.data?.message ||
 "Join failed"
 
 );
+
 
 
 }finally{
@@ -155,12 +165,20 @@ setJoining(false);
 
 
 
+
 if(loading){
 
 
 return (
 
-<div className="min-h-screen bg-black text-white flex items-center justify-center">
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
 
 Loading...
 
@@ -177,12 +195,20 @@ Loading...
 
 
 
+
 if(!tournament){
 
 
 return (
 
-<div className="min-h-screen bg-black text-white flex items-center justify-center">
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
 
 Tournament not found
 
@@ -214,25 +240,23 @@ p-6
 
 
 <div className="
-max-w-3xl
+max-w-4xl
 mx-auto
 bg-zinc-900
 border
 border-zinc-700
 rounded-3xl
 p-8
-shadow-2xl
 ">
 
 
 
 
 
-
 <h1 className="
-text-3xl
-font-bold
-mb-6
+text-4xl
+font-black
+mb-8
 ">
 
 {tournament.name}
@@ -245,24 +269,43 @@ mb-6
 
 
 
+<div className="
+grid
+md:grid-cols-2
+gap-5
+">
 
-<div className="space-y-4 text-gray-300">
+
 
 
 
 <div className="
 bg-zinc-800
-rounded-xl
-p-4
+rounded-2xl
+p-5
 ">
 
-Entry Fee:
+<p className="text-gray-400">
 
-<span className="text-green-400 ml-2 font-bold">
+Entry Fee
 
-{tournament.entry_fee} {tournament.currency}
+</p>
 
-</span>
+
+<p className="
+text-2xl
+font-bold
+text-green-400
+">
+
+{tournament.entry_fee}
+
+{" "}
+
+{tournament.currency || ""}
+
+</p>
+
 
 </div>
 
@@ -272,21 +315,63 @@ Entry Fee:
 
 
 
+
 <div className="
 bg-zinc-800
-rounded-xl
-p-4
+rounded-2xl
+p-5
 ">
 
-Start Date:
+<p className="text-gray-400">
 
-<span className="ml-2">
+Reward
 
-{new Date(
+</p>
+
+
+<p className="
+text-2xl
+font-bold
+text-yellow-400
+">
+
+{tournament.reward || 0}
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div className="
+bg-zinc-800
+rounded-2xl
+p-5
+">
+
+<p className="text-gray-400">
+
+Start Date
+
+</p>
+
+
+<p className="font-bold">
+
+{
+new Date(
 tournament.start_date
-).toLocaleDateString()}
+).toLocaleDateString()
+}
 
-</span>
+</p>
+
 
 </div>
 
@@ -296,19 +381,33 @@ tournament.start_date
 
 
 
+
 <div className="
 bg-zinc-800
-rounded-xl
-p-4
+rounded-2xl
+p-5
 ">
 
-Start Time:
+<p className="text-gray-400">
 
-<span className="ml-2">
+Start Time
+
+</p>
+
+
+<p className="font-bold">
 
 {tournament.start_time}
 
-</span>
+</p>
+
+
+</div>
+
+
+
+
+
 
 </div>
 
@@ -318,55 +417,30 @@ Start Time:
 
 
 
+
 <div className="
+mt-8
 bg-zinc-800
-rounded-xl
-p-4
+rounded-2xl
+p-5
 ">
 
-Status:
+<p className="text-gray-400">
 
-<span className="
-ml-2
-text-yellow-400
+Status
+
+</p>
+
+
+<p className="
 uppercase
-">
-
-{tournament.status}
-
-</span>
-
-</div>
-
-
-
-
-
-
-
-{
-tournament.reward &&
-<div className="
-bg-zinc-800
-rounded-xl
-p-4
-">
-
-Reward:
-
-<span className="
-ml-2
 text-blue-400
 font-bold
 ">
 
-{tournament.reward}
+{tournament.status}
 
-</span>
-
-</div>
-}
-
+</p>
 
 
 </div>
@@ -390,9 +464,9 @@ w-full
 mt-8
 bg-green-600
 hover:bg-green-700
-rounded-xl
 py-4
-font-bold
+rounded-2xl
+font-black
 text-lg
 disabled:opacity-50
 "
@@ -405,7 +479,7 @@ joining
 
 ?
 
-"Joining..."
+"JOINING..."
 
 :
 
