@@ -3,6 +3,7 @@ generator client {
 }
 
 
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -11,33 +12,48 @@ datasource db {
 
 
 
+
+
 model User {
+
 
   id String @id @default(uuid())
 
+
   name String
+
 
   email String @unique
 
+
   password String
 
+
   pubg_uid String @unique
+
 
   balance Float @default(0)
 
 
-  teamSlots TeamSlot[]
+
+  slots TeamSlot[]
 
 
-  tournamentJoins TournamentJoin[]
+
+  joins TournamentJoin[]
+
 
 
   walletTransactions WalletTransaction[]
 
 
+
   created_at DateTime @default(now())
 
+
 }
+
+
 
 
 
@@ -63,6 +79,7 @@ model Tournament {
   total_teams Int @default(25)
 
 
+
   start_date DateTime
 
 
@@ -76,17 +93,22 @@ model Tournament {
   teams TournamentTeam[]
 
 
-  rounds TournamentRound[]
-
-
-  matches TournamentMatch[]
-
 
   joins TournamentJoin[]
 
 
 
+  rounds TournamentRound[]
+
+
+
+  matches TournamentMatch[]
+
+
+
   created_at DateTime @default(now())
+
+
 
 }
 
@@ -111,287 +133,39 @@ model TournamentJoin {
 
 
 
+  joined_at DateTime @default(now())
+
+
+
+
+
   tournament Tournament @relation(
+
     fields:[tournament_id],
+
     references:[id]
+
   )
+
+
+
 
 
   user User @relation(
+
     fields:[user_id],
+
     references:[id]
+
   )
 
 
-  joined_at DateTime @default(now())
 
 
 
   @@unique([tournament_id,user_id])
 
-}
 
-
-
-
-
-
-
-
-
-model TournamentTeam {
-
-
-  id String @id @default(uuid())
-
-
-  tournament_id String
-
-
-  team_number Int
-
-
-  name String @default("")
-
-
-
-  tournament Tournament @relation(
-    fields:[tournament_id],
-    references:[id]
-  )
-
-
-  slots TeamSlot[]
-
-
-  matches MatchTeam[]
-
-
-
-  @@unique([tournament_id,team_number])
-
-}
-
-
-
-
-
-
-
-
-
-model TeamSlot {
-
-
-  id String @id @default(uuid())
-
-
-  team_id String
-
-
-  slot_number Int
-
-
-  user_id String?
-
-
-
-  team TournamentTeam @relation(
-    fields:[team_id],
-    references:[id]
-  )
-
-
-  user User? @relation(
-    fields:[user_id],
-    references:[id]
-  )
-
-
-
-  joined_at DateTime @default(now())
-
-
-
-  @@unique([team_id,slot_number])
-
-}
-
-
-
-
-
-
-
-
-
-model TournamentRound {
-
-
-  id String @id @default(uuid())
-
-
-  tournament_id String
-
-
-  round_number Int
-
-
-  name String
-
-
-
-  tournament Tournament @relation(
-    fields:[tournament_id],
-    references:[id]
-  )
-
-
-  matches TournamentMatch[]
-
-
-
-  @@unique([tournament_id,round_number])
-
-}
-
-
-
-
-
-
-
-
-
-model TournamentMatch {
-
-
-  id String @id @default(uuid())
-
-
-  tournament_id String
-
-
-  round_id String
-
-
-  match_number Int
-
-
-  room_id String?
-
-
-  room_password String?
-
-
-  status String @default("pending")
-
-
-
-  tournament Tournament @relation(
-    fields:[tournament_id],
-    references:[id]
-  )
-
-
-  round TournamentRound @relation(
-    fields:[round_id],
-    references:[id]
-  )
-
-
-  teams MatchTeam[]
-
-
-  results MatchResult[]
-
-
-
-  @@unique([round_id,match_number])
-
-}
-
-
-
-
-
-
-
-
-
-model MatchTeam {
-
-
-  id String @id @default(uuid())
-
-
-  match_id String
-
-
-  team_id String
-
-
-
-
-  match TournamentMatch @relation(
-    fields:[match_id],
-    references:[id]
-  )
-
-
-  team TournamentTeam @relation(
-    fields:[team_id],
-    references:[id]
-  )
-
-
-}
-
-
-
-
-
-
-
-
-
-model MatchResult {
-
-
-  id String @id @default(uuid())
-
-
-  match_id String
-
-
-  team_id String
-
-
-
-  kills Int @default(0)
-
-
-  position Int
-
-
-  points Int
-
-
-
-  match TournamentMatch @relation(
-    fields:[match_id],
-    references:[id]
-  )
-
-
-  team TournamentTeam @relation(
-    fields:[team_id],
-    references:[id]
-  )
-
-
-
-  @@unique([match_id,team_id])
 
 }
 
@@ -423,12 +197,359 @@ model WalletTransaction {
 
 
   user User @relation(
+
     fields:[user_id],
+
     references:[id]
+
   )
 
 
+
   created_at DateTime @default(now())
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TournamentTeam {
+
+
+  id String @id @default(uuid())
+
+
+
+  tournament_id String
+
+
+
+  team_number Int
+
+
+
+  name String
+
+
+
+  tournament Tournament @relation(
+
+    fields:[tournament_id],
+
+    references:[id]
+
+  )
+
+
+
+  slots TeamSlot[]
+
+
+
+  matches MatchTeam[]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TeamSlot {
+
+
+  id String @id @default(uuid())
+
+
+
+  team_id String
+
+
+
+  slot_number Int
+
+
+
+  user_id String?
+
+
+
+  joined_at DateTime?
+
+
+
+
+
+  team TournamentTeam @relation(
+
+    fields:[team_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  user User? @relation(
+
+    fields:[user_id],
+
+    references:[id]
+
+  )
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TournamentRound {
+
+
+  id String @id @default(uuid())
+
+
+
+  tournament_id String
+
+
+
+  round_number Int
+
+
+
+  name String
+
+
+
+
+
+  tournament Tournament @relation(
+
+    fields:[tournament_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  matches TournamentMatch[]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model TournamentMatch {
+
+
+  id String @id @default(uuid())
+
+
+
+  tournament_id String
+
+
+
+  round_id String
+
+
+
+  match_number Int
+
+
+
+  room_id String?
+
+
+
+  room_password String?
+
+
+
+  status String @default("pending")
+
+
+
+
+
+  tournament Tournament @relation(
+
+    fields:[tournament_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  round TournamentRound @relation(
+
+    fields:[round_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  teams MatchTeam[]
+
+
+
+  results MatchResult[]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model MatchTeam {
+
+
+  id String @id @default(uuid())
+
+
+
+  match_id String
+
+
+
+  team_id String
+
+
+
+
+
+  match TournamentMatch @relation(
+
+    fields:[match_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  team TournamentTeam @relation(
+
+    fields:[team_id],
+
+    references:[id]
+
+  )
+
+
+
+}
+
+
+
+
+
+
+
+
+
+model MatchResult {
+
+
+  id String @id @default(uuid())
+
+
+
+  match_id String
+
+
+
+  team_id String
+
+
+
+  kills Int @default(0)
+
+
+
+  position Int
+
+
+
+  points Int
+
+
+
+
+
+  match TournamentMatch @relation(
+
+    fields:[match_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  team TournamentTeam @relation(
+
+    fields:[team_id],
+
+    references:[id]
+
+  )
+
+
+
+
+
+  @@unique([match_id,team_id])
+
 
 
 }
