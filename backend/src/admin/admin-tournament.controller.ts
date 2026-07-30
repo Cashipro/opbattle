@@ -39,13 +39,13 @@ export class AdminTournamentController {
 constructor(
 
 
-private adminTournamentService:AdminTournamentService,
+private adminTournamentService: AdminTournamentService,
 
 
-private autoPlannerService:AutoPlannerService,
+private autoPlannerService: AutoPlannerService,
 
 
-private nextRoundService:NextRoundService
+private nextRoundService: NextRoundService
 
 
 ){}
@@ -64,6 +64,7 @@ createTournament(
 @Body() body:any
 
 ){
+
 
 return this.adminTournamentService.createTournament(
 
@@ -85,6 +86,7 @@ body
 
 allTournaments(){
 
+
 return this.adminTournamentService.allTournaments();
 
 }
@@ -104,6 +106,7 @@ closeEntries(
 @Param('id') id:string
 
 ){
+
 
 return this.adminTournamentService.closeEntries(
 
@@ -129,6 +132,7 @@ teams(
 
 ){
 
+
 return this.adminTournamentService.getTournamentTeams(
 
 id
@@ -151,9 +155,11 @@ room(
 
 @Param('id') id:string,
 
+
 @Body() body:any
 
 ){
+
 
 return this.adminTournamentService.addRoom(
 
@@ -181,6 +187,7 @@ finish(
 
 ){
 
+
 return this.adminTournamentService.finishMatch(
 
 id
@@ -205,6 +212,7 @@ calculatePlan(
 
 ){
 
+
 return this.autoPlannerService.calculatePlan(
 
 id
@@ -225,22 +233,18 @@ id
 
 nextRound(
 
-@Param('id') id:string,
-
-@Body() body:any
+@Param('id') id:string
 
 ){
 
+
 return this.nextRoundService.generateNextRound(
 
-id,
-
-body.roundId
+id
 
 );
 
 }
-
 
 
 
