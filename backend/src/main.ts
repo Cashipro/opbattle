@@ -9,17 +9,30 @@ async function bootstrap() {
 
 
   app.enableCors({
-    origin: '*',
+
+    origin: [
+      "https://opbattle.vercel.app",
+      "http://localhost:3000"
+    ],
+
     credentials: true,
+
   });
 
 
+
   app.useGlobalPipes(
+
     new ValidationPipe({
+
       whitelist: true,
+
       transform: true,
+
     }),
+
   );
+
 
 
   await app.listen(
