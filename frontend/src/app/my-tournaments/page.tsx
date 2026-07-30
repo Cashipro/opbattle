@@ -7,7 +7,9 @@ useState
 } from "react";
 
 
-import Link from "next/link";
+import {
+useRouter
+} from "next/navigation";
 
 
 import Sidebar from "@/components/Sidebar";
@@ -27,9 +29,14 @@ export default function MyTournaments(){
 
 
 
-const [data,setData] = useState<any[]>([]);
+const router = useRouter();
+
+
+const [tournaments,setTournaments] = useState<any[]>([]);
+
 
 const [loading,setLoading] = useState(true);
+
 
 
 
@@ -53,17 +60,17 @@ load();
 
 
 
+
 async function load(){
 
 
 try{
 
 
-const res =
-await getMyTournaments();
+const data = await getMyTournaments();
 
 
-setData(res);
+setTournaments(data);
 
 
 
@@ -71,7 +78,6 @@ setData(res);
 
 
 console.log(error);
-
 
 
 }finally{
@@ -85,6 +91,7 @@ setLoading(false);
 
 
 }
+
 
 
 
@@ -139,16 +146,20 @@ mx-auto
 
 
 
+
+
 <h1 className="
 text-3xl
-md:text-4xl
+md:text-5xl
 font-black
 mb-8
 ">
 
-🎮 My Tournaments
+🏆 My Tournaments
 
 </h1>
+
+
 
 
 
@@ -162,27 +173,21 @@ loading
 
 ?
 
-(
-
 <div className="
-text-center
 text-gray-400
 ">
 
-Loading...
+Loading tournaments...
 
 </div>
 
-)
 
 
 :
 
-data.length === 0
+tournaments.length === 0
 
 ?
-
-(
 
 <div className="
 bg-zinc-900
@@ -193,16 +198,14 @@ p-8
 text-center
 ">
 
-No tournament joined yet
+No joined tournaments
 
 </div>
 
-)
 
 
 :
 
-(
 
 <div className="
 grid
@@ -216,9 +219,10 @@ gap-6
 
 
 
+
 {
 
-data.map((item:any)=>(
+tournaments.map((item:any)=>(
 
 
 
@@ -238,13 +242,24 @@ p-6
 
 
 
+
+
+
+
+
 <h2 className="
 text-2xl
-font-bold
+font-black
 mb-5
 ">
 
-{item.tournament?.name}
+{
+
+item.tournament?.name ||
+
+item.name
+
+}
 
 </h2>
 
@@ -254,10 +269,15 @@ mb-5
 
 
 
+
+
 <div className="
 space-y-3
-text-gray-300
+bg-zinc-800
+rounded-xl
+p-4
 ">
+
 
 
 
@@ -273,11 +293,18 @@ font-bold
 ml-2
 ">
 
-{item.tournament?.entry_fee}
+{
+
+item.tournament?.entry_fee ||
+
+item.entry_fee
+
+}
 
 </span>
 
 </p>
+
 
 
 
@@ -291,33 +318,17 @@ Status:
 
 <span className="
 text-blue-400
-uppercase
 font-bold
 ml-2
+uppercase
 ">
 
-{item.tournament?.status}
-
-</span>
-
-</p>
-
-
-
-
-
-
-
-<p>
-
-Joined:
-
-<span className="ml-2">
-
 {
-new Date(
-item.joined_at
-).toLocaleDateString()
+
+item.tournament?.status ||
+
+item.status
+
 }
 
 </span>
@@ -339,68 +350,40 @@ item.joined_at
 
 
 
-<div className="
+
+<button
+
+onClick={()=>{
+
+
+router.push(
+
+`/team-room/${
+item.tournament_id || item.tournament?.id
+}`
+
+);
+
+
+}}
+
+
+className="
+w-full
 mt-6
-flex
-flex-col
-gap-3
-">
-
-
-
-
-
-<Link
-
-href={`/team-room/${item.tournament_id}`}
-
-className="
 bg-green-600
-rounded-xl
-py-3
-text-center
-font-bold
 hover:bg-green-700
-"
-
->
-
-👥 Open Team Room
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href={`/tournaments/${item.tournament_id}`}
-
-className="
-bg-zinc-700
+py-4
 rounded-xl
-py-3
-text-center
-font-bold
+font-black
 "
 
 >
 
-View Details
+🎮 Open Team Room
 
-</Link>
+</button>
 
-
-
-
-
-
-
-</div>
 
 
 
@@ -414,13 +397,6 @@ View Details
 
 ))
 
-}
-
-
-
-</div>
-
-)
 
 }
 
@@ -428,7 +404,20 @@ View Details
 
 
 
+
+
 </div>
+
+
+
+}
+
+
+
+
+
+</div>
+
 
 
 
