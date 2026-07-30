@@ -82,7 +82,8 @@ throw new BadRequestException(
 
 
 
-const alreadyCreated =
+
+const existingMatches =
 
 await this.prisma.tournamentMatch.count({
 
@@ -102,7 +103,7 @@ round_id:roundId
 
 
 
-if(alreadyCreated > 0){
+if(existingMatches > 0){
 
 throw new BadRequestException(
 
@@ -150,6 +151,7 @@ team_number:"asc"
 
 
 
+
 if(!teams.length){
 
 throw new BadRequestException(
@@ -171,10 +173,12 @@ throw new BadRequestException(
 const teamsPerMatch = 25;
 
 
-
 let index = 0;
 
+
 let matchNumber = 1;
+
+
 
 
 
@@ -195,13 +199,17 @@ await this.prisma.tournamentMatch.create({
 data:{
 
 
+
 tournament_id:tournamentId,
+
 
 
 round_id:roundId,
 
 
+
 match_number:matchNumber,
+
 
 
 status:"pending"
@@ -220,15 +228,14 @@ status:"pending"
 
 
 
-const matchTeams =
-
-teams.slice(
+const matchTeams = teams.slice(
 
 index,
 
 index + teamsPerMatch
 
 );
+
 
 
 
@@ -246,7 +253,9 @@ await this.prisma.matchTeam.create({
 data:{
 
 
+
 match_id:match.id,
+
 
 
 team_id:team.id
@@ -254,6 +263,8 @@ team_id:team.id
 
 
 }
+
+
 
 });
 
@@ -297,10 +308,10 @@ message:"Matches generated successfully",
 round:round.name,
 
 
-totalMatches:matchNumber - 1,
+totalTeams:teams.length,
 
 
-totalTeams:teams.length
+totalMatches:matchNumber - 1
 
 
 
