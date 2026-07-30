@@ -4,6 +4,7 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
@@ -30,6 +31,7 @@ private prisma:PrismaService
 
 
 
+
 async selectSlot(
 
 userId:string,
@@ -37,7 +39,6 @@ userId:string,
 slotId:string
 
 ){
-
 
 
 
@@ -51,9 +52,23 @@ where:{
 
 id:slotId
 
+},
+
+
+
+include:{
+
+
+team:true
+
+
 }
 
+
+
 });
+
+
 
 
 
@@ -74,12 +89,69 @@ throw new BadRequestException(
 
 
 
-if(slot.user_id){
 
+
+if(slot.user_id){
 
 throw new BadRequestException(
 
 "Slot already occupied"
+
+);
+
+}
+
+
+
+
+
+
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
+
+where:{
+
+
+id:slot.team.tournament_id
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+if(!tournament){
+
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+}
+
+
+
+
+
+
+
+if(tournament.status !== "upcoming"){
+
+
+throw new BadRequestException(
+
+"Slot selection closed"
 
 );
 
@@ -100,8 +172,7 @@ return this.prisma.$transaction(async(tx)=>{
 
 
 
-
-// REMOVE OLD SLOT
+// remove old slot from same tournament
 
 await tx.tournamentSlot.updateMany({
 
@@ -111,10 +182,17 @@ where:{
 user_id:userId,
 
 
-tournament_id:slot.tournament_id
+team:{
+
+
+tournament_id:slot.team.tournament_id
+
+
+}
 
 
 },
+
 
 
 data:{
@@ -137,7 +215,9 @@ joined_at:null
 
 
 
-// ASSIGN NEW SLOT
+
+
+// assign new slot
 
 const updated =
 
@@ -145,9 +225,12 @@ await tx.tournamentSlot.update({
 
 where:{
 
+
 id:slotId
 
+
 },
+
 
 
 data:{
@@ -171,13 +254,39 @@ joined_at:new Date()
 
 
 
+
+
 return {
 
-message:"Slot selected successfully",
 
-team_id:updated.team_id,
+message:
 
-slot_number:updated.slot_number
+"Slot selected successfully",
+
+
+
+team_id:
+
+slot.team.id,
+
+
+
+team_number:
+
+slot.team.team_number,
+
+
+
+team_name:
+
+slot.team.name,
+
+
+
+slot_number:
+
+updated.slot_number
+
 
 
 };
@@ -187,6 +296,7 @@ slot_number:updated.slot_number
 
 
 });
+
 
 
 
