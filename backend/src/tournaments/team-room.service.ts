@@ -4,9 +4,13 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
+
 
 
 
@@ -16,11 +20,13 @@ PrismaService
 export class TeamRoomService {
 
 
+
 constructor(
 
 private prisma:PrismaService
 
 ){}
+
 
 
 
@@ -41,27 +47,8 @@ return this.prisma.tournamentTeam.findMany({
 
 where:{
 
+
 tournament_id:tournamentId
-
-},
-
-
-include:{
-
-
-slots:{
-
-
-include:{
-
-
-player:true
-
-
-}
-
-
-}
 
 
 },
@@ -74,11 +61,66 @@ orderBy:{
 team_number:'asc'
 
 
+},
+
+
+
+include:{
+
+
+
+slots:{
+
+
+orderBy:{
+
+
+slot_number:'asc'
+
+
+},
+
+
+
+include:{
+
+
+user:{
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
 }
 
 
 
 });
+
 
 
 }
@@ -101,9 +143,11 @@ name:string
 
 
 
-const lastTeam =
 
-await this.prisma.tournamentTeam.findFirst({
+
+const count =
+
+await this.prisma.tournamentTeam.count({
 
 where:{
 
@@ -111,18 +155,7 @@ where:{
 tournament_id:tournamentId
 
 
-},
-
-
-orderBy:{
-
-
-team_number:'desc'
-
-
 }
-
-
 
 });
 
@@ -130,30 +163,18 @@ team_number:'desc'
 
 
 
-const teamNumber =
 
-lastTeam ?
+if(count >=25){
 
-lastTeam.team_number + 1 :
-
-1;
-
-
-
-
-
-
-
-if(teamNumber > 25){
 
 throw new BadRequestException(
 
-"Maximum 25 teams reached"
+"Maximum 25 teams allowed"
 
 );
 
-}
 
+}
 
 
 
@@ -171,10 +192,11 @@ data:{
 tournament_id:tournamentId,
 
 
-team_number:teamNumber,
+team_number:count+1,
 
 
 name:name
+
 
 
 }
@@ -219,7 +241,53 @@ slot_number:i
 
 
 
+
 return team;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+async updateTeamName(
+
+teamId:string,
+
+name:string
+
+){
+
+
+
+return this.prisma.tournamentTeam.update({
+
+where:{
+
+
+id:teamId
+
+
+},
+
+
+data:{
+
+
+name
+
+
+}
+
+
+
+});
 
 
 
@@ -243,6 +311,64 @@ userId:string
 
 
 
+
+
+const existing =
+
+await this.prisma.teamSlot.findFirst({
+
+where:{
+
+
+user_id:userId
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(existing){
+
+
+await this.prisma.teamSlot.update({
+
+where:{
+
+
+id:existing.id
+
+
+},
+
+
+data:{
+
+
+user_id:null
+
+
+}
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
 const slot =
 
 await this.prisma.teamSlot.findUnique({
@@ -256,13 +382,16 @@ id:slotId
 }
 
 
+
 });
 
 
 
 
 
+
 if(!slot){
+
 
 throw new BadRequestException(
 
@@ -271,6 +400,28 @@ throw new BadRequestException(
 );
 
 }
+
+
+
+
+
+
+
+
+
+if(slot.user_id){
+
+
+throw new BadRequestException(
+
+"Slot already occupied"
+
+);
+
+
+}
+
+
 
 
 
@@ -299,7 +450,6 @@ user_id:userId
 
 
 });
-
 
 
 
@@ -341,8 +491,8 @@ user_id:null
 }
 
 
-});
 
+});
 
 
 
