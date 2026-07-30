@@ -27,6 +27,7 @@ joinTournament
 
 
 
+
 export default function TournamentDetail(){
 
 
@@ -42,9 +43,13 @@ const id = params?.id;
 
 
 
+
+
 const [tournament,setTournament] = useState<any>(null);
 
+
 const [loading,setLoading] = useState(true);
+
 
 const [joining,setJoining] = useState(false);
 
@@ -82,7 +87,7 @@ async function loadTournament(){
 try{
 
 
-if(!id) return;
+if(!id)return;
 
 
 const data = await getTournament(id);
@@ -124,7 +129,7 @@ async function handleJoin(){
 try{
 
 
-if(!id) return;
+if(!id)return;
 
 
 setJoining(true);
@@ -136,13 +141,19 @@ await joinTournament(id);
 
 
 
+
 alert(
+
 "Tournament joined successfully"
+
 );
 
 
 
 
+
+
+// DIRECT TEAM ROOM
 
 router.push(
 
@@ -154,8 +165,8 @@ router.push(
 
 
 
-}catch(error:any){
 
+}catch(error:any){
 
 
 alert(
@@ -202,7 +213,7 @@ items-center
 justify-center
 ">
 
-Loading tournament...
+Loading Tournament...
 
 </div>
 
@@ -260,7 +271,13 @@ text-white
 ">
 
 
+
+
+
+
 <Sidebar />
+
+
 
 
 
@@ -277,10 +294,14 @@ md:pt-10
 
 
 
+
+
+
 <div className="
 max-w-5xl
 mx-auto
 ">
+
 
 
 
@@ -295,6 +316,9 @@ rounded-3xl
 p-6
 md:p-10
 ">
+
+
+
 
 
 
@@ -317,6 +341,8 @@ mb-8
 
 
 
+
+
 <div className="
 grid
 grid-cols-1
@@ -328,27 +354,20 @@ gap-5
 
 
 
-
-
 <div className="
 bg-zinc-800
 rounded-2xl
 p-5
 ">
 
-<p className="
-text-gray-400
-">
-
+<p className="text-gray-400">
 Entry Fee
-
 </p>
 
 <h2 className="
 text-2xl
 font-bold
 text-green-400
-mt-2
 ">
 
 {tournament.entry_fee}
@@ -368,29 +387,23 @@ mt-2
 
 
 
-
 <div className="
 bg-zinc-800
 rounded-2xl
 p-5
 ">
 
-<p className="
-text-gray-400
-">
-
+<p className="text-gray-400">
 Reward
-
 </p>
 
 <h2 className="
 text-2xl
 font-bold
 text-yellow-400
-mt-2
 ">
 
-{tournament.reward || 0}
+{tournament.reward}
 
 </h2>
 
@@ -403,30 +416,23 @@ mt-2
 
 
 
-
 <div className="
 bg-zinc-800
 rounded-2xl
 p-5
 ">
 
-<p className="
-text-gray-400
-">
-
+<p className="text-gray-400">
 Start Date
-
 </p>
 
-<h2 className="
-font-bold
-mt-2
-">
+<h2 className="font-bold">
 
 {
 new Date(
 tournament.start_date
 ).toLocaleDateString()
+
 }
 
 </h2>
@@ -440,31 +446,24 @@ tournament.start_date
 
 
 
-
 <div className="
 bg-zinc-800
 rounded-2xl
 p-5
 ">
 
-<p className="
-text-gray-400
-">
-
-Time
-
+<p className="text-gray-400">
+Start Time
 </p>
 
-<h2 className="
-font-bold
-mt-2
-">
+<h2 className="font-bold">
 
 {tournament.start_time}
 
 </h2>
 
 </div>
+
 
 
 
@@ -489,12 +488,8 @@ rounded-2xl
 p-5
 ">
 
-<p className="
-text-gray-400
-">
-
+<p className="text-gray-400">
 Status
-
 </p>
 
 
@@ -502,7 +497,6 @@ Status
 uppercase
 font-bold
 text-blue-400
-mt-2
 ">
 
 {tournament.status}
@@ -540,19 +534,21 @@ disabled:opacity-50
 
 >
 
+
 {
 
 joining
 
 ?
 
-"Joining Room..."
+"Joining..."
 
 :
 
 "JOIN TOURNAMENT"
 
 }
+
 
 </button>
 
@@ -563,7 +559,6 @@ joining
 
 
 
-
 </div>
 
 
@@ -572,6 +567,9 @@ joining
 
 
 </div>
+
+
+
 
 
 
@@ -583,6 +581,7 @@ joining
 
 
 </div>
+
 
 );
 
