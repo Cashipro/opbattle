@@ -1,8 +1,4 @@
-import axios from "axios";
-
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
+import api from "@/lib/api";
 
 
 
@@ -11,17 +7,15 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getTournaments(){
 
-    const res = await axios.get(
-        `${API}/tournaments`,
-        {
-            withCredentials:true
-        }
+    const res = await api.get(
+        "/tournaments"
     );
 
 
     return res.data;
 
 }
+
 
 
 
@@ -37,13 +31,9 @@ export async function getTournament(
 
 ){
 
-    const res = await axios.get(
+    const res = await api.get(
 
-        `${API}/tournaments/${id}`,
-
-        {
-            withCredentials:true
-        }
+        `/tournaments/${id}`
 
     );
 
@@ -51,6 +41,7 @@ export async function getTournament(
     return res.data;
 
 }
+
 
 
 
@@ -67,15 +58,11 @@ export async function joinTournament(
 ){
 
 
-    const res = await axios.post(
+    const res = await api.post(
 
-        `${API}/tournaments/${id}/join`,
+        `/tournaments/${id}/join`,
 
-        {},
-
-        {
-            withCredentials:true
-        }
+        {}
 
     );
 
@@ -83,6 +70,7 @@ export async function joinTournament(
     return res.data;
 
 }
+
 
 
 
@@ -95,13 +83,9 @@ export async function joinTournament(
 export async function getMyTournaments(){
 
 
-    const res = await axios.get(
+    const res = await api.get(
 
-        `${API}/tournaments/user/my-tournaments`,
-
-        {
-            withCredentials:true
-        }
+        "/tournaments/user/my-tournaments"
 
     );
 
@@ -109,6 +93,7 @@ export async function getMyTournaments(){
     return res.data;
 
 }
+
 
 
 
@@ -125,13 +110,9 @@ export async function getTeamRoom(
 ){
 
 
-    const res = await axios.get(
+    const res = await api.get(
 
-        `${API}/tournaments/${id}/team-room`,
-
-        {
-            withCredentials:true
-        }
+        `/tournaments/${id}/team-room`
 
     );
 
@@ -139,6 +120,7 @@ export async function getTeamRoom(
     return res.data;
 
 }
+
 
 
 
@@ -155,16 +137,12 @@ export async function selectSlot(
 ){
 
 
-    const res = await axios.post(
+    const res = await api.post(
 
-        `${API}/tournaments/team/select-slot`,
+        "/tournaments/team/select-slot",
 
         {
             slotId
-        },
-
-        {
-            withCredentials:true
         }
 
     );
@@ -173,6 +151,7 @@ export async function selectSlot(
     return res.data;
 
 }
+
 
 
 
@@ -189,16 +168,12 @@ export async function leaveSlot(
 ){
 
 
-    const res = await axios.post(
+    const res = await api.post(
 
-        `${API}/tournaments/team/leave-slot`,
+        "/tournaments/team/leave-slot",
 
         {
             slotId
-        },
-
-        {
-            withCredentials:true
         }
 
     );
