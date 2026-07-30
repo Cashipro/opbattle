@@ -55,16 +55,15 @@ async function load(){
 try{
 
 
-const res =
-await api.get(
+const res = await api.get(
+
 "/matches/my"
+
 );
 
 
 
-setMatches(
-res.data
-);
+setMatches(res.data);
 
 
 
@@ -96,12 +95,15 @@ setLoading(false);
 
 return (
 
-<div className="
+<div
+className="
 flex
 min-h-screen
 bg-black
 text-white
-">
+"
+>
+
 
 
 
@@ -117,34 +119,44 @@ text-white
 
 
 
-<main className="
+<main
+className="
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
-">
+"
+>
 
 
 
 
 
-<div className="
+
+
+<div
+className="
 max-w-7xl
 mx-auto
-">
+"
+>
 
 
 
 
 
 
-<h1 className="
+
+<h1
+className="
 text-3xl
 md:text-4xl
 font-black
 mb-8
-">
+"
+>
 
 ⚔ Matches
 
@@ -163,48 +175,62 @@ loading
 
 ?
 
-<div className="
+(
+
+<div
+className="
 text-gray-400
-">
+"
+>
 
 Loading matches...
 
 </div>
 
+)
 
 
 :
 
-
-matches.length === 0
+matches.length===0
 
 ?
 
-<div className="
+(
+
+<div
+className="
 bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
 p-8
 text-center
-">
+"
+>
 
 No matches available
 
 </div>
 
+)
 
 
 :
 
+(
 
-<div className="
+<div
+className="
 grid
 grid-cols-1
 md:grid-cols-2
 xl:grid-cols-3
 gap-6
-">
+"
+>
+
+
 
 
 
@@ -237,11 +263,14 @@ p-6
 
 
 
-<h2 className="
+
+<h2
+className="
 text-2xl
 font-bold
 mb-5
-">
+"
+>
 
 Match #{match.match_number}
 
@@ -254,21 +283,26 @@ Match #{match.match_number}
 
 
 
-<p className="
+<p
+className="
 text-gray-400
-">
+"
+>
 
 Status
 
 </p>
 
 
-<p className="
+
+<p
+className="
 text-green-400
 font-bold
 uppercase
 mb-4
-">
+"
+>
 
 {match.status}
 
@@ -282,12 +316,18 @@ mb-4
 
 
 
-<div className="
+<div
+className="
 bg-zinc-800
 rounded-xl
 p-4
-space-y-2
-">
+space-y-3
+"
+>
+
+
+
+
 
 
 
@@ -296,21 +336,22 @@ space-y-2
 
 Room ID:
 
-<span className="
+<span
+className="
 text-green-400
 ml-2
 font-bold
-">
+"
+>
 
-{
-
-match.room_id || "Not Added"
-
-}
+{match.room_id || "Not Added"}
 
 </span>
 
 </p>
+
+
+
 
 
 
@@ -320,21 +361,21 @@ match.room_id || "Not Added"
 
 Password:
 
-<span className="
+<span
+className="
 text-green-400
 ml-2
 font-bold
-">
+"
+>
 
-{
-
-match.room_password || "Not Added"
-
-}
+{match.room_password || "Not Added"}
 
 </span>
 
 </p>
+
+
 
 
 
@@ -364,7 +405,7 @@ match.room_password || "Not Added"
 
 </div>
 
-
+)
 
 }
 
@@ -378,7 +419,9 @@ match.room_password || "Not Added"
 
 
 
+
 </main>
+
 
 
 
