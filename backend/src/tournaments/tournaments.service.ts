@@ -1,5 +1,6 @@
 import {
-Injectable
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
@@ -34,9 +35,9 @@ private prisma:PrismaService
 
 
 
+// ALL TOURNAMENTS
+
 async findAll(){
-
-
 
 
 
@@ -47,12 +48,9 @@ where:{
 
 status:{
 
-
 not:"completed"
 
-
 }
-
 
 
 },
@@ -83,8 +81,7 @@ select:{
 teams:true,
 
 
-joins:true
-
+matches:true
 
 
 }
@@ -103,9 +100,6 @@ joins:true
 
 
 
-
-
-
 }
 
 
@@ -115,6 +109,8 @@ joins:true
 
 
 
+
+// SINGLE TOURNAMENT DETAILS
 
 async findOne(
 
@@ -126,7 +122,9 @@ id:string
 
 
 
-return this.prisma.tournament.findUnique({
+const tournament =
+
+await this.prisma.tournament.findUnique({
 
 where:{
 
@@ -197,11 +195,6 @@ pubg_uid:true
 }
 
 
-
-}
-
-
-
 }
 
 
@@ -234,6 +227,221 @@ round_number:"asc"
 
 }
 
+
+
+},
+
+
+
+matches:{
+
+
+
+orderBy:{
+
+
+match_number:"asc"
+
+
+}
+
+
+
+},
+
+
+
+_count:{
+
+
+
+select:{
+
+
+teams:true,
+
+
+joins:true
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+});
+
+
+
+
+
+
+
+if(!tournament){
+
+
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+}
+
+
+
+
+
+
+return tournament;
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// CREATE TOURNAMENT (ADMIN)
+
+async create(data:any){
+
+
+
+return this.prisma.tournament.create({
+
+data:{
+
+
+
+name:data.name,
+
+
+
+entry_fee:Number(data.entry_fee),
+
+
+
+reward:Number(data.reward),
+
+
+
+total_teams:Number(data.total_teams || 25),
+
+
+
+start_date:new Date(data.start_date),
+
+
+
+start_time:data.start_time
+
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// UPDATE STATUS
+
+async updateStatus(
+
+id:string,
+
+status:string
+
+){
+
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
+
+where:{
+
+
+id
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(!tournament){
+
+
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+}
+
+
+
+
+
+
+
+return this.prisma.tournament.update({
+
+where:{
+
+
+id
+
+
+},
+
+
+
+data:{
+
+
+status
 
 
 }
