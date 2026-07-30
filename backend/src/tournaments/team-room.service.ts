@@ -12,6 +12,8 @@ PrismaService
 
 
 
+
+
 @Injectable()
 
 export class TeamRoomService {
@@ -19,7 +21,9 @@ export class TeamRoomService {
 
 
 constructor(
+
 private prisma:PrismaService
+
 ){}
 
 
@@ -30,13 +34,13 @@ private prisma:PrismaService
 
 
 
+// GET PUBG ROOM
+
 async getRoom(
 
 tournamentId:string
 
 ){
-
-
 
 
 
@@ -60,11 +64,13 @@ id:tournamentId
 
 if(!tournament){
 
+
 throw new BadRequestException(
 
 "Tournament not found"
 
 );
+
 
 }
 
@@ -74,14 +80,13 @@ throw new BadRequestException(
 
 
 
-
-const teams =
-
-await this.prisma.tournamentTeam.findMany({
+return this.prisma.tournamentTeam.findMany({
 
 where:{
 
+
 tournament_id:tournamentId
+
 
 },
 
@@ -89,7 +94,9 @@ tournament_id:tournamentId
 
 orderBy:{
 
+
 team_number:"asc"
+
 
 },
 
@@ -98,13 +105,14 @@ team_number:"asc"
 include:{
 
 
-
 slots:{
 
 
 orderBy:{
 
+
 slot_number:"asc"
+
 
 },
 
@@ -121,12 +129,15 @@ select:{
 
 id:true,
 
+
 name:true,
+
 
 pubg_uid:true
 
 
 }
+
 
 }
 
@@ -147,15 +158,6 @@ pubg_uid:true
 
 
 
-
-
-
-
-
-return teams;
-
-
-
 }
 
 
@@ -165,6 +167,8 @@ return teams;
 
 
 
+
+// CHANGE TEAM NAME
 
 async updateTeamName(
 
@@ -176,16 +180,27 @@ name:string
 
 
 
-if(!name || name.trim().length < 3){
+if(
+
+!name ||
+
+name.trim().length < 3
+
+){
 
 
 throw new BadRequestException(
 
-"Team name minimum 3 characters required"
+"Team name too short"
 
 );
 
+
 }
+
+
+
+
 
 
 
@@ -193,20 +208,28 @@ return this.prisma.tournamentTeam.update({
 
 where:{
 
+
 id:teamId
+
 
 },
 
 
+
 data:{
+
 
 name:name.trim()
 
+
 }
+
+
 
 });
 
 
+
 }
 
 
@@ -216,6 +239,8 @@ name:name.trim()
 
 
 
+
+// LEAVE SLOT
 
 async leaveSlot(
 
@@ -231,7 +256,9 @@ await this.prisma.teamSlot.findUnique({
 
 where:{
 
+
 id:slotId
+
 
 }
 
@@ -242,13 +269,16 @@ id:slotId
 
 
 
+
 if(!slot){
+
 
 throw new BadRequestException(
 
 "Slot not found"
 
 );
+
 
 }
 
@@ -263,22 +293,31 @@ return this.prisma.teamSlot.update({
 
 where:{
 
+
 id:slotId
+
 
 },
 
 
+
 data:{
+
 
 user_id:null,
 
+
 joined_at:null
 
+
 }
+
+
 
 });
 
 
+
 }
 
 
@@ -289,9 +328,7 @@ joined_at:null
 
 
 
-// ADMIN OPTIONAL
-// agar admin teams increase karna chahe
-
+// ADMIN INCREASE TEAMS
 
 async increaseTeams(
 
@@ -303,22 +340,33 @@ amount:number
 
 
 
+if(amount <= 0){
 
 
-const lastTeam =
+throw new BadRequestException(
 
-await this.prisma.tournamentTeam.findFirst({
+"Invalid team amount"
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
 
 where:{
 
-tournament_id:tournamentId
 
-},
-
-
-orderBy:{
-
-team_number:"desc"
+id:tournamentId
 
 }
 
@@ -330,26 +378,37 @@ team_number:"desc"
 
 
 
-let start =
-
-lastTeam
-
-?
-
-lastTeam.team_number + 1
-
-:
-
-1;
+if(!tournament){
 
 
+throw new BadRequestException(
+
+"Tournament not found"
+
+);
+
+
+}
 
 
 
 
 
 
-const created:any[]=[];
+
+const current =
+
+await this.prisma.tournamentTeam.count({
+
+where:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+});
 
 
 
@@ -360,31 +419,32 @@ const created:any[]=[];
 
 for(
 
-let t=start;
+let i=current+1;
 
-t<start+amount;
+i<=current+amount;
 
-t++
+i++
 
 ){
 
 
 
-
-
-const team =
-
-await this.prisma.tournamentTeam.create({
+const team = await this.prisma.tournamentTeam.create({
 
 data:{
 
+
 tournament_id:tournamentId,
 
-team_number:t,
 
-name:`Team ${t}`
+team_number:i,
+
+
+name:`Team ${i}`
+
 
 }
+
 
 });
 
@@ -411,22 +471,24 @@ await this.prisma.teamSlot.create({
 
 data:{
 
+
 team_id:team.id,
 
-slot_number:slot
+
+slot_number:slot,
+
+
+user_id:null
+
 
 }
+
 
 });
 
 
+
 }
-
-
-
-
-
-created.push(team);
 
 
 
@@ -442,9 +504,10 @@ created.push(team);
 return {
 
 
-message:"Teams added successfully",
+message:"Teams increased successfully",
 
-total:created.length
+
+added:amount
 
 
 
@@ -453,11 +516,6 @@ total:created.length
 
 
 }
-
-
-
-
-
 
 
 
