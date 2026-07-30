@@ -4,12 +4,9 @@ BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
 
 
 
@@ -34,16 +31,11 @@ private prisma:PrismaService
 
 
 
-
-// COMPLETE MATCH
-
 async completeMatch(
 
 matchId:string
 
 ){
-
-
 
 
 
@@ -105,9 +97,6 @@ status:"completed"
 
 
 
-
-
-
 }
 
 
@@ -118,8 +107,6 @@ status:"completed"
 
 
 
-// GET QUALIFIED TEAMS
-
 async getQualifiedTeams(
 
 matchId:string,
@@ -127,8 +114,6 @@ matchId:string,
 limit:number
 
 ){
-
-
 
 
 
@@ -146,26 +131,13 @@ match_id:matchId
 
 
 
-orderBy:[
-
-
-{
+orderBy:{
 
 
 points:"desc"
 
+
 },
-
-
-{
-
-
-kills:"desc"
-
-}
-
-
-],
 
 
 
@@ -176,29 +148,7 @@ take:limit,
 include:{
 
 
-
-team:{
-
-
-
-select:{
-
-
-id:true,
-
-
-team_number:true,
-
-
-name:true
-
-
-}
-
-
-
-}
-
+team:true
 
 
 }
@@ -213,31 +163,7 @@ name:true
 
 
 
-
-return results.map(item=>({
-
-
-
-team_id:item.team.id,
-
-
-team_number:item.team.team_number,
-
-
-team_name:item.team.name,
-
-
-kills:item.kills,
-
-
-points:item.points
-
-
-
-}));
-
-
-
+return results;
 
 
 
@@ -251,13 +177,13 @@ points:item.points
 
 
 
-// CREATE NEXT ROUND
-
 async createNextRound(
 
 tournamentId:string,
 
-previousRoundId:string
+previousRoundId:string,
+
+qualifiedLimit:number
 
 ){
 
@@ -285,24 +211,8 @@ round_id:previousRoundId
 
 
 
-if(!previousMatches.length){
 
-throw new BadRequestException(
-
-"No matches found"
-
-);
-
-}
-
-
-
-
-
-
-
-let qualified:any[]=[];
-
+let qualified:any[] = [];
 
 
 
@@ -314,17 +224,15 @@ for(const match of previousMatches){
 
 
 
+const teams =
 
-
-const teams = await this.getQualifiedTeams(
+await this.getQualifiedTeams(
 
 match.id,
 
-10
+qualifiedLimit
 
 );
-
-
 
 
 
@@ -332,10 +240,7 @@ qualified.push(...teams);
 
 
 
-
-
 }
-
 
 
 
@@ -347,12 +252,11 @@ if(!qualified.length){
 
 throw new BadRequestException(
 
-"No qualified teams"
+"No qualified teams found"
 
 );
 
 }
-
 
 
 
@@ -393,6 +297,23 @@ round_number:"desc"
 
 
 
+if(!lastRound){
+
+throw new BadRequestException(
+
+"Round not found"
+
+);
+
+}
+
+
+
+
+
+
+
+
 const nextRoundNumber =
 
 lastRound.round_number + 1;
@@ -411,22 +332,16 @@ await this.prisma.tournamentRound.create({
 data:{
 
 
-
 tournament_id:tournamentId,
-
 
 
 round_number:nextRoundNumber,
 
 
-
 name:`Round ${nextRoundNumber}`
 
 
-
 }
-
-
 
 });
 
@@ -437,10 +352,11 @@ name:`Round ${nextRoundNumber}`
 
 
 
-let matchNumber = 1;
-
 let index = 0;
 
+let matchNumber = 1;
+
+const teamsPerMatch = 25;
 
 
 
@@ -461,29 +377,21 @@ await this.prisma.tournamentMatch.create({
 data:{
 
 
-
 tournament_id:tournamentId,
-
 
 
 round_id:newRound.id,
 
 
-
 match_number:matchNumber,
-
 
 
 status:"pending"
 
 
-
 }
 
-
-
 });
-
 
 
 
@@ -495,7 +403,7 @@ const teams = qualified.slice(
 
 index,
 
-index + 25
+index + teamsPerMatch
 
 );
 
@@ -505,8 +413,7 @@ index + 25
 
 
 
-
-for(const team of teams){
+for(const item of teams){
 
 
 
@@ -515,18 +422,13 @@ await this.prisma.matchTeam.create({
 data:{
 
 
-
 match_id:match.id,
 
 
-
-team_id:team.team_id
-
+team_id:item.team_id
 
 
 }
-
-
 
 });
 
@@ -540,9 +442,7 @@ team_id:team.team_id
 
 
 
-
-index += 25;
-
+index += teamsPerMatch;
 
 matchNumber++;
 
@@ -550,9 +450,7 @@ matchNumber++;
 
 
 
-
 }
-
 
 
 
@@ -577,11 +475,7 @@ qualifiedTeams:qualified.length
 
 
 
-
-
-
 }
-
 
 
 
