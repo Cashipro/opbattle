@@ -64,8 +64,8 @@ id:previousRoundId
 
 
 
-if(!previousRound){
 
+if(!previousRound){
 
 throw new BadRequestException(
 
@@ -73,8 +73,51 @@ throw new BadRequestException(
 
 );
 
+}
+
+
+
+
+
+
+
+
+
+const existingRound =
+
+await this.prisma.tournamentRound.findFirst({
+
+where:{
+
+
+tournament_id:tournamentId,
+
+
+round_number:{
+gt:previousRound.round_number
+}
+
 
 }
+
+});
+
+
+
+
+
+
+
+if(existingRound){
+
+throw new BadRequestException(
+
+"Next round already generated"
+
+);
+
+}
+
 
 
 
@@ -93,19 +136,7 @@ where:{
 round_id:previousRoundId
 
 
-},
-
-
-
-include:{
-
-
-results:true
-
-
 }
-
-
 
 });
 
@@ -115,18 +146,16 @@ results:true
 
 
 
-if(!matches.length){
 
+if(!matches.length){
 
 throw new BadRequestException(
 
-"No matches found"
+"No previous matches found"
 
 );
 
-
 }
-
 
 
 
@@ -143,160 +172,56 @@ let qualifiedTeams:any[]=[];
 
 
 
+
 for(const match of matches){
 
 
 
-const results = match.results.sort(
 
-(a,b)=>{
 
+const results =
 
-const totalA =
-
-(a.points || 0) +
-
-(a.kills || 0);
-
-
-
-const totalB =
-
-(b.points || 0) +
-
-(b.kills || 0);
-
-
-
-return totalB-totalA;
-
-
-
-}
-
-);
-
-
-
-
-
-
-
-// top 50% teams qualify
-
-const qualifyCount =
-
-Math.ceil(results.length / 2);
-
-
-
-
-
-
-
-
-const winners =
-
-results.slice(
-
-0,
-
-qualifyCount
-
-);
-
-
-
-
-
-
-qualifiedTeams.push(
-
-...winners
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// remove duplicate teams
-
-qualifiedTeams =
-
-Array.from(
-
-new Map(
-
-qualifiedTeams.map(
-
-team=>[
-
-team.team_id,
-
-team
-
-]
-
-)
-
-).values()
-
-);
-
-
-
-
-
-
-
-
-
-if(!qualifiedTeams.length){
-
-
-throw new BadRequestException(
-
-"No qualified teams"
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-const lastRound =
-
-await this.prisma.tournamentRound.findFirst({
+await this.prisma.matchResult.findMany({
 
 where:{
 
 
-tournament_id:tournamentId
+match_id:match.id
 
 
 },
 
 
-orderBy:{
+
+orderBy:[
 
 
-round_number:"desc"
+{
+
+points:"desc"
+
+},
+
+
+{
+
+kills:"desc"
+
+}
+
+
+],
+
+
+
+take:10,
+
+
+
+include:{
+
+
+team:true
 
 
 }
@@ -312,9 +237,41 @@ round_number:"desc"
 
 
 
+qualifiedTeams.push(...results);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+if(!qualifiedTeams.length){
+
+throw new BadRequestException(
+
+"No qualified teams"
+
+);
+
+}
+
+
+
+
+
+
+
+
+
 const nextRoundNumber =
 
-(lastRound?.round_number || 0)+1;
+previousRound.round_number + 1;
 
 
 
@@ -322,8 +279,7 @@ const nextRoundNumber =
 
 
 
-
-const newRound =
+const round =
 
 await this.prisma.tournamentRound.create({
 
@@ -336,15 +292,11 @@ tournament_id:tournamentId,
 round_number:nextRoundNumber,
 
 
-name:
-
-`Round ${nextRoundNumber}`
+name:`Round ${nextRoundNumber}`
 
 
 
 }
-
-
 
 });
 
@@ -356,11 +308,11 @@ name:
 
 
 
-let matchNumber=1;
+let index = 0;
 
-let index=0;
+let matchNumber = 1;
 
-
+const teamsPerMatch = 25;
 
 
 
@@ -374,23 +326,7 @@ while(index < qualifiedTeams.length){
 
 
 
-const matchTeams =
-
-qualifiedTeams.slice(
-
-index,
-
-index+25
-
-);
-
-
-
-
-
-
-
-const newMatch =
+const match =
 
 await this.prisma.tournamentMatch.create({
 
@@ -400,7 +336,7 @@ data:{
 tournament_id:tournamentId,
 
 
-round_id:newRound.id,
+round_id:round.id,
 
 
 match_number:matchNumber,
@@ -412,8 +348,6 @@ status:"pending"
 
 }
 
-
-
 });
 
 
@@ -422,7 +356,25 @@ status:"pending"
 
 
 
-for(const team of matchTeams){
+
+const teams =
+
+qualifiedTeams.slice(
+
+index,
+
+index + teamsPerMatch
+
+);
+
+
+
+
+
+
+
+
+for(const item of teams){
 
 
 
@@ -431,16 +383,14 @@ await this.prisma.matchTeam.create({
 data:{
 
 
-match_id:newMatch.id,
+match_id:match.id,
 
 
-team_id:team.team_id
+team_id:item.team_id
 
 
 
 }
-
-
 
 });
 
@@ -455,10 +405,11 @@ team_id:team.team_id
 
 
 
-index +=25;
+index += teamsPerMatch;
 
 
 matchNumber++;
+
 
 
 
@@ -475,24 +426,17 @@ matchNumber++;
 
 return {
 
-message:
 
-"Next round generated successfully",
-
-
-round:
-
-newRound.name,
+message:"Next round generated successfully",
 
 
-qualifiedTeams:
-
-qualifiedTeams.length,
+round:round.name,
 
 
-matchesCreated:
+qualifiedTeams:qualifiedTeams.length,
 
-matchNumber-1
+
+matchesCreated:matchNumber-1
 
 
 
@@ -504,6 +448,7 @@ matchNumber-1
 
 
 }
+
 
 
 
