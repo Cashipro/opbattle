@@ -1,337 +1,509 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
+
+
 import Link from "next/link";
+
+
 import api from "@/lib/api";
+
+
 import {
   Trophy,
-  Users,
   Swords,
-  Medal,
-  ArrowRight,
+  Users,
+  Activity
 } from "lucide-react";
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    users: 0,
-    tournaments: 0,
-    teams: 0,
-    matches: 0,
-  });
 
-  const [recent, setRecent] = useState<any[]>([]);
 
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
 
-  async function loadDashboard() {
-    try {
-      const tournaments = await api.get("/tournaments");
 
-      setRecent(tournaments.data || []);
 
-      setStats({
-        users: 0,
-        tournaments: tournaments.data?.length || 0,
-        teams: 0,
-        matches: 0,
-      });
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+export default function AdminDashboard(){
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-white bg-black">
-        Loading...
-      </div>
-    );
-  }
 
+
+const [stats,setStats] =
+useState({
+
+tournaments:0,
+
+matches:0,
+
+teams:0,
+
+users:0
+
+});
+
+
+
+
+const [loading,setLoading] =
+useState(true);
+
+
+
+
+
+
+
+useEffect(()=>{
+
+loadStats();
+
+},[]);
+
+
+
+
+
+
+
+
+async function loadStats(){
+
+
+try{
+
+
+const tournamentRes =
+await api.get(
+"/admin/tournaments"
+);
+
+
+
+let tournaments =
+tournamentRes.data || [];
+
+
+
+let matches:number = 0;
+
+
+let teams:number = 0;
+
+
+
+
+tournaments.forEach((item:any)=>{
+
+
+if(item.matches){
+
+matches += item.matches.length;
+
+}
+
+
+if(item.teams){
+
+teams += item.teams.length;
+
+}
+
+
+});
+
+
+
+
+
+setStats({
+
+tournaments:tournaments.length,
+
+matches,
+
+teams,
+
+users:0
+
+});
+
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+}finally{
+
+
+setLoading(false);
+
+
+}
+
+
+}
   return (
-    <div className="space-y-8">
 
-      <div>
+<div className="
+space-y-10
+">
 
-        <h1 className="text-4xl font-black">
-          Admin Dashboard
-        </h1>
 
-        <p className="text-zinc-400 mt-2">
-          Welcome to OPBattle Administration Panel
-        </p>
 
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+<div>
 
-          <div className="flex items-center justify-between">
 
-            <div>
+<h1 className="
+text-4xl
+font-black
+">
 
-              <p className="text-zinc-400">
-                Users
-              </p>
+Admin Dashboard
 
-              <h2 className="text-4xl font-black mt-2">
-                {stats.users}
-              </h2>
+</h1>
 
-            </div>
 
-            <Users className="w-12 h-12 text-green-500" />
+<p className="
+text-zinc-400
+mt-2
+">
 
-          </div>
+Manage OPBATTLE platform
 
-        </div>
+</p>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
 
-          <div className="flex items-center justify-between">
+</div>
 
-            <div>
 
-              <p className="text-zinc-400">
-                Tournaments
-              </p>
 
-              <h2 className="text-4xl font-black mt-2">
-                {stats.tournaments}
-              </h2>
 
-            </div>
 
-            <Trophy className="w-12 h-12 text-yellow-500" />
 
-          </div>
 
-        </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
 
-          <div className="flex items-center justify-between">
+<div className="
+grid
+grid-cols-1
+md:grid-cols-2
+xl:grid-cols-4
+gap-6
+">
 
-            <div>
 
-              <p className="text-zinc-400">
-                Teams
-              </p>
 
-              <h2 className="text-4xl font-black mt-2">
-                {stats.teams}
-              </h2>
 
-            </div>
 
-            <Users className="w-12 h-12 text-blue-500" />
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
 
-          </div>
 
-        </div>
+<Trophy className="
+text-yellow-400
+mb-4
+w-8
+h-8
+"/>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
 
-          <div className="flex items-center justify-between">
 
-            <div>
+<p className="
+text-zinc-400
+">
 
-              <p className="text-zinc-400">
-                Live Matches
-              </p>
+Tournaments
 
-              <h2 className="text-4xl font-black mt-2">
-                {stats.matches}
-              </h2>
+</p>
 
-            </div>
 
-            <Swords className="w-12 h-12 text-red-500" />
 
-          </div>
+<h2 className="
+text-4xl
+font-black
+">
 
-        </div>
+{
+loading
+?
+"..."
+:
+stats.tournaments
+}
 
-      </div>
+</h2>
 
-      <div className="grid xl:grid-cols-2 gap-8">
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+</div>
 
-          <div className="flex justify-between items-center mb-6">
 
-            <h2 className="text-2xl font-black">
-              Recent Tournaments
-            </h2>
 
-            <Link
-              href="/admin/tournaments"
-              className="text-green-400 flex items-center gap-2"
-            >
-              View All
 
-              <ArrowRight className="w-4 h-4" />
-            </Link>
 
-          </div>
 
-          <div className="space-y-4">
 
-            {recent.slice(0, 5).map((item: any) => (
-              <div
-                key={item.id}
-                className="bg-zinc-800 rounded-2xl p-4 flex justify-between"
-              >
-                <div>
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
 
-                  <h3 className="font-bold">
-                    {item.name}
-                  </h3>
 
-                  <p className="text-zinc-400 text-sm">
-                    {item.status}
-                  </p>
+<Swords className="
+text-green-400
+mb-4
+w-8
+h-8
+"/>
 
-                </div>
 
-                <div className="text-green-400 font-bold">
-                  {item.entry_fee}
-                </div>
 
-              </div>
-            ))}
-                        ))}
+<p className="
+text-zinc-400
+">
 
-          </div>
+Matches
 
-        </div>
+</p>
 
 
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+<h2 className="
+text-4xl
+font-black
+">
 
-          <h2 className="text-2xl font-black mb-6">
-            Quick Actions
-          </h2>
+{
+loading
+?
+"..."
+:
+stats.matches
+}
 
+</h2>
 
-          <div className="grid gap-4">
 
+</div>
 
-            <Link
-              href="/admin/tournaments"
-              className="
-              bg-green-600
-              hover:bg-green-700
-              rounded-2xl
-              p-5
-              font-bold
-              flex
-              justify-between
-              items-center
-              "
-            >
 
-              Manage Tournaments
 
-              <ArrowRight />
 
-            </Link>
 
 
 
-            <Link
-              href="/admin/matches"
-              className="
-              bg-blue-600
-              hover:bg-blue-700
-              rounded-2xl
-              p-5
-              font-bold
-              flex
-              justify-between
-              items-center
-              "
-            >
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
 
-              Manage Matches
 
-              <ArrowRight />
+<Users className="
+text-blue-400
+mb-4
+w-8
+h-8
+"/>
 
-            </Link>
 
 
+<p className="
+text-zinc-400
+">
 
-            <Link
-              href="/admin/results"
-              className="
-              bg-yellow-600
-              hover:bg-yellow-700
-              rounded-2xl
-              p-5
-              font-bold
-              flex
-              justify-between
-              items-center
-              "
-            >
+Teams
 
-              Match Results
+</p>
 
-              <ArrowRight />
 
-            </Link>
 
+<h2 className="
+text-4xl
+font-black
+">
 
-          </div>
+{
+loading
+?
+"..."
+:
+stats.teams
+}
 
+</h2>
 
-        </div>
 
+</div>
 
-      </div>
 
 
 
-      <div
-        className="
-        bg-zinc-900
-        border
-        border-zinc-800
-        rounded-3xl
-        p-6
-        flex
-        items-center
-        gap-4
-        "
-      >
 
-        <Medal className="w-10 h-10 text-green-500" />
 
 
-        <div>
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
 
-          <h3 className="font-black text-xl">
-            OPBattle Admin
-          </h3>
 
-          <p className="text-zinc-400">
-            Manage tournaments, teams and competitive matches.
-          </p>
+<Activity className="
+text-red-400
+mb-4
+w-8
+h-8
+"/>
 
-        </div>
 
 
-      </div>
+<p className="
+text-zinc-400
+">
 
+Status
 
-    </div>
-  );
+</p>
+
+
+
+<h2 className="
+text-2xl
+font-black
+text-green-400
+">
+
+ONLINE
+
+</h2>
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
+grid
+md:grid-cols-3
+gap-5
+">
+
+
+
+
+
+<Link
+
+href="/admin/tournaments"
+
+className="
+bg-green-600
+rounded-2xl
+p-5
+font-black
+text-center
+"
+
+>
+
+Manage Tournaments
+
+</Link>
+
+
+
+
+
+
+
+<Link
+
+href="/admin/matches"
+
+className="
+bg-blue-600
+rounded-2xl
+p-5
+font-black
+text-center
+"
+
+>
+
+Manage Matches
+
+</Link>
+
+
+
+
+
+
+
+<Link
+
+href="/admin/teams"
+
+className="
+bg-purple-600
+rounded-2xl
+p-5
+font-black
+text-center
+"
+
+>
+
+Manage Teams
+
+</Link>
+
+
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+);
+
+
 }
