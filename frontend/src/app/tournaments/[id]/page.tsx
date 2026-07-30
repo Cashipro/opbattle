@@ -13,6 +13,9 @@ useRouter
 } from "next/navigation";
 
 
+import Sidebar from "@/components/Sidebar";
+
+
 import {
 getTournament,
 joinTournament
@@ -24,7 +27,7 @@ joinTournament
 
 
 
-export default function TournamentDetailPage(){
+export default function TournamentDetail(){
 
 
 const params = useParams();
@@ -33,6 +36,8 @@ const router = useRouter();
 
 
 const id = params.id as string;
+
+
 
 
 
@@ -74,10 +79,11 @@ async function loadTournament(){
 try{
 
 
-const res = await getTournament(id);
+const data =
+await getTournament(id);
 
 
-setTournament(res);
+setTournament(data);
 
 
 
@@ -140,7 +146,7 @@ alert(
 
 error?.response?.data?.message ||
 
-"Join failed"
+"Unable to join tournament"
 
 );
 
@@ -165,7 +171,6 @@ setJoining(false);
 
 
 
-
 if(loading){
 
 
@@ -180,7 +185,7 @@ items-center
 justify-center
 ">
 
-Loading...
+Loading tournament...
 
 </div>
 
@@ -229,10 +234,32 @@ Tournament not found
 return (
 
 <div className="
+flex
 min-h-screen
 bg-black
 text-white
-p-6
+">
+
+
+
+
+
+
+<Sidebar />
+
+
+
+
+
+
+
+
+<main className="
+flex-1
+p-4
+pt-20
+md:p-10
+md:pt-10
 ">
 
 
@@ -240,21 +267,34 @@ p-6
 
 
 <div className="
-max-w-4xl
+max-w-5xl
 mx-auto
-bg-zinc-900
-border
-border-zinc-700
-rounded-3xl
-p-8
 ">
 
 
 
 
 
+
+
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+md:p-10
+">
+
+
+
+
+
+
+
 <h1 className="
-text-4xl
+text-3xl
+md:text-5xl
 font-black
 mb-8
 ">
@@ -269,9 +309,11 @@ mb-8
 
 
 
+
 <div className="
 grid
-md:grid-cols-2
+grid-cols-1
+sm:grid-cols-2
 gap-5
 ">
 
@@ -285,17 +327,20 @@ rounded-2xl
 p-5
 ">
 
-<p className="text-gray-400">
+<p className="
+text-gray-400
+">
 
 Entry Fee
 
 </p>
 
 
-<p className="
+<h2 className="
 text-2xl
 font-bold
 text-green-400
+mt-2
 ">
 
 {tournament.entry_fee}
@@ -304,7 +349,7 @@ text-green-400
 
 {tournament.currency || ""}
 
-</p>
+</h2>
 
 
 </div>
@@ -322,22 +367,25 @@ rounded-2xl
 p-5
 ">
 
-<p className="text-gray-400">
+<p className="
+text-gray-400
+">
 
 Reward
 
 </p>
 
 
-<p className="
+<h2 className="
 text-2xl
 font-bold
 text-yellow-400
+mt-2
 ">
 
-{tournament.reward || 0}
+{tournament.reward}
 
-</p>
+</h2>
 
 
 </div>
@@ -355,14 +403,19 @@ rounded-2xl
 p-5
 ">
 
-<p className="text-gray-400">
+<p className="
+text-gray-400
+">
 
 Start Date
 
 </p>
 
 
-<p className="font-bold">
+<h2 className="
+font-bold
+mt-2
+">
 
 {
 new Date(
@@ -370,7 +423,7 @@ tournament.start_date
 ).toLocaleDateString()
 }
 
-</p>
+</h2>
 
 
 </div>
@@ -388,18 +441,23 @@ rounded-2xl
 p-5
 ">
 
-<p className="text-gray-400">
+<p className="
+text-gray-400
+">
 
 Start Time
 
 </p>
 
 
-<p className="font-bold">
+<h2 className="
+font-bold
+mt-2
+">
 
 {tournament.start_time}
 
-</p>
+</h2>
 
 
 </div>
@@ -409,7 +467,10 @@ Start Time
 
 
 
+
+
 </div>
+
 
 
 
@@ -419,32 +480,34 @@ Start Time
 
 
 <div className="
-mt-8
+mt-6
 bg-zinc-800
 rounded-2xl
 p-5
 ">
 
-<p className="text-gray-400">
+<p className="
+text-gray-400
+">
 
-Status
+Tournament Status
 
 </p>
 
 
-<p className="
+<h2 className="
 uppercase
-text-blue-400
 font-bold
+text-blue-400
+mt-2
 ">
 
 {tournament.status}
 
-</p>
+</h2>
 
 
 </div>
-
 
 
 
@@ -479,7 +542,7 @@ joining
 
 ?
 
-"JOINING..."
+"Joining..."
 
 :
 
@@ -497,6 +560,21 @@ joining
 
 
 </div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</main>
+
 
 
 
