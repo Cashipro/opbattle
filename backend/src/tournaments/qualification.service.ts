@@ -35,6 +35,8 @@ private prisma:PrismaService
 
 
 
+// COMPLETE MATCH
+
 async completeMatch(
 
 matchId:string
@@ -62,15 +64,14 @@ id:matchId
 
 
 
-if(!match){
 
+if(!match){
 
 throw new BadRequestException(
 
 "Match not found"
 
 );
-
 
 }
 
@@ -85,11 +86,10 @@ return this.prisma.tournamentMatch.update({
 
 where:{
 
-
 id:matchId
 
-
 },
+
 
 
 data:{
@@ -106,6 +106,9 @@ status:"completed"
 
 
 
+
+
+
 }
 
 
@@ -115,6 +118,8 @@ status:"completed"
 
 
 
+
+// GET QUALIFIED TEAMS FROM MATCH
 
 async getQualifiedTeams(
 
@@ -142,16 +147,6 @@ match_id:matchId
 
 
 
-include:{
-
-
-team:true
-
-
-},
-
-
-
 orderBy:[
 
 
@@ -173,7 +168,17 @@ kills:"desc"
 
 
 
-take:limit
+take:limit,
+
+
+
+include:{
+
+
+team:true
+
+
+}
 
 
 
@@ -185,14 +190,36 @@ take:limit
 
 
 
-if(!results.length){
 
 
-throw new BadRequestException(
+return results.map(item=>({
 
-"No results found"
 
-);
+
+team_id:item.team_id,
+
+
+team_number:item.team.team_number,
+
+
+team_name:item.team.name || 
+
+`Team ${item.team.team_number}`,
+
+
+
+kills:item.kills,
+
+
+points:item.points
+
+
+
+}));
+
+
+
+
 
 
 }
@@ -202,25 +229,16 @@ throw new BadRequestException(
 
 
 
-return results;
 
 
 
-}
+// CREATE NEXT ROUND QUALIFICATION LIST
 
+async createNextRound(
 
+tournamentId:string,
 
-
-
-
-
-
-
-async getRoundQualification(
-
-roundId:string,
-
-limit:number
+previousRoundId:string
 
 ){
 
@@ -235,14 +253,29 @@ await this.prisma.tournamentMatch.findMany({
 where:{
 
 
-round_id:roundId
+round_id:previousRoundId
 
 
 }
 
-
-
 });
+
+
+
+
+
+
+
+if(!matches.length){
+
+throw new BadRequestException(
+
+"No matches found"
+
+);
+
+}
+
 
 
 
@@ -262,13 +295,15 @@ for(const match of matches){
 
 
 
+
+
 const teams =
 
 await this.getQualifiedTeams(
 
 match.id,
 
-limit
+10
 
 );
 
@@ -277,11 +312,11 @@ limit
 
 
 
-qualified.push(
 
-...teams
+qualified.push(...teams);
 
-);
+
+
 
 
 
@@ -293,7 +328,40 @@ qualified.push(
 
 
 
-return qualified;
+if(!qualified.length){
+
+throw new BadRequestException(
+
+"No qualified teams found"
+
+);
+
+}
+
+
+
+
+
+
+
+
+return {
+
+
+message:"Teams qualified successfully",
+
+
+totalQualified:qualified.length,
+
+
+teams:qualified
+
+
+
+};
+
+
+
 
 
 
