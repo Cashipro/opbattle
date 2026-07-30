@@ -164,7 +164,7 @@ user:true
 
 
 
-return slots.map(slot=>({
+return slots.map((slot:any)=>({
 
 
 teamId:slot.team.id,
@@ -187,7 +187,7 @@ status:slot.team.tournament.status,
 
 players:
 
-slot.team.slots.map(s=>({
+slot.team.slots.map((s:any)=>({
 
 
 name:s.user?.name ?? null,
@@ -249,7 +249,7 @@ const teamIds =
 
 slots.map(
 
-s=>s.team_id
+(s:any)=>s.team_id
 
 );
 
