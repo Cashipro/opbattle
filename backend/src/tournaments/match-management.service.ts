@@ -4,12 +4,9 @@ BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
 
 
 
@@ -34,16 +31,11 @@ private prisma:PrismaService
 
 
 
-
-// ALL MATCHES OF TOURNAMENT
-
 async getMatches(
 
 tournamentId:string
 
 ){
-
-
 
 
 
@@ -103,16 +95,8 @@ team:{
 
 
 
-select:{
+include:{
 
-
-id:true,
-
-
-team_number:true,
-
-
-name:true,
 
 
 slots:{
@@ -137,6 +121,9 @@ name:true,
 
 
 pubg_uid:true
+
+
+}
 
 
 }
@@ -183,9 +170,6 @@ pubg_uid:true
 
 
 
-
-
-
 }
 
 
@@ -196,15 +180,11 @@ pubg_uid:true
 
 
 
-// SINGLE MATCH
-
 async getMatch(
 
 matchId:string
 
 ){
-
-
 
 
 
@@ -238,17 +218,8 @@ team:{
 
 
 
-select:{
+include:{
 
-
-
-id:true,
-
-
-team_number:true,
-
-
-name:true,
 
 
 slots:{
@@ -278,7 +249,6 @@ pubg_uid:true
 }
 
 
-
 }
 
 
@@ -297,6 +267,27 @@ pubg_uid:true
 
 }
 
+
+
+}
+
+
+
+},
+
+
+
+results:{
+
+
+
+include:{
+
+
+team:true
+
+
+}
 
 
 }
@@ -317,6 +308,7 @@ pubg_uid:true
 
 if(!match){
 
+
 throw new BadRequestException(
 
 "Match not found"
@@ -335,9 +327,6 @@ return match;
 
 
 
-
-
-
 }
 
 
@@ -348,8 +337,6 @@ return match;
 
 
 
-// ADD ROOM DETAILS
-
 async updateRoom(
 
 matchId:string,
@@ -359,8 +346,6 @@ room_id:string,
 room_password:string
 
 ){
-
-
 
 
 
@@ -385,6 +370,7 @@ id:matchId
 
 
 if(!match){
+
 
 throw new BadRequestException(
 
@@ -432,9 +418,6 @@ status:"ready"
 
 
 
-
-
-
 }
 
 
@@ -444,8 +427,6 @@ status:"ready"
 
 
 
-
-// START MATCH
 
 async startMatch(
 
@@ -455,71 +436,14 @@ matchId:string
 
 
 
+return this.updateStatus(
 
+matchId,
 
-const match =
-
-await this.prisma.tournamentMatch.findUnique({
-
-where:{
-
-
-id:matchId
-
-
-}
-
-});
-
-
-
-
-
-
-
-if(!match){
-
-throw new BadRequestException(
-
-"Match not found"
+"started"
 
 );
 
-}
-
-
-
-
-
-
-
-return this.prisma.tournamentMatch.update({
-
-where:{
-
-
-id:matchId
-
-
-},
-
-
-
-data:{
-
-
-status:"started"
-
-
-}
-
-
-
-});
-
-
-
-
 
 
 }
@@ -531,8 +455,6 @@ status:"started"
 
 
 
-
-// FINISH MATCH
 
 async finishMatch(
 
@@ -542,6 +464,34 @@ matchId:string
 
 
 
+return this.updateStatus(
+
+matchId,
+
+"finished"
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+private async updateStatus(
+
+matchId:string,
+
+status:string
+
+){
+
 
 
 const match =
@@ -565,6 +515,7 @@ id:matchId
 
 
 if(!match){
+
 
 throw new BadRequestException(
 
@@ -595,7 +546,7 @@ id:matchId
 data:{
 
 
-status:"finished"
+status
 
 
 }
@@ -606,14 +557,7 @@ status:"finished"
 
 
 
-
-
-
 }
-
-
-
-
 
 
 
