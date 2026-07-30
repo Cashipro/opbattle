@@ -51,6 +51,9 @@ name:data.name,
 entry_fee:Number(data.entry_fee),
 
 
+currency:data.currency,
+
+
 reward:Number(data.reward),
 
 
@@ -187,7 +190,7 @@ slots:{
 include:{
 
 
-player:true
+user:true
 
 
 }
