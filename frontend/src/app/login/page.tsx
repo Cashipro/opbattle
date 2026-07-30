@@ -2,12 +2,12 @@
 
 
 import {
-useState
+  useState
 } from "react";
 
 
 import {
-useRouter
+  useRouter
 } from "next/navigation";
 
 
@@ -23,14 +23,14 @@ export default function Login(){
 
 
 
-const router = useRouter();
+  const router = useRouter();
 
 
-const [email,setEmail] = useState("");
+  const [email,setEmail] = useState("");
 
-const [password,setPassword] = useState("");
+  const [password,setPassword] = useState("");
 
-const [loading,setLoading] = useState(false);
+  const [loading,setLoading] = useState(false);
 
 
 
@@ -39,384 +39,461 @@ const [loading,setLoading] = useState(false);
 
 
 
-async function handleLogin(e:any){
 
+  async function handleLogin(e:any){
 
-e.preventDefault();
 
+    e.preventDefault();
 
-try{
 
+    try{
 
-setLoading(true);
 
+      setLoading(true);
 
 
-const res = await api.post(
-"/auth/login",
-{
-email,
-password
-}
-);
 
 
+      const res = await api.post(
+        "/auth/login",
+        {
+          email,
+          password
+        }
+      );
 
 
 
 
-const token =
-res.data.access_token ||
-res.data.token;
+      console.log(
+        "LOGIN RESPONSE:",
+        res.data
+      );
 
 
 
 
 
 
-const user =
-res.data.user;
 
+      const token =
+        res.data.access_token ||
+        res.data.token ||
+        res.data.accessToken;
 
 
 
 
 
-localStorage.setItem(
-"token",
-token
-);
+      const user =
+        res.data.user ||
+        res.data.data?.user;
 
 
 
-localStorage.setItem(
-"user",
-JSON.stringify(user)
-);
 
 
 
 
+      if(!token){
 
 
+        alert(
+          "Login successful but token not received from server"
+        );
 
-document.cookie =
-`token=${token}; path=/; max-age=86400`;
 
+        return;
 
 
+      }
 
 
 
 
-router.push(
-"/dashboard"
-);
 
 
 
 
+      localStorage.setItem(
+        "token",
+        token
+      );
 
-}catch(error:any){
 
 
 
-alert(
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user || {})
+      );
 
-error?.response?.data?.message ||
 
-"Login failed"
 
-);
 
 
 
-}finally{
 
 
-setLoading(false);
+      document.cookie =
+        `token=${token}; path=/; max-age=86400`;
 
 
-}
 
 
 
-}
 
 
+      router.push(
+        "/dashboard"
+      );
 
 
 
 
 
 
-return (
+    }catch(error:any){
 
-<main className="
-min-h-screen
-bg-black
-text-white
-flex
-items-center
-justify-center
-p-5
-">
 
 
+      console.log(
+        "LOGIN ERROR:",
+        error
+      );
 
 
 
+      alert(
 
-<div className="
-w-full
-max-w-md
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-md:p-8
-">
+        error?.response?.data?.message ||
 
+        "Login failed"
 
+      );
 
 
 
+    }finally{
 
-<h1 className="
-text-3xl
-font-black
-text-center
-text-green-400
-mb-2
-">
 
-TOURNAMENT HUB
+      setLoading(false);
 
-</h1>
 
+    }
 
 
 
+  }
 
 
-<p className="
-text-gray-400
-text-center
-mb-8
-">
 
-Login to your account
 
-</p>
 
 
 
 
 
+  return (
 
+    <main
+      className="
+      min-h-screen
+      bg-black
+      text-white
+      flex
+      items-center
+      justify-center
+      p-5
+      "
+    >
 
 
-<form
 
-onSubmit={handleLogin}
 
-className="
-space-y-5
-"
 
->
 
+      <div
+        className="
+        w-full
+        max-w-md
+        bg-zinc-900
+        border
+        border-zinc-800
+        rounded-3xl
+        p-6
+        md:p-8
+        "
+      >
 
 
 
 
 
 
-<div>
+        <h1
+          className="
+          text-3xl
+          font-black
+          text-center
+          text-green-400
+          mb-2
+          "
+        >
 
+          TOURNAMENT HUB
 
-<label className="
-text-gray-400
-block
-mb-2
-">
+        </h1>
 
-Email
 
-</label>
 
 
-<input
 
-type="email"
 
-value={email}
 
-onChange={(e)=>setEmail(e.target.value)}
+        <p
+          className="
+          text-gray-400
+          text-center
+          mb-8
+          "
+        >
 
-placeholder="Enter email"
+          Login to your account
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-outline-none
-"
+        </p>
 
-required
 
-/>
 
 
-</div>
 
 
 
 
 
+        <form
 
+          onSubmit={handleLogin}
 
+          className="
+          space-y-5
+          "
 
-<div>
+        >
 
 
-<label className="
-text-gray-400
-block
-mb-2
-">
 
-Password
 
-</label>
 
 
-<input
 
-type="password"
+          <div>
 
-value={password}
 
-onChange={(e)=>setPassword(e.target.value)}
+            <label
+              className="
+              text-gray-400
+              block
+              mb-2
+              "
+            >
 
-placeholder="Enter password"
+              Email
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-outline-none
-"
+            </label>
 
-required
 
-/>
 
 
-</div>
+            <input
 
+              type="email"
 
+              value={email}
 
+              onChange={(e)=>
+                setEmail(e.target.value)
+              }
 
+              placeholder="Enter email"
 
+              className="
+              w-full
+              bg-zinc-800
+              rounded-xl
+              p-4
+              outline-none
+              "
 
+              required
 
+            />
 
-<button
 
-disabled={loading}
+          </div>
 
-className="
-w-full
-bg-green-600
-py-4
-rounded-xl
-font-black
-hover:bg-green-700
-disabled:opacity-50
-"
 
->
 
-{
 
-loading
 
-?
 
-"Logging in..."
 
-:
 
-"Login"
 
-}
+          <div>
 
-</button>
 
+            <label
+              className="
+              text-gray-400
+              block
+              mb-2
+              "
+            >
 
+              Password
 
+            </label>
 
 
 
 
+            <input
 
-</form>
+              type="password"
 
+              value={password}
 
+              onChange={(e)=>
+                setPassword(e.target.value)
+              }
 
+              placeholder="Enter password"
 
+              className="
+              w-full
+              bg-zinc-800
+              rounded-xl
+              p-4
+              outline-none
+              "
 
+              required
 
+            />
 
 
-<p className="
-text-center
-text-gray-400
-mt-6
-">
+          </div>
 
-Don't have account?
 
-{" "}
 
-<a
 
-href="/register"
 
-className="
-text-green-400
-font-bold
-"
 
->
 
-Register
 
-</a>
 
-</p>
+          <button
 
+            disabled={loading}
 
+            className="
+            w-full
+            bg-green-600
+            py-4
+            rounded-xl
+            font-black
+            hover:bg-green-700
+            disabled:opacity-50
+            "
 
+          >
 
 
+            {
 
+              loading
 
+              ?
 
-</div>
+              "Logging in..."
 
+              :
 
+              "Login"
 
 
+            }
 
 
-</main>
+          </button>
 
-);
+
+
+
+
+
+
+
+        </form>
+
+
+
+
+
+
+
+
+
+        <p
+          className="
+          text-center
+          text-gray-400
+          mt-6
+          "
+        >
+
+          Don't have account?
+
+          {" "}
+
+
+
+          <a
+
+            href="/register"
+
+            className="
+            text-green-400
+            font-bold
+            "
+
+          >
+
+            Register
+
+          </a>
+
+
+        </p>
+
+
+
+
+
+
+
+
+      </div>
+
+
+
+
+
+
+    </main>
+
+  );
 
 
 }
