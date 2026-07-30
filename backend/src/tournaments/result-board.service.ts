@@ -34,7 +34,7 @@ private prisma:PrismaService
 
 
 
-// ALL ROUND RESULTS
+// ROUND WISE RESULTS
 
 async tournamentResults(
 
@@ -90,48 +90,17 @@ include:{
 
 
 
-teams:{
-
-
-
-include:{
-
-
-
-team:true
-
-
-
-}
-
-
-
-},
-
-
-
 results:{
 
 
 
-orderBy:[
+orderBy:{
 
-
-{
 
 points:"desc"
 
+
 },
-
-
-{
-
-kills:"desc"
-
-}
-
-
-],
 
 
 
@@ -139,7 +108,27 @@ include:{
 
 
 
-team:true
+team:{
+
+
+
+select:{
+
+
+id:true,
+
+
+team_number:true,
+
+
+name:true
+
+
+}
+
+
+
+}
 
 
 
@@ -180,7 +169,7 @@ team:true
 
 
 
-// FINAL TOURNAMENT RANKING
+// FINAL PUBG RANKING
 
 async finalRanking(
 
@@ -238,7 +227,7 @@ team:true
 
 
 
-const ranking:any = {};
+const ranking:any={};
 
 
 
@@ -248,43 +237,38 @@ const ranking:any = {};
 
 
 
-for(const result of results){
+for(const item of results){
 
 
 
 
 
-const teamId = result.team_id;
+if(!ranking[item.team_id]){
 
 
 
+ranking[item.team_id]={
 
 
 
-if(!ranking[teamId]){
+team_id:item.team_id,
 
 
 
-ranking[teamId]={
+team_number:item.team.team_number,
 
 
 
-team_id:teamId,
-
-
-team_number:result.team.team_number,
-
-
-team_name:result.team.name || 
-
-`Team ${result.team.team_number}`,
+team_name:item.team.name,
 
 
 
 kills:0,
 
 
+
 points:0,
+
 
 
 matches:0
@@ -304,15 +288,18 @@ matches:0
 
 
 
-ranking[teamId].kills += result.kills || 0;
+ranking[item.team_id].kills += item.kills;
 
 
 
-ranking[teamId].points += result.points || 0;
+ranking[item.team_id].points += item.points;
 
 
 
-ranking[teamId].matches += 1;
+ranking[item.team_id].matches += 1;
+
+
+
 
 
 
@@ -326,62 +313,37 @@ ranking[teamId].matches += 1;
 
 
 
-const board =
+return Object.values(ranking)
 
-Object.values(ranking)
+.sort(
 
-.sort((a:any,b:any)=>{
-
-
-
-if(b.points !== a.points){
-
-
-return b.points - a.points;
-
-
-}
+(a:any,b:any)=>
 
 
 
-return b.kills - a.kills;
+b.points - a.points || b.kills - a.kills
 
 
 
-});
+)
 
+.map(
 
-
-
-
-
-
-
-
-return board.map((team:any,index)=>({
+(team:any,index)=>({
 
 
 
 rank:index + 1,
 
 
-team_number:team.team_number,
-
-
-team_name:team.team_name,
-
-
-matches:team.matches,
-
-
-kills:team.kills,
-
-
-points:team.points
+...team
 
 
 
-}));
+})
+
+);
+
 
 
 
