@@ -17,7 +17,9 @@ import {
   Medal,
   LogOut,
   Menu,
-  X
+  X,
+  Wallet,
+  ArrowDownToLine
 } from "lucide-react";
 
 
@@ -101,6 +103,18 @@ icon:<Users/>
 name:"Results",
 url:"/admin/results",
 icon:<Medal/>
+},
+
+{
+name:"Deposits",
+url:"/admin/deposits",
+icon:<Wallet/>
+},
+
+{
+name:"Withdrawals",
+url:"/admin/withdrawals",
+icon:<ArrowDownToLine/>
 }
 
 ];
