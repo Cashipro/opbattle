@@ -11,6 +11,12 @@ JwtModule
 
 
 import {
+PassportModule
+} from '@nestjs/passport';
+
+
+
+import {
 PrismaModule
 } from '../prisma/prisma.module';
 
@@ -28,6 +34,12 @@ AuthService
 
 
 
+import {
+JwtStrategy
+} from './jwt.strategy';
+
+
+
 
 
 
@@ -37,7 +49,13 @@ AuthService
 imports:[
 
 
+
 PrismaModule,
+
+
+
+PassportModule,
+
 
 
 JwtModule.register({
@@ -58,13 +76,16 @@ expiresIn:"7d"
 })
 
 
+
 ],
 
 
 
 controllers:[
 
+
 AuthController
+
 
 ],
 
@@ -72,7 +93,12 @@ AuthController
 
 providers:[
 
-AuthService
+
+AuthService,
+
+
+JwtStrategy
+
 
 ],
 
@@ -80,7 +106,9 @@ AuthService
 
 exports:[
 
+
 AuthService
+
 
 ]
 
