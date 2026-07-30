@@ -4,15 +4,16 @@ import api from "@/lib/api";
 
 
 
+
+
+
 // GET ALL TOURNAMENTS
 
 export async function getTournaments(){
 
 
 const res = await api.get(
-
 "/tournaments"
-
 );
 
 
@@ -67,11 +68,13 @@ id:string
 ){
 
 
+
 const res = await api.post(
 
 `/tournaments/${id}/join`
 
 );
+
 
 
 return res.data;
@@ -99,6 +102,7 @@ const res = await api.get(
 );
 
 
+
 return res.data;
 
 
@@ -112,13 +116,14 @@ return res.data;
 
 
 
-// GET PUBG ROOM
+// GET PUBG TEAM ROOM
 
 export async function getTeamRoom(
 
 id:string
 
 ){
+
 
 
 const res = await api.get(
@@ -128,6 +133,7 @@ const res = await api.get(
 );
 
 
+
 return res.data;
 
 
@@ -141,7 +147,7 @@ return res.data;
 
 
 
-// SELECT PLAYER SLOT
+// SELECT TEAM SLOT
 
 export async function selectSlot(
 
@@ -150,17 +156,23 @@ slotId:string
 ){
 
 
+
 const res = await api.post(
 
 "/tournaments/team/select-slot",
 
+
 {
+
 
 slotId
 
+
 }
 
+
 );
+
 
 
 return res.data;
@@ -176,7 +188,7 @@ return res.data;
 
 
 
-// LEAVE SLOT
+// LEAVE CURRENT SLOT
 
 export async function leaveSlot(
 
@@ -185,17 +197,23 @@ slotId:string
 ){
 
 
+
 const res = await api.post(
 
 "/tournaments/team/leave-slot",
 
+
 {
+
 
 slotId
 
+
 }
 
+
 );
+
 
 
 return res.data;
@@ -211,28 +229,34 @@ return res.data;
 
 
 
-// ADMIN ADD MORE TEAMS
+// UPDATE TEAM NAME
 
-export async function increaseTeams(
+export async function updateTeamName(
 
-id:string,
+teamId:string,
 
-amount:number
+name:string
 
 ){
 
 
-const res = await api.post(
 
-`/tournaments/${id}/increase-teams`,
+const res = await api.put(
+
+`/tournaments/team/${teamId}/name`,
+
 
 {
 
-amount
+
+name
+
 
 }
 
+
 );
+
 
 
 return res.data;
