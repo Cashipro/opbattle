@@ -1,14 +1,13 @@
 "use client";
 
-
 import {
-useEffect,
-useState
+  useEffect,
+  useState
 } from "react";
 
 
 import {
-useParams
+  useParams
 } from "next/navigation";
 
 
@@ -16,12 +15,10 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-getTeamRoom,
-selectSlot,
-leaveSlot
+  getTeamRoom,
+  selectSlot,
+  leaveSlot
 } from "@/services/tournament";
-
-
 
 
 
@@ -30,32 +27,34 @@ leaveSlot
 export default function TeamRoom(){
 
 
+  const params = useParams<{ id: string }>();
 
-const params = useParams();
+  const id = params?.id;
 
 
-const id = params.id as string;
 
+  const [teams,setTeams] = useState<any[]>([]);
 
+  const [loading,setLoading] = useState(true);
 
-const [teams,setTeams] = useState<any[]>([]);
 
-const [loading,setLoading] = useState(true);
 
 
 
 
 
 
+  useEffect(()=>{
 
 
-useEffect(()=>{
+    if(id){
 
+      load();
 
-load();
+    }
 
 
-},[]);
+  },[id]);
 
 
 
@@ -64,174 +63,183 @@ load();
 
 
 
-async function load(){
+  async function load(){
 
 
-try{
+    try{
 
 
-const data =
-await getTeamRoom(id);
+      if(!id) return;
 
 
-setTeams(data);
+      const data =
+        await getTeamRoom(id);
 
 
+      setTeams(data);
 
-}catch(error){
 
 
-console.log(error);
+    }catch(error){
 
 
+      console.log(error);
 
-}finally{
 
 
-setLoading(false);
+    }finally{
 
 
-}
+      setLoading(false);
 
 
+    }
 
-}
 
 
+  }
 
 
 
 
 
 
-async function join(slotId:string){
 
 
-try{
 
+  async function join(slotId:string){
 
-await selectSlot(slotId);
 
+    try{
 
-load();
 
+      await selectSlot(slotId);
 
 
-}catch(error:any){
+      load();
 
 
-alert(
 
-error?.response?.data?.message ||
+    }catch(error:any){
 
-"Unable to select slot"
 
-);
+      alert(
 
+        error?.response?.data?.message ||
 
+        "Unable to select slot"
 
-}
+      );
 
 
 
-}
+    }
 
 
 
+  }
 
 
 
 
 
-async function leave(slotId:string){
 
 
-try{
 
 
-await leaveSlot(slotId);
+  async function leave(slotId:string){
 
 
-load();
+    try{
 
 
+      await leaveSlot(slotId);
 
-}catch(error){
 
+      load();
 
-console.log(error);
 
 
-}
+    }catch(error){
 
 
+      console.log(error);
 
-}
 
+    }
 
 
 
+  }
 
 
 
 
-return (
 
-<div className="
-flex
-min-h-screen
-bg-black
-text-white
-">
 
 
 
 
+  return (
 
 
-<Sidebar />
+    <div
+      className="
+      flex
+      min-h-screen
+      bg-black
+      text-white
+      "
+    >
 
 
 
 
+      <Sidebar />
 
 
 
 
-<main className="
-flex-1
-p-4
-pt-20
-md:p-10
-md:pt-10
-">
 
 
 
+      <main
+        className="
+        flex-1
+        p-4
+        pt-20
+        md:p-10
+        md:pt-10
+        "
+      >
 
 
 
-<div className="
-max-w-7xl
-mx-auto
-">
 
+        <div
+          className="
+          max-w-7xl
+          mx-auto
+          "
+        >
 
 
 
 
 
 
-<h1 className="
-text-3xl
-md:text-4xl
-font-black
-mb-8
-">
+          <h1
+            className="
+            text-3xl
+            md:text-4xl
+            font-black
+            mb-8
+            "
+          >
 
-👥 Team Room
+            👥 Team Room
 
-</h1>
+          </h1>
 
 
 
@@ -241,262 +249,311 @@ mb-8
 
 
 
-{
+          {
 
-loading
 
-?
+            loading
 
-<div className="
-text-gray-400
-">
+            ?
 
-Loading teams...
 
-</div>
+            <div
+              className="
+              text-gray-400
+              "
+            >
 
+              Loading teams...
 
-:
+            </div>
 
 
-<div className="
-grid
-grid-cols-1
-md:grid-cols-2
-xl:grid-cols-3
-gap-6
-">
+            :
 
 
-{
+            <div
+              className="
+              grid
+              grid-cols-1
+              md:grid-cols-2
+              xl:grid-cols-3
+              gap-6
+              "
+            >
 
-teams.map((team:any)=>(
 
 
 
-<div
+              {
 
-key={team.id}
 
-className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-"
+                teams.map((team:any)=>(
 
->
 
 
+                  <div
 
-<h2 className="
-text-2xl
-font-bold
-mb-5
-">
+                    key={team.id}
 
-{team.name}
+                    className="
+                    bg-zinc-900
+                    border
+                    border-zinc-800
+                    rounded-3xl
+                    p-6
+                    "
 
-</h2>
+                  >
 
 
 
 
 
+                    <h2
+                      className="
+                      text-2xl
+                      font-bold
+                      mb-5
+                      "
+                    >
 
+                      {team.name}
 
+                    </h2>
 
-<div className="
-space-y-3
-">
 
-{
 
-team.slots.map((slot:any)=>(
 
 
 
-<div
 
-key={slot.id}
 
-className="
-bg-zinc-800
-rounded-xl
-p-4
-flex
-justify-between
-items-center
-"
+                    <div
+                      className="
+                      space-y-3
+                      "
+                    >
 
->
 
 
+                      {
 
-<div>
 
+                        team.slots?.map((slot:any)=>(
 
-<p className="
-font-bold
-">
 
-Slot {slot.slot_number}
 
-</p>
 
+                          <div
 
+                            key={slot.id}
 
-{
+                            className="
+                            bg-zinc-800
+                            rounded-xl
+                            p-4
+                            flex
+                            justify-between
+                            items-center
+                            "
 
-slot.user
+                          >
 
-?
 
-<p className="
-text-green-400
-text-sm
-">
 
-{slot.user.name}
 
-</p>
 
+                            <div>
 
-:
 
-<p className="
-text-gray-400
-text-sm
-">
+                              <p
+                                className="
+                                font-bold
+                                "
+                              >
 
-Empty
+                                Slot {slot.slot_number}
 
-</p>
+                              </p>
 
-}
 
 
 
-</div>
+                              {
 
 
+                                slot.user
 
 
+                                ?
 
 
+                                <p
+                                  className="
+                                  text-green-400
+                                  text-sm
+                                  "
+                                >
 
+                                  {slot.user.name}
 
+                                </p>
 
-{
 
-slot.user
+                                :
 
-?
 
-<button
+                                <p
+                                  className="
+                                  text-gray-400
+                                  text-sm
+                                  "
+                                >
 
-onClick={()=>leave(slot.id)}
+                                  Empty
 
-className="
-bg-red-600
-px-4
-py-2
-rounded-lg
-text-sm
-font-bold
-"
+                                </p>
 
->
 
-Leave
+                              }
 
-</button>
 
 
-:
 
-<button
 
-onClick={()=>join(slot.id)}
+                            </div>
 
-className="
-bg-green-600
-px-4
-py-2
-rounded-lg
-text-sm
-font-bold
-"
 
->
 
-Join
 
-</button>
 
 
-}
 
 
 
+                            {
 
 
-</div>
+                              slot.user
 
 
+                              ?
 
-))
 
-}
+                              <button
 
+                                onClick={() => leave(slot.id)}
 
+                                className="
+                                bg-red-600
+                                px-4
+                                py-2
+                                rounded-lg
+                                text-sm
+                                font-bold
+                                "
 
-</div>
+                              >
 
+                                Leave
 
+                              </button>
 
 
+                              :
 
 
+                              <button
 
+                                onClick={() => join(slot.id)}
 
-</div>
+                                className="
+                                bg-green-600
+                                px-4
+                                py-2
+                                rounded-lg
+                                text-sm
+                                font-bold
+                                "
 
+                              >
 
+                                Join
 
-))
+                              </button>
 
-}
 
 
+                            }
 
-</div>
 
 
 
-}
 
+                          </div>
 
 
 
 
-</div>
+                        ))
 
 
 
+                      }
 
 
-</main>
 
 
+                    </div>
 
 
 
 
-</div>
 
-);
+
+
+                  </div>
+
+
+
+                ))
+
+
+
+              }
+
+
+
+
+
+            </div>
+
+
+
+          }
+
+
+
+
+
+        </div>
+
+
+
+
+
+      </main>
+
+
+
+
+
+
+    </div>
+
+
+
+  );
 
 
 }
