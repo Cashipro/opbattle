@@ -3,8 +3,14 @@
 
 import Link from "next/link";
 
+import {
+useState
+} from "react";
+
 
 import {
+Menu,
+X,
 Home,
 Trophy,
 Gamepad2,
@@ -26,21 +32,195 @@ LogOut
 export default function Sidebar(){
 
 
+const [open,setOpen] = useState(false);
+
+
+
+
+
+const menu = [
+
+{
+name:"Dashboard",
+url:"/dashboard",
+icon:Home
+},
+
+{
+name:"Tournaments",
+url:"/tournaments",
+icon:Trophy
+},
+
+{
+name:"My Tournaments",
+url:"/my-tournaments",
+icon:Gamepad2
+},
+
+{
+name:"Deposit",
+url:"/deposit",
+icon:Wallet
+},
+
+{
+name:"Withdraw",
+url:"/withdraw",
+icon:ArrowDownToLine
+},
+
+{
+name:"Matches",
+url:"/matches",
+icon:Swords
+},
+
+{
+name:"Leaderboard",
+url:"/leaderboard",
+icon:BarChart3
+},
+
+{
+name:"Profile",
+url:"/profile",
+icon:User
+},
+
+{
+name:"Settings",
+url:"/settings",
+icon:Settings
+}
+
+];
+
+
+
+
+
+
+
 return (
 
-<aside className="
+<>
+
+
+{/* MOBILE BUTTON */}
+
+<button
+
+onClick={()=>setOpen(true)}
+
+className="
+md:hidden
+fixed
+top-4
+left-4
+z-50
+bg-zinc-900
+p-3
+rounded-xl
+border
+border-zinc-700
+"
+
+>
+
+<Menu />
+
+</button>
+
+
+
+
+
+
+
+
+{/* OVERLAY */}
+
+{
+
+open &&
+
+<div
+
+onClick={()=>setOpen(false)}
+
+className="
+fixed
+inset-0
+bg-black/60
+z-40
+md:hidden
+"
+
+/>
+
+}
+
+
+
+
+
+
+
+
+{/* SIDEBAR */}
+
+<aside
+
+className={`
+
+fixed
+z-50
+top-0
+left-0
+h-screen
 w-64
-min-h-screen
 bg-zinc-950
 border-r
 border-zinc-800
 p-5
 text-white
-hidden
-md:flex
-flex-col
-">
+transform
+transition-transform
+duration-300
 
+md:translate-x-0
+
+${
+
+open
+
+?
+
+"translate-x-0"
+
+:
+
+"-translate-x-full md:translate-x-0"
+
+}
+
+`}
+
+>
+
+
+
+
+
+
+
+<div className="
+flex
+justify-between
+items-center
+mb-10
+">
 
 
 
@@ -49,7 +229,6 @@ flex-col
 <h1 className="
 text-2xl
 font-black
-mb-10
 text-green-400
 ">
 
@@ -63,19 +242,56 @@ TOURNAMENT HUB
 
 
 
+<button
+
+onClick={()=>setOpen(false)}
+
+className="
+md:hidden
+"
+
+>
+
+<X />
+
+</button>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
 
 <nav className="
 space-y-2
-flex-1
 ">
 
 
 
 
 
+{
+
+menu.map((item)=>(
+
+
+
 <Link
 
-href="/dashboard"
+key={item.name}
+
+href={item.url}
+
+onClick={()=>setOpen(false)}
 
 className="
 flex
@@ -89,248 +305,20 @@ transition
 
 >
 
-<Home size={20}/>
 
-Dashboard
+<item.icon size={20}/>
+
+
+{item.name}
+
 
 </Link>
 
 
 
+))
 
-
-
-
-
-<Link
-
-href="/tournaments"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<Trophy size={20}/>
-
-Tournaments
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/my-tournaments"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<Gamepad2 size={20}/>
-
-My Tournaments
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/deposit"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<Wallet size={20}/>
-
-Deposit
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/withdraw"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<ArrowDownToLine size={20}/>
-
-Withdraw
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/matches"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<Swords size={20}/>
-
-Matches
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/leaderboard"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<BarChart3 size={20}/>
-
-Leaderboard
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/profile"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<User size={20}/>
-
-Profile
-
-</Link>
-
-
-
-
-
-
-
-
-<Link
-
-href="/settings"
-
-className="
-flex
-items-center
-gap-3
-p-3
-rounded-xl
-hover:bg-zinc-800
-transition
-"
-
->
-
-<Settings size={20}/>
-
-Settings
-
-</Link>
-
-
-
-
-
+}
 
 
 
@@ -346,14 +334,13 @@ Settings
 <button
 
 className="
+absolute
+bottom-6
 flex
 items-center
 gap-3
-p-3
-rounded-xl
 text-red-400
-hover:bg-zinc-800
-transition
+p-3
 "
 
 >
@@ -372,6 +359,12 @@ Logout
 
 
 </aside>
+
+
+
+
+
+</>
 
 );
 
