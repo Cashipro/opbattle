@@ -12,12 +12,16 @@ import {
 
 
 
+
+
 @Injectable()
 export class TeamRoomService {
 
 
 constructor(
-  private prisma:PrismaService
+
+private prisma:PrismaService
+
 ){}
 
 
@@ -28,11 +32,12 @@ constructor(
 
 
 
-// CREATE PUBG ROOM WITH 100 TEAMS
-
 async generateTeams(
-  tournamentId:string
+
+tournamentId:string
+
 ){
+
 
 
 const tournament =
@@ -40,12 +45,18 @@ const tournament =
 await this.prisma.tournament.findUnique({
 
 where:{
+
 id:tournamentId
+
 },
 
+
 include:{
+
 joins:true
+
 }
+
 
 });
 
@@ -53,10 +64,15 @@ joins:true
 
 
 
+
+
 if(!tournament){
 
+
 throw new BadRequestException(
+
 "Tournament not found"
+
 );
 
 }
@@ -69,12 +85,14 @@ throw new BadRequestException(
 
 
 
-const existing =
+const existingTeams =
 
 await this.prisma.tournamentTeam.count({
 
 where:{
+
 tournament_id:tournamentId
+
 }
 
 });
@@ -85,34 +103,20 @@ tournament_id:tournamentId
 
 
 
-if(existing){
 
-return {
 
-message:"Teams already created"
+// create only once
 
-};
-
-}
+if(existingTeams === 0){
 
 
 
 
-
-
-
-
-
-let playerIndex = 0;
-
-
-
-// CREATE 100 TEAMS
 
 for(
-let teamNumber = 1;
-teamNumber <= 100;
-teamNumber++
+let i=1;
+i<=100;
+i++
 ){
 
 
@@ -127,10 +131,10 @@ data:{
 tournament_id:tournamentId,
 
 
-team_number:teamNumber,
+team_number:i,
 
 
-name:`Team ${teamNumber}`
+name:`Team ${i}`
 
 
 }
@@ -143,49 +147,11 @@ name:`Team ${teamNumber}`
 
 
 
-
-
-// 4 SLOTS EACH TEAM
-
 for(
-let slotNumber = 1;
-slotNumber <= 4;
-slotNumber++
+let slot=1;
+slot<=4;
+slot++
 ){
-
-
-
-let userId = null;
-
-let joinedAt = null;
-
-
-
-
-
-
-if(
-tournament.joins[playerIndex]
-){
-
-
-userId =
-tournament.joins[playerIndex].user_id;
-
-
-joinedAt =
-new Date();
-
-
-
-playerIndex++;
-
-
-}
-
-
-
-
 
 
 
@@ -197,13 +163,170 @@ data:{
 team_id:team.id,
 
 
-slot_number:slotNumber,
+slot_number:slot
 
 
-user_id:userId,
+}
+
+});
 
 
-joined_at:joinedAt
+}
+
+
+
+}
+
+
+
+
+}
+
+
+
+
+
+
+
+
+// fill empty slots
+
+const players =
+
+await this.prisma.tournamentJoin.findMany({
+
+where:{
+
+tournament_id:tournamentId
+
+},
+
+
+include:{
+
+user:true
+
+}
+
+
+});
+
+
+
+
+
+
+
+
+
+for(const player of players){
+
+
+
+
+
+const alreadyPlaced =
+
+await this.prisma.teamSlot.findFirst({
+
+where:{
+
+user_id:player.user_id,
+
+team:{
+tournament_id:tournamentId
+}
+
+}
+
+});
+
+
+
+
+
+
+
+if(alreadyPlaced){
+
+continue;
+
+}
+
+
+
+
+
+
+
+
+
+const emptySlot =
+
+await this.prisma.teamSlot.findFirst({
+
+where:{
+
+
+user_id:null,
+
+
+team:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+
+},
+
+
+orderBy:{
+
+
+created_at:"asc"
+
+
+}
+
+
+});
+
+
+
+
+
+
+
+if(!emptySlot){
+
+break;
+
+}
+
+
+
+
+
+
+
+await this.prisma.teamSlot.update({
+
+where:{
+
+id:emptySlot.id
+
+},
+
+data:{
+
+
+user_id:player.user_id,
+
+
+joined_at:new Date()
 
 
 }
@@ -220,10 +343,6 @@ joined_at:joinedAt
 
 
 
-}
-
-
-
 
 
 
@@ -231,9 +350,11 @@ joined_at:joinedAt
 
 return {
 
-message:"100 PUBG teams created",
 
-teams:100
+message:"PUBG Room Updated",
+
+
+totalTeams:100
 
 
 };
@@ -249,8 +370,6 @@ teams:100
 
 
 
-
-// GET PUBG ROOM
 
 async getRoom(
 
@@ -269,13 +388,11 @@ tournament_id:tournamentId
 },
 
 
-
 orderBy:{
 
 team_number:"asc"
 
 },
-
 
 
 include:{
@@ -302,27 +419,20 @@ select:{
 
 id:true,
 
-
 name:true,
-
 
 pubg_uid:true
 
 
 }
 
+}
 
 }
 
-
 }
 
-
 }
-
-
-}
-
 
 
 });
@@ -338,38 +448,23 @@ pubg_uid:true
 
 
 
-// SELECT PLAYER SLOT
+async updateTeamName(
 
-async joinSlot(
+teamId:string,
 
-slotId:string,
-
-userId:string
+name:string
 
 ){
 
 
 
-const slot =
+if(!name){
 
-await this.prisma.teamSlot.findUnique({
-
-where:{
-
-id:slotId
-
-}
-
-});
-
-
-
-
-
-if(!slot){
 
 throw new BadRequestException(
-"Slot not found"
+
+"Team name required"
+
 );
 
 }
@@ -380,67 +475,18 @@ throw new BadRequestException(
 
 
 
-if(slot.user_id){
-
-throw new BadRequestException(
-"Slot already occupied"
-);
-
-}
-
-
-
-
-
-
-
-
-
-// REMOVE OLD POSITION
-
-await this.prisma.teamSlot.updateMany({
+return this.prisma.tournamentTeam.update({
 
 where:{
 
-user_id:userId
-
-},
-
-data:{
-
-user_id:null,
-
-joined_at:null
-
-}
-
-});
-
-
-
-
-
-
-
-
-
-// ADD NEW POSITION
-
-return this.prisma.teamSlot.update({
-
-where:{
-
-id:slotId
+id:teamId
 
 },
 
 data:{
 
 
-user_id:userId,
-
-
-joined_at:new Date()
+name:name.trim()
 
 
 }
@@ -448,7 +494,6 @@ joined_at:new Date()
 });
 
 
-
 }
 
 
@@ -458,8 +503,6 @@ joined_at:new Date()
 
 
 
-
-// LEAVE TEAM SLOT
 
 async leaveSlot(
 
@@ -487,6 +530,7 @@ joined_at:null
 
 
 }
+
 
 });
 
