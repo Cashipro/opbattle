@@ -7,17 +7,14 @@ Body
 } from '@nestjs/common';
 
 
-
 import {
 AdminTournamentService
 } from './admin-tournament.service';
 
 
-
 import {
 AutoPlannerService
 } from '../tournaments/auto-planner.service';
-
 
 
 import {
@@ -38,14 +35,13 @@ export class AdminTournamentController {
 
 constructor(
 
-
-private adminTournamentService: AdminTournamentService,
-
-
-private autoPlannerService: AutoPlannerService,
+private adminTournamentService:AdminTournamentService,
 
 
-private nextRoundService: NextRoundService
+private autoPlannerService:AutoPlannerService,
+
+
+private nextRoundService:NextRoundService
 
 
 ){}
@@ -56,6 +52,9 @@ private nextRoundService: NextRoundService
 
 
 
+
+
+// CREATE TOURNAMENT
 
 @Post()
 
@@ -72,6 +71,7 @@ body
 
 );
 
+
 }
 
 
@@ -81,6 +81,8 @@ body
 
 
 
+
+// ALL TOURNAMENTS
 
 @Get()
 
@@ -89,6 +91,7 @@ allTournaments(){
 
 return this.adminTournamentService.allTournaments();
 
+
 }
 
 
@@ -98,6 +101,8 @@ return this.adminTournamentService.allTournaments();
 
 
 
+
+// CLOSE JOINING
 
 @Post(':id/close')
 
@@ -114,6 +119,7 @@ id
 
 );
 
+
 }
 
 
@@ -123,6 +129,8 @@ id
 
 
 
+
+// GET TEAMS
 
 @Get(':id/teams')
 
@@ -139,6 +147,7 @@ id
 
 );
 
+
 }
 
 
@@ -149,9 +158,47 @@ id
 
 
 
+// INCREASE TEAMS
+
+@Post(':id/increase-teams')
+
+increaseTeams(
+
+@Param('id') id:string,
+
+
+@Body() body:any
+
+){
+
+
+
+return this.adminTournamentService.increaseTeams(
+
+id,
+
+
+Number(body.amount || 100)
+
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+// ADD MATCH ROOM
+
 @Post('match/:id/room')
 
-room(
+addRoom(
 
 @Param('id') id:string,
 
@@ -169,6 +216,7 @@ body
 
 );
 
+
 }
 
 
@@ -179,9 +227,11 @@ body
 
 
 
+// FINISH MATCH
+
 @Post('match/:id/finish')
 
-finish(
+finishMatch(
 
 @Param('id') id:string
 
@@ -194,6 +244,7 @@ id
 
 );
 
+
 }
 
 
@@ -203,6 +254,8 @@ id
 
 
 
+
+// CALCULATE NEXT ROUND
 
 @Post(':id/calculate-plan')
 
@@ -219,6 +272,7 @@ id
 
 );
 
+
 }
 
 
@@ -228,6 +282,8 @@ id
 
 
 
+
+// NEXT ROUND
 
 @Post(':id/next-round')
 
@@ -243,6 +299,7 @@ return this.nextRoundService.generateNextRound(
 id
 
 );
+
 
 }
 
