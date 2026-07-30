@@ -3,9 +3,14 @@ Injectable,
 BadRequestException
 } from '@nestjs/common';
 
+
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
+
 
 
 
@@ -14,33 +19,85 @@ PrismaService
 export class ResultService {
 
 
+
 constructor(
+
 private prisma:PrismaService
+
 ){}
 
 
 
 
 
-async getMatchTeams(matchId:string){
 
 
-const match = await this.prisma.tournamentMatch.findUnique({
+
+
+async getMatchTeams(
+
+matchId:string
+
+){
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.findUnique({
 
 where:{
+
+
 id:matchId
+
+
 },
 
+
+
 include:{
+
 
 
 teams:{
 
 
+
 include:{
 
 
-team:true
+
+team:{
+
+
+
+include:{
+
+
+
+slots:{
+
+
+
+include:{
+
+
+
+user:{
+
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
 
 
 }
@@ -49,20 +106,53 @@ team:true
 }
 
 
+
 }
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
 
 
 });
 
 
 
+
+
+
 if(!match){
 
+
 throw new BadRequestException(
+
 "Match not found"
+
 );
 
+
 }
+
+
+
+
 
 
 
@@ -71,6 +161,7 @@ return match;
 
 
 }
+
 
 
 
@@ -89,6 +180,8 @@ body:any
 
 
 
+
+
 const {
 
 matchTeamId,
@@ -103,14 +196,19 @@ position
 
 
 
-const matchTeam = await this.prisma.matchTeam.findUnique({
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.findUnique({
 
 where:{
-id:matchTeamId
-},
 
-include:{
-team:true
+
+id:matchId
+
+
 }
 
 });
@@ -119,11 +217,17 @@ team:true
 
 
 
-if(!matchTeam){
+
+
+if(!match){
+
 
 throw new BadRequestException(
-"Team not found"
+
+"Match not found"
+
 );
+
 
 }
 
@@ -131,21 +235,148 @@ throw new BadRequestException(
 
 
 
+
+
+if(match.status !== "finished"){
+
+
+throw new BadRequestException(
+
+"Finish match before adding result"
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+const already =
+
+await this.prisma.matchResult.findFirst({
+
+where:{
+
+
+match_id:matchId,
+
+
+team_id:matchTeamId
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(already){
+
+
+throw new BadRequestException(
+
+"Result already added"
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+const matchTeam =
+
+await this.prisma.matchTeam.findUnique({
+
+where:{
+
+
+id:matchTeamId
+
+
+},
+
+
+
+include:{
+
+
+team:true
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+if(!matchTeam){
+
+
+throw new BadRequestException(
+
+"Team not found"
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
 const positionPoints =
+
 this.calculatePositionPoints(
+
 Number(position)
+
 );
 
 
 
 
+
+
+
 const killPoints =
+
 Number(kills);
 
 
 
 
+
+
+
+
 const totalPoints =
+
 positionPoints + killPoints;
 
 
@@ -154,10 +385,14 @@ positionPoints + killPoints;
 
 
 
+
+
 const result =
+
 await this.prisma.matchResult.create({
 
 data:{
+
 
 
 match_id:matchId,
@@ -176,7 +411,20 @@ points:totalPoints
 
 
 
+},
+
+
+
+include:{
+
+
+
+team:true
+
+
+
 }
+
 
 
 });
@@ -185,7 +433,20 @@ points:totalPoints
 
 
 
-return result;
+
+
+
+return {
+
+
+message:"Result saved successfully",
+
+
+result
+
+
+
+};
 
 
 
@@ -199,30 +460,43 @@ return result;
 
 
 
-calculatePositionPoints(position:number){
+calculatePositionPoints(
+
+position:number
+
+){
 
 
 
-const points={
+const points:any={
 
 
 1:15,
 
+
 2:12,
+
 
 3:10,
 
+
 4:8,
+
 
 5:6,
 
+
 6:5,
+
 
 7:4,
 
+
 8:3,
 
+
 9:2,
+
 
 10:1
 
@@ -231,11 +505,15 @@ const points={
 
 
 
+
+
+
 return points[position] || 0;
 
 
 
 }
+
 
 
 
