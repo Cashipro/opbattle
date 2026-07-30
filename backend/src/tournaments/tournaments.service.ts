@@ -1,19 +1,20 @@
 import {
-Injectable,
-BadRequestException
+  Injectable,
+  BadRequestException
 } from '@nestjs/common';
 
 
 import {
-PrismaService
+  PrismaService
 } from '../prisma/prisma.service';
 
 
 
 
 
-@Injectable()
 
+
+@Injectable()
 export class TournamentsService {
 
 
@@ -23,6 +24,7 @@ constructor(
 private prisma:PrismaService
 
 ){}
+
 
 
 
@@ -42,13 +44,14 @@ where:{
 
 status:{
 
+
 not:"completed"
+
 
 }
 
 
 },
-
 
 
 orderBy:{
@@ -58,7 +61,6 @@ created_at:"desc"
 
 
 },
-
 
 
 select:{
@@ -91,13 +93,10 @@ status:true,
 created_at:true
 
 
-
 }
 
 
-
 });
-
 
 
 }
@@ -124,15 +123,14 @@ await this.prisma.tournament.findUnique({
 
 where:{
 
-
 id
-
 
 },
 
 
 
 include:{
+
 
 
 teams:{
@@ -152,7 +150,72 @@ team_number:"asc"
 include:{
 
 
+
 slots:{
+
+
+
+orderBy:{
+
+
+slot_number:"asc"
+
+
+},
+
+
+
+include:{
+
+
+
+user:{
+
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+},
+
+
+
+rounds:true,
+
+
+matches:true,
+
+
+joins:{
+
 
 
 include:{
@@ -192,20 +255,6 @@ pubg_uid:true
 
 
 
-},
-
-
-rounds:true,
-
-
-matches:true
-
-
-
-}
-
-
-
 });
 
 
@@ -214,7 +263,10 @@ matches:true
 
 
 
+
+
 if(!tournament){
+
 
 
 throw new BadRequestException(
@@ -231,7 +283,49 @@ throw new BadRequestException(
 
 
 
-return tournament;
+
+
+return {
+
+
+id:tournament.id,
+
+
+name:tournament.name,
+
+
+entry_fee:tournament.entry_fee,
+
+
+currency:tournament.currency,
+
+
+reward:tournament.reward,
+
+
+start_date:tournament.start_date,
+
+
+start_time:tournament.start_time,
+
+
+status:tournament.status,
+
+
+
+teams:tournament.teams,
+
+
+
+totalTeams:tournament.teams.length,
+
+
+
+players:tournament.joins.length
+
+
+
+};
 
 
 
@@ -249,8 +343,6 @@ async create(data:any){
 
 
 
-
-
 if(
 
 !data.name ||
@@ -265,12 +357,14 @@ if(
 
 ){
 
+
 throw new BadRequestException(
 
 "Missing tournament fields"
 
 );
 
+
 }
 
 
@@ -279,42 +373,51 @@ throw new BadRequestException(
 
 
 
-return this.prisma.tournament.create({
+
+const tournament =
+
+await this.prisma.tournament.create({
 
 data:{
-
 
 
 name:data.name,
 
 
-
 entry_fee:Number(data.entry_fee),
-
 
 
 currency:data.currency,
 
 
-
-reward:data.reward ? Number(data.reward) : null,
-
+reward:data.reward
+?
+Number(data.reward)
+:
+null,
 
 
 start_date:new Date(data.start_date),
 
 
+start_time:data.start_time,
 
-start_time:data.start_time
 
+status:"upcoming"
 
 
 }
 
 
-
 });
 
+
+
+
+
+
+
+return tournament;
 
 
 }
