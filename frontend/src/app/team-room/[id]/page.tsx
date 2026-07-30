@@ -27,6 +27,7 @@ leaveSlot
 
 
 
+
 export default function TeamRoom(){
 
 
@@ -37,10 +38,11 @@ const id = params?.id;
 
 
 
-
 const [teams,setTeams] = useState<any[]>([]);
 
 const [loading,setLoading] = useState(true);
+
+const [myTeam,setMyTeam] = useState<string | null>(null);
 
 
 
@@ -55,7 +57,7 @@ useEffect(()=>{
 
 if(id){
 
-loadRoom();
+load();
 
 }
 
@@ -70,19 +72,34 @@ loadRoom();
 
 
 
-async function loadRoom(){
+async function load(){
 
 
 try{
-
-
-if(!id)return;
 
 
 const data = await getTeamRoom(id);
 
 
 setTeams(data);
+
+
+
+
+
+const current = data.find((team:any)=>
+
+team.slots.some((slot:any)=>slot.user)
+
+);
+
+
+
+if(current){
+
+setMyTeam(current.id);
+
+}
 
 
 
@@ -112,7 +129,7 @@ setLoading(false);
 
 
 
-async function joinSlot(slotId:string){
+async function join(slotId:string){
 
 
 try{
@@ -121,8 +138,7 @@ try{
 await selectSlot(slotId);
 
 
-loadRoom();
-
+load();
 
 
 }catch(error:any){
@@ -140,7 +156,6 @@ error?.response?.data?.message ||
 }
 
 
-
 }
 
 
@@ -151,28 +166,13 @@ error?.response?.data?.message ||
 
 
 
-async function exitSlot(slotId:string){
-
-
-try{
+async function leave(slotId:string){
 
 
 await leaveSlot(slotId);
 
 
-loadRoom();
-
-
-
-}catch(error){
-
-
-console.log(error);
-
-
-}
-
-
+load();
 
 }
 
@@ -189,29 +189,44 @@ function TeamCard({team}:any){
 
 return (
 
-<div className="
-bg-zinc-900
-border
-border-zinc-800
+
+<div
+
+className={`
 rounded-3xl
 p-5
-">
+border
+transition
 
+${
+myTeam===team.id
 
+?
 
+"border-green-500 bg-green-500/10"
+
+:
+
+"border-zinc-800 bg-zinc-900"
+
+}
+
+`}
+
+>
 
 
 
 <div className="
 flex
 justify-between
-items-center
 mb-5
 ">
 
+
 <h2 className="
-text-xl
 font-black
+text-xl
 ">
 
 {team.name}
@@ -221,17 +236,14 @@ font-black
 
 <span className="
 text-gray-400
-text-sm
 ">
 
-Team {team.team_number}
+#{team.team_number}
 
 </span>
 
 
 </div>
-
-
 
 
 
@@ -247,12 +259,9 @@ gap-3
 
 
 
-
-
 {
 
 team.slots.map((slot:any)=>(
-
 
 
 <div
@@ -263,15 +272,38 @@ className="
 bg-zinc-800
 rounded-xl
 p-4
+min-h-[130px]
 text-center
-min-h-[120px]
 flex
 flex-col
-justify-center
 items-center
+justify-center
 "
 
 >
+
+
+<div className="
+text-3xl
+">
+
+{
+
+slot.user
+
+?
+
+"👤"
+
+:
+
+"➕"
+
+}
+
+</div>
+
+
 
 
 
@@ -285,20 +317,10 @@ slot.user
 
 <>
 
-<div className="
-text-3xl
-">
-
-👤
-
-</div>
-
-
 <p className="
 font-bold
 text-green-400
 text-sm
-break-all
 ">
 
 {slot.user.name}
@@ -318,16 +340,15 @@ text-gray-400
 
 <button
 
-onClick={()=>exitSlot(slot.id)}
+onClick={()=>leave(slot.id)}
 
 className="
-mt-3
+mt-2
 bg-red-600
 px-3
 py-1
 rounded-lg
 text-xs
-font-bold
 "
 
 >
@@ -336,55 +357,30 @@ Leave
 
 </button>
 
-
 </>
 
 
 :
 
-<>
-
-<div className="
-text-3xl
-">
-
-➕
-
-</div>
-
-
-<p className="
-text-gray-400
-text-sm
-mb-2
-">
-
-Empty Slot
-
-</p>
-
-
 <button
 
-onClick={()=>joinSlot(slot.id)}
+onClick={()=>join(slot.id)}
 
 className="
+mt-2
 bg-green-600
-px-3
-py-1
+px-4
+py-2
 rounded-lg
-text-xs
 font-bold
+text-sm
 "
 
 >
 
-Join
+Join Slot
 
 </button>
-
-
-</>
 
 
 
@@ -393,18 +389,13 @@ Join
 
 
 
-
 </div>
-
 
 
 ))
 
 
 }
-
-
-
 
 
 
@@ -444,7 +435,7 @@ items-center
 justify-center
 ">
 
-Loading Room...
+Loading PUBG Room...
 
 </div>
 
@@ -471,14 +462,7 @@ text-white
 ">
 
 
-
-
-
-
 <Sidebar />
-
-
-
 
 
 
@@ -490,23 +474,13 @@ p-4
 pt-20
 md:ml-64
 md:p-10
-md:pt-10
 ">
-
-
-
-
 
 
 <div className="
 max-w-7xl
 mx-auto
 ">
-
-
-
-
-
 
 
 <div className="
@@ -517,8 +491,6 @@ rounded-3xl
 p-6
 mb-8
 ">
-
-
 
 
 <h1 className="
@@ -534,10 +506,9 @@ font-black
 
 <p className="
 text-gray-400
-mt-2
 ">
 
-Select your team position
+Choose your squad position
 
 </p>
 
@@ -560,14 +531,9 @@ gap-6
 ">
 
 
-
-
-
-
 {
 
 teams.map((team:any)=>(
-
 
 <TeamCard
 
@@ -577,37 +543,22 @@ team={team}
 
 />
 
-
 ))
 
 
 }
 
 
-
-
-
-
 </div>
 
 
 
 
 
-
-
 </div>
-
-
-
-
 
 
 </main>
-
-
-
-
 
 
 
