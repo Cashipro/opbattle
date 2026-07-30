@@ -9,6 +9,9 @@ useState
 import Sidebar from "@/components/Sidebar";
 
 
+import api from "@/lib/api";
+
+
 
 
 
@@ -16,10 +19,11 @@ import Sidebar from "@/components/Sidebar";
 export default function Deposit(){
 
 
-
 const [amount,setAmount] = useState("");
 
-const [network,setNetwork] = useState("");
+const [method,setMethod] = useState("");
+
+const [loading,setLoading] = useState(false);
 
 
 
@@ -28,23 +32,20 @@ const [network,setNetwork] = useState("");
 
 
 
-const walletAddress =
-network === "TRC20"
 
-?
-"TXXXXXXXXXXXXXXXXXXXX"
+const paymentDetails = {
 
-:
+"EasyPaisa / JazzCash":
 
-network === "BEP20"
+"03455555505",
 
-?
 
-"0xXXXXXXXXXXXXXXXX"
+"Bank Al Habib":
 
-:
+"01350981002414016"
 
-"";
+
+};
 
 
 
@@ -53,28 +54,99 @@ network === "BEP20"
 
 
 
-function submit(){
+
+async function submit(){
 
 
-if(!amount || !network){
+if(!amount || !method){
+
 
 alert(
 "Please fill all fields"
 );
 
+
 return;
+
 
 }
 
 
 
-alert(
-"Deposit request submitted"
+
+try{
+
+
+setLoading(true);
+
+
+
+await api.post(
+
+"/deposit/create",
+
+{
+
+
+amount:Number(amount),
+
+
+method
+
+
+}
+
+
 );
 
 
 
+
+
+alert(
+
+"Deposit request submitted"
+
+);
+
+
+
+
+
+setAmount("");
+
+setMethod("");
+
+
+
+
+
+}catch(error:any){
+
+
+
+alert(
+
+error?.response?.data?.message ||
+
+"Deposit failed"
+
+);
+
+
+
+}finally{
+
+
+setLoading(false);
+
+
 }
+
+
+
+}
+
 
 
 
@@ -91,6 +163,7 @@ min-h-screen
 bg-black
 text-white
 ">
+
 
 
 
@@ -146,6 +219,7 @@ mb-8
 
 
 
+
 <div className="
 bg-zinc-900
 border
@@ -178,7 +252,9 @@ Amount
 
 value={amount}
 
-onChange={(e)=>setAmount(e.target.value)}
+onChange={(e)=>
+setAmount(e.target.value)
+}
 
 type="number"
 
@@ -192,7 +268,7 @@ p-4
 outline-none
 "
 
- />
+/>
 
 </div>
 
@@ -212,16 +288,20 @@ block
 mb-2
 ">
 
-Network
+Payment Method
 
 </label>
 
 
+
+
 <select
 
-value={network}
+value={method}
 
-onChange={(e)=>setNetwork(e.target.value)}
+onChange={(e)=>
+setMethod(e.target.value)
+}
 
 className="
 w-full
@@ -234,23 +314,24 @@ outline-none
 >
 
 
+
 <option value="">
 
-Select Network
+Select Method
 
 </option>
 
 
-<option value="TRC20">
+<option value="EasyPaisa / JazzCash">
 
-USDT TRC20
+EasyPaisa / JazzCash
 
 </option>
 
 
-<option value="BEP20">
+<option value="Bank Al Habib">
 
-USDT BEP20
+Bank Al Habib
 
 </option>
 
@@ -270,13 +351,13 @@ USDT BEP20
 
 {
 
-walletAddress &&
+method &&
+
 
 <div className="
 bg-zinc-800
 rounded-xl
-p-4
-break-all
+p-5
 ">
 
 <p className="
@@ -284,22 +365,44 @@ text-gray-400
 mb-2
 ">
 
-Send USDT To:
+Send Payment To:
 
 </p>
 
 
 <p className="
-font-bold
 text-green-400
+font-black
+text-lg
 ">
 
-{walletAddress}
+{paymentDetails[method as keyof typeof paymentDetails]}
+
+</p>
+
+
+
+<p className="
+text-gray-400
+mt-3
+">
+
+Account Name:
+
+<span className="
+text-white
+font-bold
+">
+
+Kashif Iqbal
+
+</span>
 
 </p>
 
 
 </div>
+
 
 }
 
@@ -315,18 +418,33 @@ text-green-400
 
 onClick={submit}
 
+disabled={loading}
+
 className="
 w-full
 bg-green-600
+hover:bg-green-700
 py-4
 rounded-xl
 font-black
-hover:bg-green-700
 "
 
 >
 
-Submit Deposit
+{
+
+loading
+
+?
+
+"Submitting..."
+
+:
+
+"Submit Deposit"
+
+}
+
 
 </button>
 
@@ -345,15 +463,14 @@ Submit Deposit
 
 
 
-
 </div>
 
 
 
 
 
-</main>
 
+</main>
 
 
 
