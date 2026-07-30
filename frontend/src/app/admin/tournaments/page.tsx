@@ -5,19 +5,22 @@ import {
   useState
 } from "react";
 
-import Link from "next/link";
 
 import api from "@/lib/api";
 
+
 import {
-  Plus,
   Trophy,
-  Eye,
+  Plus,
   XCircle
 } from "lucide-react";
 
 
+
+
+
 export default function AdminTournamentsPage(){
+
 
 
 const [tournaments,setTournaments] =
@@ -28,22 +31,31 @@ const [loading,setLoading] =
 useState(true);
 
 
-const [showCreate,setShowCreate] =
+
+const [showForm,setShowForm] =
 useState(false);
 
 
 
 const [form,setForm] =
-useState({
+useState<any>({
 
 name:"",
+
 entry_fee:"",
-currency:"UC",
+
+currency:"USDT",
+
 reward:"",
+
 start_date:"",
+
 start_time:""
 
+
 });
+
+
 
 
 
@@ -60,6 +72,8 @@ loadTournaments();
 
 
 
+
+
 async function loadTournaments(){
 
 
@@ -67,7 +81,10 @@ try{
 
 
 const res =
-await api.get("/tournaments");
+await api.get(
+"/admin/tournaments"
+);
+
 
 
 setTournaments(
@@ -91,7 +108,33 @@ setLoading(false);
 }
 
 
+
 }
+
+
+
+
+
+
+
+function change(
+field:string,
+value:string
+){
+
+
+setForm({
+
+...form,
+
+[field]:value
+
+});
+
+
+}
+
+
 
 
 
@@ -105,40 +148,35 @@ try{
 
 
 await api.post(
+
 "/admin/tournaments",
-{
 
-name:form.name,
+form
 
-entry_fee:Number(form.entry_fee),
-
-currency:form.currency,
-
-reward:Number(form.reward),
-
-start_date:form.start_date,
-
-start_time:form.start_time
-
-
-}
 );
 
 
 
-setShowCreate(false);
+setShowForm(false);
 
 
 setForm({
 
 name:"",
+
 entry_fee:"",
-currency:"UC",
+
+currency:"USDT",
+
 reward:"",
+
 start_date:"",
+
 start_time:""
 
+
 });
+
 
 
 loadTournaments();
@@ -156,25 +194,20 @@ console.log(error);
 
 
 }
-
-
-
-
-
-
-async function closeTournament(id:string){
+  async function closeTournament(id:string){
 
 
 try{
 
 
-await api.patch(
+await api.post(
 
 `/admin/tournaments/${id}/close`
 
 );
 
 
+
 loadTournaments();
 
 
@@ -188,7 +221,11 @@ console.log(error);
 }
 
 
+
 }
+
+
+
 
 
 
@@ -197,7 +234,12 @@ console.log(error);
 
 return (
 
-<div className="space-y-8">
+<div className="
+space-y-8
+">
+
+
+
 
 
 <div className="
@@ -209,10 +251,16 @@ items-center
 
 <div>
 
+
 <h1 className="
 text-4xl
 font-black
+flex
+items-center
+gap-3
 ">
+
+<Trophy className="text-yellow-400"/>
 
 Tournaments
 
@@ -224,7 +272,7 @@ text-zinc-400
 mt-2
 ">
 
-Manage all tournaments
+Create and manage tournaments
 
 </p>
 
@@ -237,13 +285,15 @@ Manage all tournaments
 
 <button
 
-onClick={()=>setShowCreate(true)}
+onClick={()=>
+setShowForm(true)
+}
 
 className="
 bg-green-600
 px-5
 py-3
-rounded-2xl
+rounded-xl
 font-bold
 flex
 items-center
@@ -252,305 +302,367 @@ gap-2
 
 >
 
-
-<Plus className="w-5 h-5"/>
+<Plus/>
 
 Create
 
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+{
+
+showForm &&
+
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+space-y-4
+">
+
+
+<h2 className="
+text-2xl
+font-black
+">
+
+Create Tournament
+
+</h2>
+
+
+
+
+
+
+<input
+
+placeholder="Tournament Name"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={form.name}
+
+onChange={(e)=>
+change(
+"name",
+e.target.value
+)
+}
+
+/>
+
+
+
+
+
+
+<input
+
+placeholder="Entry Fee"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={form.entry_fee}
+
+onChange={(e)=>
+change(
+"entry_fee",
+e.target.value
+)
+}
+
+/>
+
+
+
+
+
+
+
+<input
+
+placeholder="Reward"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={form.reward}
+
+onChange={(e)=>
+change(
+"reward",
+e.target.value
+)
+}
+
+/>
+
+
+
+
+
+
+
+<input
+
+type="date"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={form.start_date}
+
+onChange={(e)=>
+change(
+"start_date",
+e.target.value
+)
+}
+
+/>
+
+
+
+
+
+
+
+<input
+
+type="time"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
+
+value={form.start_time}
+
+onChange={(e)=>
+change(
+"start_time",
+e.target.value
+)
+}
+
+/>
+
+
+
+
+
+
+
+<div className="
+flex
+gap-3
+">
+
+
+<button
+
+onClick={createTournament}
+
+className="
+bg-green-600
+px-6
+py-3
+rounded-xl
+font-bold
+"
+
+>
+
+Save
+
+</button>
+
+
+
+
+<button
+
+onClick={()=>
+setShowForm(false)
+}
+
+className="
+bg-red-600
+px-6
+py-3
+rounded-xl
+font-bold
+flex
+gap-2
+"
+
+>
+
+<XCircle/>
+
+Cancel
 
 </button>
 
 
 </div>
-        {showCreate && (
-
-        <div className="
-        bg-zinc-900
-        border
-        border-zinc-800
-        rounded-3xl
-        p-6
-        space-y-4
-        ">
-
-          <h2 className="text-2xl font-black">
-            Create Tournament
-          </h2>
-
-
-          <input
-            placeholder="Tournament Name"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.name}
-            onChange={(e)=>setForm({
-              ...form,
-              name:e.target.value
-            })}
-          />
-
-
-          <input
-            placeholder="Entry Fee"
-            type="number"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.entry_fee}
-            onChange={(e)=>setForm({
-              ...form,
-              entry_fee:e.target.value
-            })}
-          />
-
-
-          <input
-            placeholder="Currency"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.currency}
-            onChange={(e)=>setForm({
-              ...form,
-              currency:e.target.value
-            })}
-          />
-
-
-          <input
-            placeholder="Reward"
-            type="number"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.reward}
-            onChange={(e)=>setForm({
-              ...form,
-              reward:e.target.value
-            })}
-          />
-
-
-          <input
-            type="date"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.start_date}
-            onChange={(e)=>setForm({
-              ...form,
-              start_date:e.target.value
-            })}
-          />
 
 
-          <input
-            type="time"
-            className="
-            w-full
-            bg-zinc-800
-            rounded-xl
-            p-4
-            "
-            value={form.start_time}
-            onChange={(e)=>setForm({
-              ...form,
-              start_time:e.target.value
-            })}
-          />
 
 
+</div>
 
-          <button
 
-          onClick={createTournament}
+}
 
-          className="
-          w-full
-          bg-green-600
-          rounded-xl
-          py-4
-          font-black
-          "
-          >
 
-          Save Tournament
 
-          </button>
 
 
-        </div>
 
-      )}
 
 
+<div className="
+grid
+gap-5
+">
 
 
+{
 
+loading
 
-      <div className="
-      grid
-      gap-5
-      ">
+?
 
+<p className="text-zinc-400">
 
-      {
-        loading
+Loading...
 
-        ?
+</p>
 
-        <p className="text-zinc-400">
-          Loading tournaments...
-        </p>
 
+:
 
-        :
 
+tournaments.map((item:any)=>(
 
-        tournaments.map((item:any)=>(
 
+<div
 
-          <div
+key={item.id}
 
-          key={item.id}
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+"
 
-          className="
-          bg-zinc-900
-          border
-          border-zinc-800
-          rounded-3xl
-          p-6
-          flex
-          justify-between
-          items-center
-          "
+>
 
-          >
 
+<h2 className="
+text-2xl
+font-black
+">
 
-            <div>
+{item.name}
 
+</h2>
 
-              <h2 className="
-              text-2xl
-              font-black
-              flex
-              items-center
-              gap-2
-              ">
 
-              <Trophy className="text-yellow-400"/>
+<p className="
+text-zinc-400
+mt-2
+">
 
-              {item.name}
+Status:
+{" "}
+{item.status}
 
-              </h2>
+</p>
 
 
 
-              <p className="text-zinc-400 mt-2">
 
-              Entry:
-              {" "}
-              {item.entry_fee}
-              {" "}
-              {item.currency}
 
-              </p>
+<button
 
+onClick={()=>
+closeTournament(item.id)
+}
 
+className="
+mt-5
+bg-red-600
+px-5
+py-3
+rounded-xl
+font-bold
+"
 
-              <p className="text-zinc-400">
+>
 
-              Status:
-              {" "}
-              {item.status}
+Close Entries
 
-              </p>
+</button>
 
 
-            </div>
 
+</div>
 
 
+))
 
 
-            <div className="
-            flex
-            gap-3
-            ">
+}
 
 
-              <Link
 
-              href={`/admin/tournaments/${item.id}`}
+</div>
 
-              className="
-              bg-blue-600
-              p-3
-              rounded-xl
-              "
-              >
 
-              <Eye/>
 
-              </Link>
 
 
+</div>
 
-
-
-              <button
-
-              onClick={()=>closeTournament(item.id)}
-
-              className="
-              bg-red-600
-              p-3
-              rounded-xl
-              "
-              >
-
-              <XCircle/>
-
-              </button>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-        ))
-
-
-      }
-
-
-      </div>
-
-
-
-    </div>
 
 );
+
 
 }
