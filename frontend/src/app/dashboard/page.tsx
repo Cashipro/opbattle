@@ -25,6 +25,7 @@ Activity
 
 
 
+
 export default function Dashboard(){
 
 
@@ -78,8 +79,6 @@ setUser(res.data);
 
 
 
-
-
 }catch(error){
 
 
@@ -107,9 +106,7 @@ try{
 
 
 const res = await api.get(
-
 "/tournaments/user/my-tournaments"
-
 );
 
 
@@ -134,6 +131,7 @@ setLoading(false);
 }
 
 
+
 }
 
 
@@ -147,7 +145,6 @@ setLoading(false);
 return (
 
 <div className="
-flex
 min-h-screen
 bg-black
 text-white
@@ -173,9 +170,11 @@ text-white
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
 ">
+
 
 
 
@@ -277,7 +276,7 @@ text-green-400
 mt-3
 ">
 
-{user.balance || 0}
+{user.balance ?? 0}
 
 </h2>
 
@@ -444,7 +443,9 @@ gap-5
 
 
 <a
+
 href="/tournaments"
+
 className="
 bg-blue-600
 rounded-2xl
@@ -454,6 +455,7 @@ text-center
 hover:scale-105
 transition
 "
+
 >
 
 🏆 Browse Tournaments
@@ -468,7 +470,9 @@ transition
 
 
 <a
+
 href="/deposit"
+
 className="
 bg-green-600
 rounded-2xl
@@ -478,6 +482,7 @@ text-center
 hover:scale-105
 transition
 "
+
 >
 
 💰 Deposit
@@ -492,7 +497,9 @@ transition
 
 
 <a
+
 href="/withdraw"
+
 className="
 bg-red-600
 rounded-2xl
@@ -502,6 +509,7 @@ text-center
 hover:scale-105
 transition
 "
+
 >
 
 💸 Withdraw
