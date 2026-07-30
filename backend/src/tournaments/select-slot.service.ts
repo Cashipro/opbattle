@@ -4,7 +4,6 @@ BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
@@ -13,12 +12,9 @@ PrismaService
 
 
 
-
-
 @Injectable()
 
 export class SelectSlotService {
-
 
 
 constructor(
@@ -45,18 +41,13 @@ slotId:string
 
 
 
-
-
-const slot =
-
-await this.prisma.teamSlot.findUnique({
+const slot = await this.prisma.teamSlot.findUnique({
 
 where:{
 
 id:slotId
 
 },
-
 
 
 include:{
@@ -67,6 +58,8 @@ team:true
 
 }
 
+
+
 });
 
 
@@ -75,7 +68,9 @@ team:true
 
 
 
+
 if(!slot){
+
 
 throw new BadRequestException(
 
@@ -91,11 +86,13 @@ throw new BadRequestException(
 
 
 
+
 if(slot.user_id){
+
 
 throw new BadRequestException(
 
-"Slot already occupied"
+"This slot is already occupied"
 
 );
 
@@ -108,15 +105,10 @@ throw new BadRequestException(
 
 
 
-return this.prisma.$transaction(async(tx:any)=>{
 
+// REMOVE PLAYER FROM OLD TEAM
 
-
-
-
-// remove previous slot
-
-await tx.teamSlot.updateMany({
+await this.prisma.teamSlot.updateMany({
 
 where:{
 
@@ -125,7 +117,6 @@ user_id:userId
 
 
 },
-
 
 
 data:{
@@ -150,18 +141,18 @@ joined_at:null
 
 
 
-// assign new slot
 
-const updated =
+// ASSIGN NEW SLOT
 
-await tx.teamSlot.update({
+const updated = await this.prisma.teamSlot.update({
 
 where:{
 
+
 id:slotId
 
-},
 
+},
 
 
 data:{
@@ -171,6 +162,84 @@ user_id:userId,
 
 
 joined_at:new Date()
+
+
+},
+
+
+include:{
+
+
+team:true
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+return {
+
+
+message:"Slot selected successfully",
+
+
+team:updated.team.name,
+
+
+slot:updated.slot_number
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+async leaveSlot(
+
+userId:string
+
+){
+
+
+
+await this.prisma.teamSlot.updateMany({
+
+where:{
+
+
+user_id:userId
+
+
+},
+
+
+data:{
+
+
+user_id:null,
+
+
+joined_at:null
 
 
 }
@@ -188,35 +257,14 @@ joined_at:new Date()
 return {
 
 
-message:"Slot selected successfully",
-
-
-team_id:slot.team_id,
-
-
-slot_number:slot.slot_number,
-
-
-slot:updated
-
+message:"Left team successfully"
 
 
 };
 
 
 
-});
-
-
-
-
-
-
 }
-
-
-
-
 
 
 
