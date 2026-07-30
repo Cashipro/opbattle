@@ -14,6 +14,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class MatchManagementService {
@@ -34,11 +35,15 @@ private prisma:PrismaService
 
 
 
+// GET ALL MATCHES
+
 async getMatches(
 
 tournamentId:string
 
 ){
+
+
 
 
 
@@ -106,6 +111,16 @@ slots:{
 
 
 
+orderBy:{
+
+
+slot_number:"asc"
+
+
+},
+
+
+
 include:{
 
 
@@ -124,9 +139,6 @@ name:true,
 
 
 pubg_uid:true
-
-
-}
 
 
 }
@@ -173,6 +185,9 @@ pubg_uid:true
 
 
 
+
+
+
 }
 
 
@@ -183,11 +198,15 @@ pubg_uid:true
 
 
 
+// GET SINGLE MATCH
+
 async getMatch(
 
 matchId:string
 
 ){
+
+
 
 
 
@@ -206,6 +225,10 @@ id:matchId
 
 
 include:{
+
+
+
+round:true,
 
 
 
@@ -233,7 +256,24 @@ include:{
 
 
 
-user:true
+user:{
+
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
+
+
+}
+
 
 
 }
@@ -265,6 +305,8 @@ user:true
 
 
 });
+
+
 
 
 
@@ -283,7 +325,14 @@ throw new BadRequestException(
 
 
 
+
+
+
+
 return match;
+
+
+
 
 
 
@@ -297,6 +346,8 @@ return match;
 
 
 
+// UPDATE ROOM DETAILS
+
 async updateRoom(
 
 matchId:string,
@@ -306,6 +357,8 @@ room_id:string,
 room_password:string
 
 ){
+
+
 
 
 
@@ -322,6 +375,7 @@ id:matchId
 }
 
 });
+
 
 
 
@@ -369,6 +423,7 @@ room_password,
 status:"ready"
 
 
+
 }
 
 
@@ -377,6 +432,9 @@ status:"ready"
 
 
 
+
+
+
 }
 
 
@@ -387,11 +445,15 @@ status:"ready"
 
 
 
-async finishMatch(
+// START MATCH
+
+async startMatch(
 
 matchId:string
 
 ){
+
+
 
 
 
@@ -447,7 +509,7 @@ id:matchId
 data:{
 
 
-status:"finished"
+status:"playing"
 
 
 }
@@ -458,7 +520,99 @@ status:"finished"
 
 
 
+
+
+
 }
+
+
+
+
+
+
+
+
+
+// FINISH MATCH
+
+async finishMatch(
+
+matchId:string
+
+){
+
+
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.findUnique({
+
+where:{
+
+
+id:matchId
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(!match){
+
+throw new BadRequestException(
+
+"Match not found"
+
+);
+
+}
+
+
+
+
+
+
+
+
+return this.prisma.tournamentMatch.update({
+
+where:{
+
+
+id:matchId
+
+
+},
+
+
+
+data:{
+
+
+status:"completed"
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+}
+
 
 
 
