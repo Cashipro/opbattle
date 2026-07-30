@@ -1,11 +1,14 @@
 import {
-Injectable
+Injectable,
+BadRequestException
 } from '@nestjs/common';
+
 
 
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
 
 
 
@@ -30,11 +33,49 @@ private prisma:PrismaService
 
 
 
+
 async createPlan(
 
 tournamentId:string
 
 ){
+
+
+
+
+
+const existing =
+
+await this.prisma.tournamentRound.findFirst({
+
+where:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+});
+
+
+
+
+
+
+
+if(existing){
+
+throw new BadRequestException(
+
+"Tournament plan already exists"
+
+);
+
+}
+
+
+
 
 
 
@@ -47,26 +88,21 @@ await this.prisma.tournamentTeam.findMany({
 where:{
 
 
-tournament_id:tournamentId,
+tournament_id:tournamentId
 
 
-slots:{
+},
 
 
-some:{
+
+orderBy:{
 
 
-user_id:{
-not:null
-}
-
-
-}
-
-}
+team_number:"asc"
 
 
 }
+
 
 
 });
@@ -76,13 +112,15 @@ not:null
 
 
 
+
+
 if(!teams.length){
 
-return {
+throw new BadRequestException(
 
-message:"No teams joined"
+"No teams joined"
 
-};
+);
 
 }
 
@@ -91,34 +129,22 @@ message:"No teams joined"
 
 
 
-const totalTeams = teams.length;
 
 
 
-const perMatch = 25;
-
-
-
-const totalMatches = Math.ceil(
-
-totalTeams / perMatch
-
-);
+const maxTeamsPerMatch = 25;
 
 
 
 
 
 
-for(
+let index = 0;
 
-let i=1;
+let matchNumber = 1;
 
-i<=totalMatches;
 
-i++
 
-){
 
 
 
@@ -132,10 +158,11 @@ data:{
 tournament_id:tournamentId,
 
 
-round_number:i,
+round_number:1,
 
 
-name:`Round ${i}`
+name:"Round 1"
+
 
 
 }
@@ -146,17 +173,125 @@ name:`Round ${i}`
 
 
 
+
+
+
+
+while(index < teams.length){
+
+
+
+
+
+const matchTeams =
+
+teams.slice(
+
+index,
+
+index + maxTeamsPerMatch
+
+);
+
+
+
+
+
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.create({
+
+data:{
+
+
+tournament_id:tournamentId,
+
+
+round_id:round.id,
+
+
+match_number:matchNumber,
+
+
+status:"pending"
+
+
+
 }
+
+});
+
+
+
+
+
+
+
+
+for(const team of matchTeams){
+
+
+
+await this.prisma.matchTeam.create({
+
+data:{
+
+
+match_id:match.id,
+
+
+team_id:team.id
+
+
+
+}
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+index += maxTeamsPerMatch;
+
+
+matchNumber++;
+
+
+
+}
+
+
+
+
+
 
 
 
 return {
 
-message:"Tournament Plan Created",
 
-teams:totalTeams,
+message:"Tournament plan created successfully",
 
-matches:totalMatches
+
+totalTeams:teams.length,
+
+
+round:"Round 1",
+
+
+matchesCreated:matchNumber-1
+
 
 
 };
@@ -165,7 +300,10 @@ matches:totalMatches
 
 
 
+
 }
+
+
 
 
 
