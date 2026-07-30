@@ -12,6 +12,9 @@ useParams
 } from "next/navigation";
 
 
+import Sidebar from "@/components/Sidebar";
+
+
 import {
 getTeamRoom,
 selectSlot,
@@ -23,10 +26,13 @@ leaveSlot
 
 
 
-export default function TeamRoomPage(){
+
+export default function TeamRoom(){
+
 
 
 const params = useParams();
+
 
 const id = params.id as string;
 
@@ -46,14 +52,10 @@ const [loading,setLoading] = useState(true);
 useEffect(()=>{
 
 
-if(id){
-
-loadRoom();
-
-}
+load();
 
 
-},[id]);
+},[]);
 
 
 
@@ -62,16 +64,17 @@ loadRoom();
 
 
 
-async function loadRoom(){
+async function load(){
 
 
 try{
 
 
-const res = await getTeamRoom(id);
+const data =
+await getTeamRoom(id);
 
 
-setTeams(res);
+setTeams(data);
 
 
 
@@ -101,7 +104,7 @@ setLoading(false);
 
 
 
-async function handleJoin(slotId:string){
+async function join(slotId:string){
 
 
 try{
@@ -110,10 +113,7 @@ try{
 await selectSlot(slotId);
 
 
-alert("Slot selected successfully");
-
-
-loadRoom();
+load();
 
 
 
@@ -124,25 +124,26 @@ alert(
 
 error?.response?.data?.message ||
 
-"Slot selection failed"
+"Unable to select slot"
 
 );
 
 
-}
-
-
 
 }
 
 
 
+}
 
 
 
 
 
-async function handleLeave(slotId:string){
+
+
+
+async function leave(slotId:string){
 
 
 try{
@@ -151,7 +152,7 @@ try{
 await leaveSlot(slotId);
 
 
-loadRoom();
+load();
 
 
 
@@ -174,44 +175,48 @@ console.log(error);
 
 
 
-if(loading){
-
-
 return (
 
 <div className="
-min-h-screen
-bg-black
-text-white
 flex
-items-center
-justify-center
-">
-
-Loading Team Room...
-
-</div>
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-return (
-
-<div className="
 min-h-screen
 bg-black
 text-white
-p-6
 ">
+
+
+
+
+
+
+<Sidebar />
+
+
+
+
+
+
+
+
+<main className="
+flex-1
+p-4
+pt-20
+md:p-10
+md:pt-10
+">
+
+
+
+
+
+
+<div className="
+max-w-7xl
+mx-auto
+">
+
+
 
 
 
@@ -219,12 +224,12 @@ p-6
 
 <h1 className="
 text-3xl
+md:text-4xl
 font-black
-text-center
 mb-8
 ">
 
-🔥 PUBG TEAM ROOM
+👥 Team Room
 
 </h1>
 
@@ -234,16 +239,33 @@ mb-8
 
 
 
+
+
+{
+
+loading
+
+?
+
 <div className="
-grid
-md:grid-cols-2
-gap-6
-max-w-6xl
-mx-auto
+text-gray-400
 ">
 
+Loading teams...
+
+</div>
 
 
+:
+
+
+<div className="
+grid
+grid-cols-1
+md:grid-cols-2
+xl:grid-cols-3
+gap-6
+">
 
 
 {
@@ -259,7 +281,7 @@ key={team.id}
 className="
 bg-zinc-900
 border
-border-zinc-700
+border-zinc-800
 rounded-3xl
 p-6
 "
@@ -271,11 +293,10 @@ p-6
 <h2 className="
 text-2xl
 font-bold
-text-blue-400
 mb-5
 ">
 
-#{team.team_number} {team.name}
+{team.name}
 
 </h2>
 
@@ -285,8 +306,10 @@ mb-5
 
 
 
-<div className="space-y-3">
 
+<div className="
+space-y-3
+">
 
 {
 
@@ -302,33 +325,25 @@ className="
 bg-zinc-800
 rounded-xl
 p-4
+flex
+justify-between
+items-center
 "
 
 >
 
 
 
-<div className="
-flex
-justify-between
-items-center
-">
-
-
-
-
-
 <div>
 
 
-<p className="font-bold">
+<p className="
+font-bold
+">
 
 Slot {slot.slot_number}
 
 </p>
-
-
-
 
 
 
@@ -338,29 +353,26 @@ slot.user
 
 ?
 
-<div className="text-sm text-gray-300">
-
+<p className="
+text-green-400
+text-sm
+">
 
 {slot.user.name}
 
-<br/>
-
-PUBG ID:
-
-{slot.user.pubg_uid}
-
-
-</div>
+</p>
 
 
 :
 
-<div className="text-gray-500">
+<p className="
+text-gray-400
+text-sm
+">
 
-Empty Slot
+Empty
 
-</div>
-
+</p>
 
 }
 
@@ -384,13 +396,15 @@ slot.user
 
 <button
 
-onClick={()=>handleLeave(slot.id)}
+onClick={()=>leave(slot.id)}
 
 className="
 bg-red-600
 px-4
 py-2
 rounded-lg
+text-sm
+font-bold
 "
 
 >
@@ -404,13 +418,15 @@ Leave
 
 <button
 
-onClick={()=>handleJoin(slot.id)}
+onClick={()=>join(slot.id)}
 
 className="
 bg-green-600
 px-4
 py-2
 rounded-lg
+text-sm
+font-bold
 "
 
 >
@@ -430,6 +446,19 @@ Join
 
 
 
+))
+
+}
+
+
+
+</div>
+
+
+
+
+
+
 
 
 </div>
@@ -446,21 +475,20 @@ Join
 
 
 
-
-
-
-
-</div>
-
-
-
-))
-
 }
 
 
 
+
+
 </div>
+
+
+
+
+
+</main>
+
 
 
 
