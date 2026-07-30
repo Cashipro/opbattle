@@ -11,40 +11,7 @@ useRouter
 } from "next/navigation";
 
 
-import Link from "next/link";
-
-
-import Navbar from "@/components/Navbar";
-
-import Footer from "@/components/Footer";
-
-
-import {
-loginUser
-} from "@/services/auth";
-
-
-
-
-
-export default function LoginPage(){
-
-
-const router=useRouter();
-
-
-
-const [form,setForm]=useState({
-
-email:"",
-
-password:""
-
-});
-
-
-
-const [loading,setLoading]=useState(false);
+import api from "@/lib/api";
 
 
 
@@ -52,20 +19,18 @@ const [loading,setLoading]=useState(false);
 
 
 
-function change(e:any){
+export default function Login(){
 
 
-setForm({
 
-...form,
-
-[e.target.name]:e.target.value
+const router = useRouter();
 
 
-});
+const [email,setEmail] = useState("");
 
+const [password,setPassword] = useState("");
 
-}
+const [loading,setLoading] = useState(false);
 
 
 
@@ -74,11 +39,10 @@ setForm({
 
 
 
-async function submit(e:any){
+async function handleLogin(e:any){
 
 
 e.preventDefault();
-
 
 
 try{
@@ -88,67 +52,86 @@ setLoading(true);
 
 
 
-const res =
-await loginUser(form);
+const res = await api.post(
+"/auth/login",
+{
+email,
+password
+}
+);
+
+
+
+
+
+
+const token =
+res.data.access_token ||
+res.data.token;
+
+
+
+
+
+
+const user =
+res.data.user;
+
 
 
 
 
 
 localStorage.setItem(
-
 "token",
-
-res.token
-
+token
 );
-
-
 
 
 
 localStorage.setItem(
-
 "user",
-
-JSON.stringify(res.user)
-
+JSON.stringify(user)
 );
 
 
 
+
+
+
+
+document.cookie =
+`token=${token}; path=/; max-age=86400`;
+
+
+
+
+
+
+
+router.push(
+"/dashboard"
+);
+
+
+
+
+
+}catch(error:any){
 
 
 
 alert(
-"Login Successful"
-);
 
+error?.response?.data?.message ||
 
-
-
-router.push("/dashboard");
-
-
-
-
-
-}
-
-catch(error:any){
-
-
-alert(
-
-error.response?.data?.message ||
-"Login Failed"
+"Login failed"
 
 );
 
 
-}
 
-finally{
+}finally{
 
 
 setLoading(false);
@@ -166,44 +149,125 @@ setLoading(false);
 
 
 
-return(
 
-<>
+return (
+
+<main className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+p-5
+">
 
 
-<Navbar />
 
 
 
-<main className="min-h-screen flex items-center justify-center">
+
+<div className="
+w-full
+max-w-md
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+md:p-8
+">
+
+
+
+
+
+
+<h1 className="
+text-3xl
+font-black
+text-center
+text-green-400
+mb-2
+">
+
+TOURNAMENT HUB
+
+</h1>
+
+
+
+
+
+
+<p className="
+text-gray-400
+text-center
+mb-8
+">
+
+Login to your account
+
+</p>
+
+
+
+
+
 
 
 
 <form
 
-onSubmit={submit}
+onSubmit={handleLogin}
 
-className="game-card w-full max-w-lg p-8 space-y-5"
+className="
+space-y-5
+"
 
 >
 
 
 
-<div className="text-center">
 
 
-<h1 className="text-3xl font-black">
-
-Welcome Back
-
-</h1>
 
 
-<p className="text-gray-400 mt-2">
+<div>
 
-Login to your OpBattle account
 
-</p>
+<label className="
+text-gray-400
+block
+mb-2
+">
+
+Email
+
+</label>
+
+
+<input
+
+type="email"
+
+value={email}
+
+onChange={(e)=>setEmail(e.target.value)}
+
+placeholder="Enter email"
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
+
+required
+
+/>
 
 
 </div>
@@ -214,50 +278,46 @@ Login to your OpBattle account
 
 
 
-<input
+
+<div>
 
 
-name="email"
+<label className="
+text-gray-400
+block
+mb-2
+">
 
-type="email"
+Password
 
-placeholder="Email Address"
-
-value={form.email}
-
-onChange={change}
-
-className="input"
-
-required
-
-
-/>
-
-
-
-
+</label>
 
 
 <input
-
-
-name="password"
 
 type="password"
 
-placeholder="Password"
+value={password}
 
-value={form.password}
+onChange={(e)=>setPassword(e.target.value)}
 
-onChange={change}
+placeholder="Enter password"
 
-className="input"
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+outline-none
+"
 
 required
 
-
 />
+
+
+</div>
+
 
 
 
@@ -267,12 +327,19 @@ required
 
 <button
 
-className="btn-primary w-full"
-
 disabled={loading}
 
->
+className="
+w-full
+bg-green-600
+py-4
+rounded-xl
+font-black
+hover:bg-green-700
+disabled:opacity-50
+"
 
+>
 
 {
 
@@ -288,7 +355,6 @@ loading
 
 }
 
-
 </button>
 
 
@@ -298,24 +364,39 @@ loading
 
 
 
-<p className="text-center text-gray-400">
+</form>
 
+
+
+
+
+
+
+
+<p className="
+text-center
+text-gray-400
+mt-6
+">
 
 Don't have account?
 
+{" "}
 
-<Link
+<a
 
 href="/register"
 
-className="text-[#00ff84] ml-2"
+className="
+text-green-400
+font-bold
+"
 
 >
 
 Register
 
-</Link>
-
+</a>
 
 </p>
 
@@ -323,20 +404,17 @@ Register
 
 
 
-</form>
+
+
+
+</div>
+
+
+
 
 
 
 </main>
-
-
-
-<Footer />
-
-
-
-</>
-
 
 );
 
