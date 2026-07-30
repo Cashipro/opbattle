@@ -27,6 +27,7 @@ NextRoundService
 
 
 
+
 @Controller('admin/tournaments')
 
 export class AdminTournamentController {
@@ -34,6 +35,7 @@ export class AdminTournamentController {
 
 
 constructor(
+
 
 private adminTournamentService:AdminTournamentService,
 
@@ -130,7 +132,7 @@ id
 
 
 
-// GET TEAMS
+// VIEW ALL TEAMS
 
 @Get(':id/teams')
 
@@ -194,7 +196,7 @@ Number(body.amount || 100)
 
 
 
-// ADD MATCH ROOM
+// ADD PUBG ROOM DETAILS
 
 @Post('match/:id/room')
 
@@ -255,7 +257,7 @@ id
 
 
 
-// CALCULATE NEXT ROUND
+// CALCULATE ROUND PLAN
 
 @Post(':id/calculate-plan')
 
@@ -283,7 +285,7 @@ id
 
 
 
-// NEXT ROUND
+// GENERATE NEXT ROUND
 
 @Post(':id/next-round')
 
