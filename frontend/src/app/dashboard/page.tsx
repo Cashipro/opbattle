@@ -1,14 +1,11 @@
 "use client";
 
-
 import {
 useEffect,
 useState
 } from "react";
 
-
 import Sidebar from "@/components/Sidebar";
-
 
 import {
 getMyTournaments
@@ -18,10 +15,7 @@ getMyTournaments
 
 
 
-
-
 export default function Dashboard(){
-
 
 
 const [user,setUser] = useState<any>({});
@@ -35,15 +29,11 @@ const [loading,setLoading] = useState(true);
 
 
 
-
-
 useEffect(()=>{
-
 
 loadUser();
 
 loadTournaments();
-
 
 },[]);
 
@@ -52,14 +42,10 @@ loadTournaments();
 
 
 
-
-
 function loadUser(){
-
 
 const savedUser =
 localStorage.getItem("user");
-
 
 
 if(savedUser){
@@ -70,7 +56,6 @@ JSON.parse(savedUser)
 
 }
 
-
 }
 
 
@@ -79,9 +64,7 @@ JSON.parse(savedUser)
 
 
 
-
 async function loadTournaments(){
-
 
 try{
 
@@ -102,7 +85,6 @@ data.length
 console.log(error);
 
 
-
 }finally{
 
 
@@ -110,8 +92,6 @@ setLoading(false);
 
 
 }
-
-
 
 }
 
@@ -125,14 +105,10 @@ setLoading(false);
 return (
 
 <div className="
-flex
 min-h-screen
 bg-black
 text-white
 ">
-
-
-
 
 
 
@@ -142,20 +118,13 @@ text-white
 
 
 
-
-
-
 <main className="
-flex-1
+md:ml-72
 p-4
 pt-20
 md:p-10
 md:pt-10
 ">
-
-
-
-
 
 
 
@@ -169,7 +138,6 @@ mx-auto
 
 
 
-
 <h1 className="
 text-3xl
 md:text-4xl
@@ -177,16 +145,9 @@ font-black
 mb-2
 ">
 
-Welcome,
-
-{" "}
-
-{user.name || "Player"}
+Welcome, {user.name || "Player"}
 
 </h1>
-
-
-
 
 
 
@@ -206,8 +167,6 @@ PUBG Tournament Dashboard
 
 
 
-
-
 <div className="
 grid
 grid-cols-1
@@ -215,8 +174,6 @@ sm:grid-cols-2
 xl:grid-cols-3
 gap-5
 ">
-
-
 
 
 
@@ -230,9 +187,7 @@ rounded-3xl
 p-6
 ">
 
-<p className="
-text-gray-400
-">
+<p className="text-gray-400">
 
 Balance
 
@@ -259,8 +214,6 @@ mt-3
 
 
 
-
-
 <div className="
 bg-zinc-900
 border
@@ -269,9 +222,7 @@ rounded-3xl
 p-6
 ">
 
-<p className="
-text-gray-400
-">
+<p className="text-gray-400">
 
 Joined Tournaments
 
@@ -285,26 +236,12 @@ text-blue-400
 mt-3
 ">
 
-{
-
-loading
-
-?
-
-"..."
-
-:
-
-joined
-
-}
+{loading ? "..." : joined}
 
 </h2>
 
 
 </div>
-
-
 
 
 
@@ -320,9 +257,7 @@ rounded-3xl
 p-6
 ">
 
-<p className="
-text-gray-400
-">
+<p className="text-gray-400">
 
 Player Status
 
@@ -348,11 +283,7 @@ ACTIVE
 
 
 
-
-
 </div>
-
-
 
 
 
@@ -377,8 +308,6 @@ Quick Actions
 
 
 
-
-
 <div className="
 grid
 grid-cols-1
@@ -391,12 +320,8 @@ gap-5
 
 
 
-
-
 <a
-
 href="/tournaments"
-
 className="
 bg-blue-600
 rounded-2xl
@@ -406,12 +331,9 @@ text-center
 hover:scale-105
 transition
 "
-
 >
 
-🏆
-
-Browse Tournaments
+🏆 Browse Tournaments
 
 </a>
 
@@ -419,13 +341,8 @@ Browse Tournaments
 
 
 
-
-
-
 <a
-
 href="/deposit"
-
 className="
 bg-green-600
 rounded-2xl
@@ -435,12 +352,9 @@ text-center
 hover:scale-105
 transition
 "
-
 >
 
-💰
-
-Deposit
+💰 Deposit
 
 </a>
 
@@ -448,13 +362,8 @@ Deposit
 
 
 
-
-
-
 <a
-
 href="/withdraw"
-
 className="
 bg-red-600
 rounded-2xl
@@ -464,12 +373,9 @@ text-center
 hover:scale-105
 transition
 "
-
 >
 
-💸
-
-Withdraw
+💸 Withdraw
 
 </a>
 
@@ -477,27 +383,16 @@ Withdraw
 
 
 
-
-
 </div>
 
 
 
 
 
-
-
-
 </div>
-
-
-
 
 
 </main>
-
-
-
 
 
 
