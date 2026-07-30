@@ -223,11 +223,7 @@ mb-8
 
 {
 
-match
-
-?
-
-(
+match ? (
 
 <div
 className="
@@ -255,19 +251,11 @@ p-4
 "
 >
 
-<p
-className="
-text-gray-400
-"
->
-
+<p className="text-gray-400">
 Match ID
-
 </p>
 
-
-<p
-className="
+<p className="
 font-bold
 break-all
 "
@@ -277,8 +265,8 @@ break-all
 
 </p>
 
-
 </div>
+
 
 
 
@@ -295,16 +283,9 @@ p-4
 "
 >
 
-<p
-className="
-text-gray-400
-"
->
-
+<p className="text-gray-400">
 Status
-
 </p>
-
 
 <p
 className="
@@ -318,8 +299,8 @@ uppercase
 
 </p>
 
-
 </div>
+
 
 
 
@@ -336,16 +317,9 @@ p-4
 "
 >
 
-<p
-className="
-text-gray-400
-"
->
-
+<p className="text-gray-400">
 Room ID
-
 </p>
-
 
 <p
 className="
@@ -358,8 +332,8 @@ text-green-400
 
 </p>
 
-
 </div>
+
 
 
 
@@ -376,16 +350,9 @@ p-4
 "
 >
 
-<p
-className="
-text-gray-400
-"
->
-
+<p className="text-gray-400">
 Room Password
-
 </p>
-
 
 <p
 className="
@@ -398,7 +365,6 @@ text-yellow-400
 
 </p>
 
-
 </div>
 
 
@@ -409,6 +375,7 @@ text-yellow-400
 
 
 </div>
+
 
 )
 
