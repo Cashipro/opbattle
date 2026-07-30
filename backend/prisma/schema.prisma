@@ -9,9 +9,6 @@ datasource db {
 }
 
 
-
-
-
 model User {
 
   id String @id @default(uuid())
@@ -26,509 +23,270 @@ model User {
 
   balance Float @default(0)
 
-
   slots TeamSlot[]
 
   joins TournamentJoin[]
 
   walletTransactions WalletTransaction[]
 
-
   created_at DateTime @default(now())
 
 }
-
-
-
-
 
 
 
 model Tournament {
 
-
   id String @id @default(uuid())
-
 
   name String
 
-
-
   entry_fee Float
-
-
 
   currency String
 
-
-
   reward Float?
-
-
 
   start_date DateTime
 
-
-
   start_time String
-
-
 
   status String @default("upcoming")
 
-
-
   teams TournamentTeam[]
-
-
 
   joins TournamentJoin[]
 
-
-
   rounds TournamentRound[]
-
-
 
   matches TournamentMatch[]
 
-
-
   created_at DateTime @default(now())
 
-
-
 }
-
-
-
-
 
 
 
 model TournamentJoin {
 
-
   id String @id @default(uuid())
-
 
   tournament_id String
 
-
   user_id String
-
-
 
   joined_at DateTime @default(now())
 
 
-
-
-
   tournament Tournament @relation(
-
-    fields:[tournament_id],
-
-    references:[id]
-
+    fields: [tournament_id],
+    references: [id]
   )
-
-
-
 
 
   user User @relation(
-
-    fields:[user_id],
-
-    references:[id]
-
+    fields: [user_id],
+    references: [id]
   )
-
-
-
 
 
   @@unique([tournament_id,user_id])
 
-
-
 }
-
-
-
-
 
 
 
 model WalletTransaction {
 
-
   id String @id @default(uuid())
-
 
   user_id String
 
-
   type String
-
 
   amount Float
 
-
   currency String?
-
-
 
   description String?
 
 
-
   user User @relation(
-
-    fields:[user_id],
-
-    references:[id]
-
+    fields: [user_id],
+    references: [id]
   )
-
 
 
   created_at DateTime @default(now())
 
-
 }
-
-
-
-
 
 
 
 model TournamentTeam {
 
-
   id String @id @default(uuid())
-
-
 
   tournament_id String
 
-
-
   team_number Int
-
-
 
   name String
 
 
-
-
-
   tournament Tournament @relation(
-
-    fields:[tournament_id],
-
-    references:[id]
-
+    fields: [tournament_id],
+    references: [id]
   )
-
-
-
 
 
   slots TeamSlot[]
 
-
-
   matches MatchTeam[]
 
-
-
 }
-
-
-
-
 
 
 
 model TeamSlot {
 
-
   id String @id @default(uuid())
-
-
 
   team_id String
 
-
-
   slot_number Int
 
-
-
   user_id String?
-
-
 
   joined_at DateTime?
 
 
-
-
-
   team TournamentTeam @relation(
-
-    fields:[team_id],
-
-    references:[id]
-
+    fields: [team_id],
+    references: [id]
   )
-
-
-
 
 
   user User? @relation(
-
-    fields:[user_id],
-
-    references:[id]
-
+    fields: [user_id],
+    references: [id]
   )
 
-
-
 }
-
-
-
-
 
 
 
 model TournamentRound {
 
-
   id String @id @default(uuid())
-
-
 
   tournament_id String
 
-
-
   round_number Int
-
-
 
   name String
 
 
-
-
-
   tournament Tournament @relation(
-
-    fields:[tournament_id],
-
-    references:[id]
-
+    fields: [tournament_id],
+    references: [id]
   )
-
-
-
 
 
   matches TournamentMatch[]
 
-
-
 }
-
-
-
-
 
 
 
 model TournamentMatch {
 
-
   id String @id @default(uuid())
-
-
 
   tournament_id String
 
-
-
   round_id String
-
-
 
   match_number Int
 
-
-
   room_id String?
 
-
-
   room_password String?
-
-
 
   status String @default("pending")
 
 
-
-
-
   tournament Tournament @relation(
-
-    fields:[tournament_id],
-
-    references:[id]
-
+    fields: [tournament_id],
+    references: [id]
   )
-
-
-
 
 
   round TournamentRound @relation(
-
-    fields:[round_id],
-
-    references:[id]
-
+    fields: [round_id],
+    references: [id]
   )
-
-
-
 
 
   teams MatchTeam[]
 
-
-
   results MatchResult[]
 
-
-
 }
-
-
-
-
 
 
 
 model MatchTeam {
 
-
   id String @id @default(uuid())
 
-
-
   match_id String
-
-
 
   team_id String
 
 
-
-
-
   match TournamentMatch @relation(
-
-    fields:[match_id],
-
-    references:[id]
-
+    fields: [match_id],
+    references: [id]
   )
-
-
-
 
 
   team TournamentTeam @relation(
-
-    fields:[team_id],
-
-    references:[id]
-
+    fields: [team_id],
+    references: [id]
   )
-
-
 
 }
 
 
 
-
-
-
-
 model MatchResult {
-
 
   id String @id @default(uuid())
 
-
-
   match_id String
-
-
 
   team_id String
 
-
-
   kills Int @default(0)
 
-
-
   position Int
-
-
 
   points Int
 
 
-
-
-
   match TournamentMatch @relation(
-
-    fields:[match_id],
-
-    references:[id]
-
+    fields: [match_id],
+    references: [id]
   )
-
-
-
 
 
   team TournamentTeam @relation(
-
-    fields:[team_id],
-
-    references:[id]
-
+    fields: [team_id],
+    references: [id]
   )
 
 
-
-
-
   @@unique([match_id,team_id])
-
-
 
 }
