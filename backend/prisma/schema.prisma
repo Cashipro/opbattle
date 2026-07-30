@@ -3,7 +3,6 @@ generator client {
 }
 
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -12,45 +11,33 @@ datasource db {
 
 
 
-
-
 model User {
 
+  id String @id @default(uuid())
 
-id String @id @default(uuid())
+  name String
 
+  email String @unique
 
-name String
+  password String
 
+  pubg_uid String @unique
 
-email String @unique
-
-
-password String
-
-
-pubg_uid String @unique
+  balance Float @default(0)
 
 
-balance Float @default(0)
+  teamSlots TeamSlot[]
 
 
-
-slots TeamSlot[]
-
+  tournamentJoins TournamentJoin[]
 
 
-walletTransactions WalletTransaction[]
+  walletTransactions WalletTransaction[]
 
 
-
-created_at DateTime @default(now())
-
-
+  created_at DateTime @default(now())
 
 }
-
-
 
 
 
@@ -61,43 +48,45 @@ created_at DateTime @default(now())
 model Tournament {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-name String
+  name String
 
 
-entry_fee Float
+  entry_fee Float
 
 
-reward Float
+  reward Float
 
 
-start_date DateTime
+  total_teams Int @default(25)
 
 
-start_time String
+  start_date DateTime
 
 
-status String @default("upcoming")
+  start_time String
 
 
-
-teams TournamentTeam[]
-
-
-
-rounds TournamentRound[]
+  status String @default("upcoming")
 
 
 
-matches TournamentMatch[]
+  teams TournamentTeam[]
+
+
+  rounds TournamentRound[]
+
+
+  matches TournamentMatch[]
+
+
+  joins TournamentJoin[]
 
 
 
-created_at DateTime @default(now())
-
-
+  created_at DateTime @default(now())
 
 }
 
@@ -109,37 +98,36 @@ created_at DateTime @default(now())
 
 
 
-model WalletTransaction {
+model TournamentJoin {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-user_id String
+  tournament_id String
 
 
-type String
-
-
-amount Float
-
-
-description String?
+  user_id String
 
 
 
-user User @relation(
-
-fields:[user_id],
-
-references:[id]
-
-)
+  tournament Tournament @relation(
+    fields:[tournament_id],
+    references:[id]
+  )
 
 
+  user User @relation(
+    fields:[user_id],
+    references:[id]
+  )
 
-created_at DateTime @default(now())
 
+  joined_at DateTime @default(now())
+
+
+
+  @@unique([tournament_id,user_id])
 
 }
 
@@ -154,37 +142,33 @@ created_at DateTime @default(now())
 model TournamentTeam {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-tournament_id String
+  tournament_id String
 
 
-team_number Int
+  team_number Int
 
 
-name String
-
-
-
-tournament Tournament @relation(
-
-fields:[tournament_id],
-
-references:[id]
-
-)
+  name String @default("")
 
 
 
-slots TeamSlot[]
+  tournament Tournament @relation(
+    fields:[tournament_id],
+    references:[id]
+  )
+
+
+  slots TeamSlot[]
+
+
+  matches MatchTeam[]
 
 
 
-matches MatchTeam[]
-
-
-
+  @@unique([tournament_id,team_number])
 
 }
 
@@ -199,38 +183,37 @@ matches MatchTeam[]
 model TeamSlot {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-team_id String
+  team_id String
 
 
-slot_number Int
+  slot_number Int
 
 
-user_id String?
-
-
-
-team TournamentTeam @relation(
-
-fields:[team_id],
-
-references:[id]
-
-)
+  user_id String?
 
 
 
-user User? @relation(
-
-fields:[user_id],
-
-references:[id]
-
-)
+  team TournamentTeam @relation(
+    fields:[team_id],
+    references:[id]
+  )
 
 
+  user User? @relation(
+    fields:[user_id],
+    references:[id]
+  )
+
+
+
+  joined_at DateTime @default(now())
+
+
+
+  @@unique([team_id,slot_number])
 
 }
 
@@ -245,32 +228,30 @@ references:[id]
 model TournamentRound {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-tournament_id String
+  tournament_id String
 
 
-round_number Int
+  round_number Int
 
 
-name String
-
-
-
-tournament Tournament @relation(
-
-fields:[tournament_id],
-
-references:[id]
-
-)
+  name String
 
 
 
-matches TournamentMatch[]
+  tournament Tournament @relation(
+    fields:[tournament_id],
+    references:[id]
+  )
 
 
+  matches TournamentMatch[]
+
+
+
+  @@unique([tournament_id,round_number])
 
 }
 
@@ -285,56 +266,48 @@ matches TournamentMatch[]
 model TournamentMatch {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-tournament_id String
+  tournament_id String
 
 
-round_id String
+  round_id String
 
 
-match_number Int
+  match_number Int
 
 
-room_id String?
+  room_id String?
 
 
-room_password String?
+  room_password String?
 
 
-status String @default("pending")
-
-
-
-
-tournament Tournament @relation(
-
-fields:[tournament_id],
-
-references:[id]
-
-)
+  status String @default("pending")
 
 
 
-round TournamentRound @relation(
-
-fields:[round_id],
-
-references:[id]
-
-)
+  tournament Tournament @relation(
+    fields:[tournament_id],
+    references:[id]
+  )
 
 
-
-teams MatchTeam[]
-
-
-
-results MatchResult[]
+  round TournamentRound @relation(
+    fields:[round_id],
+    references:[id]
+  )
 
 
+  teams MatchTeam[]
+
+
+  results MatchResult[]
+
+
+
+  @@unique([round_id,match_number])
 
 }
 
@@ -349,35 +322,27 @@ results MatchResult[]
 model MatchTeam {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-match_id String
+  match_id String
 
 
-team_id String
-
-
-
-
-match TournamentMatch @relation(
-
-fields:[match_id],
-
-references:[id]
-
-)
+  team_id String
 
 
 
-team TournamentTeam @relation(
 
-fields:[team_id],
+  match TournamentMatch @relation(
+    fields:[match_id],
+    references:[id]
+  )
 
-references:[id]
 
-)
-
+  team TournamentTeam @relation(
+    fields:[team_id],
+    references:[id]
+  )
 
 
 }
@@ -393,44 +358,77 @@ references:[id]
 model MatchResult {
 
 
-id String @id @default(uuid())
+  id String @id @default(uuid())
 
 
-match_id String
+  match_id String
 
 
-team_id String
-
-
-
-kills Int @default(0)
-
-
-position Int
-
-
-points Int
+  team_id String
 
 
 
-match TournamentMatch @relation(
-
-fields:[match_id],
-
-references:[id]
-
-)
+  kills Int @default(0)
 
 
+  position Int
 
-team TournamentTeam @relation(
 
-fields:[team_id],
+  points Int
 
-references:[id]
 
-)
 
+  match TournamentMatch @relation(
+    fields:[match_id],
+    references:[id]
+  )
+
+
+  team TournamentTeam @relation(
+    fields:[team_id],
+    references:[id]
+  )
+
+
+
+  @@unique([match_id,team_id])
+
+}
+
+
+
+
+
+
+
+
+
+model WalletTransaction {
+
+
+  id String @id @default(uuid())
+
+
+  user_id String
+
+
+  type String
+
+
+  amount Float
+
+
+  description String?
+
+
+
+  user User @relation(
+    fields:[user_id],
+    references:[id]
+  )
+
+
+  created_at DateTime @default(now())
 
 
 }
