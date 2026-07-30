@@ -46,6 +46,55 @@ SelectSlotService
 
 
 
+import {
+AutoPlannerService
+} from './auto-planner.service';
+
+
+
+import {
+PlannerService
+} from './planner.service';
+
+
+
+import {
+MatchGeneratorService
+} from './match-generator.service';
+
+
+
+import {
+MatchManagementService
+} from './match-management.service';
+
+
+
+import {
+NextRoundService
+} from './next-round.service';
+
+
+
+import {
+QualificationService
+} from './qualification.service';
+
+
+
+import {
+ResultService
+} from './result.service';
+
+
+
+import {
+ResultBoardService
+} from './result-board.service';
+
+
+
+
 
 
 
@@ -59,11 +108,15 @@ PrismaModule
 
 
 
+
+
 controllers:[
 
 TournamentsController
 
 ],
+
+
 
 
 
@@ -82,10 +135,36 @@ TournamentsService,
 MyTournamentsService,
 
 
-SelectSlotService
+SelectSlotService,
+
+
+AutoPlannerService,
+
+
+PlannerService,
+
+
+MatchGeneratorService,
+
+
+MatchManagementService,
+
+
+NextRoundService,
+
+
+QualificationService,
+
+
+ResultService,
+
+
+ResultBoardService
 
 
 ],
+
+
 
 
 
@@ -95,10 +174,10 @@ exports:[
 TeamRoomService,
 
 
-JoinService,
+TournamentsService,
 
 
-TournamentsService
+ResultBoardService
 
 
 ]
