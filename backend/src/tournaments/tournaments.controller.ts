@@ -9,6 +9,7 @@ UseGuards
 } from '@nestjs/common';
 
 
+
 import {
 TeamRoomService
 } from './team-room.service';
@@ -74,6 +75,9 @@ QualificationService
 } from './qualification.service';
 
 
+
+
+
 import {
 JwtGuard
 } from '../auth/jwt.guard';
@@ -82,6 +86,8 @@ JwtGuard
 import {
 CurrentUser
 } from '../auth/current-user.decorator';
+
+
 
 
 
@@ -213,9 +219,24 @@ user.id
 
 
 
-// ======================
 // TEAM ROOM
-// ======================
+
+@Get(':id/team-room')
+
+teamRoom(
+
+@Param('id') id:string
+
+){
+
+return this.teamRoomService.getRoom(id);
+
+}
+
+
+
+
+
 
 
 @Post(':id/generate-teams')
@@ -227,24 +248,6 @@ generateTeams(
 ){
 
 return this.teamRoomService.generateTeams(id);
-
-}
-
-
-
-
-
-
-
-@Get(':id/team-room')
-
-teamRoom(
-
-@Param('id') id:string
-
-){
-
-return this.teamRoomService.getRoom(id);
 
 }
 
@@ -280,11 +283,11 @@ body.name
 
 
 
-@Post('team/join-slot')
+@Post('team/select-slot')
 
 @UseGuards(JwtGuard)
 
-joinSlot(
+selectSlot(
 
 @Body() body:any,
 
@@ -292,11 +295,11 @@ joinSlot(
 
 ){
 
-return this.teamRoomService.joinSlot(
+return this.selectSlotService.selectSlot(
 
-body.slotId,
+user.id,
 
-user.id
+body.slotId
 
 );
 
@@ -309,6 +312,8 @@ user.id
 
 
 @Post('team/leave-slot')
+
+@UseGuards(JwtGuard)
 
 leaveSlot(
 
@@ -330,10 +335,7 @@ body.slotId
 
 
 
-// ======================
 // PLANNER
-// ======================
-
 
 @Post(':id/auto-plan')
 
@@ -355,7 +357,7 @@ return this.autoPlannerService.calculatePlan(id);
 
 @Post(':id/plan')
 
-plan(
+createPlan(
 
 @Param('id') id:string
 
@@ -371,10 +373,7 @@ return this.plannerService.createPlan(id);
 
 
 
-// ======================
-// MATCHES
-// ======================
-
+// MATCH GENERATE
 
 @Post(':id/generate-matches/:roundId')
 
@@ -402,9 +401,11 @@ roundId
 
 
 
+// MATCHES
+
 @Get(':id/matches')
 
-matches(
+getMatches(
 
 @Param('id') id:string
 
@@ -502,14 +503,11 @@ return this.matchManagementService.finishMatch(matchId);
 
 
 
-// ======================
 // RESULTS
-// ======================
-
 
 @Get('match/:matchId/teams')
 
-matchTeams(
+getMatchTeams(
 
 @Param('matchId') matchId:string
 
@@ -551,6 +549,8 @@ body
 
 
 
+// BOARD
+
 @Get(':id/ranking')
 
 ranking(
@@ -587,10 +587,7 @@ return this.resultBoardService.tournamentResults(id);
 
 
 
-// ======================
 // NEXT ROUND
-// ======================
-
 
 @Post(':id/next-round/:roundId')
 
