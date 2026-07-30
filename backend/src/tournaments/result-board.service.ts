@@ -34,6 +34,8 @@ private prisma:PrismaService
 
 
 
+// ALL ROUND RESULTS
+
 async tournamentResults(
 
 tournamentId:string
@@ -44,9 +46,7 @@ tournamentId:string
 
 
 
-const rounds =
-
-await this.prisma.tournamentRound.findMany({
+return this.prisma.tournamentRound.findMany({
 
 where:{
 
@@ -114,18 +114,6 @@ results:{
 
 
 
-include:{
-
-
-
-team:true
-
-
-
-},
-
-
-
 orderBy:[
 
 
@@ -143,7 +131,19 @@ kills:"desc"
 }
 
 
-]
+],
+
+
+
+include:{
+
+
+
+team:true
+
+
+
+}
 
 
 
@@ -170,11 +170,6 @@ kills:"desc"
 
 
 
-
-return rounds;
-
-
-
 }
 
 
@@ -184,6 +179,8 @@ return rounds;
 
 
 
+
+// FINAL TOURNAMENT RANKING
 
 async finalRanking(
 
@@ -239,7 +236,9 @@ team:true
 
 
 
-const ranking:any={};
+
+
+const ranking:any = {};
 
 
 
@@ -248,26 +247,38 @@ const ranking:any={};
 
 
 
-for(const item of results){
+
+for(const result of results){
 
 
 
 
 
-if(!ranking[item.team_id]){
+const teamId = result.team_id;
 
 
 
-ranking[item.team_id]={
 
 
-team_id:item.team_id,
+
+if(!ranking[teamId]){
 
 
-team_number:item.team.team_number,
+
+ranking[teamId]={
 
 
-team_name:item.team.name,
+
+team_id:teamId,
+
+
+team_number:result.team.team_number,
+
+
+team_name:result.team.name || 
+
+`Team ${result.team.team_number}`,
+
 
 
 kills:0,
@@ -293,19 +304,15 @@ matches:0
 
 
 
-ranking[item.team_id].kills +=
-
-item.kills || 0;
+ranking[teamId].kills += result.kills || 0;
 
 
 
-ranking[item.team_id].points +=
-
-item.points || 0;
+ranking[teamId].points += result.points || 0;
 
 
 
-ranking[item.team_id].matches +=1;
+ranking[teamId].matches += 1;
 
 
 
@@ -319,7 +326,7 @@ ranking[item.team_id].matches +=1;
 
 
 
-const final =
+const board =
 
 Object.values(ranking)
 
@@ -330,14 +337,14 @@ Object.values(ranking)
 if(b.points !== a.points){
 
 
-return b.points-a.points;
+return b.points - a.points;
 
 
 }
 
 
 
-return b.kills-a.kills;
+return b.kills - a.kills;
 
 
 
@@ -350,13 +357,12 @@ return b.kills-a.kills;
 
 
 
-return final.map((team:any,index)=>({
+
+return board.map((team:any,index)=>({
 
 
-position:index+1,
 
-
-team_id:team.team_id,
+rank:index + 1,
 
 
 team_number:team.team_number,
