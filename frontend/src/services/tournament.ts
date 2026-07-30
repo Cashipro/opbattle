@@ -10,7 +10,9 @@ export async function getTournaments(){
 
 
 const res = await api.get(
+
 "/tournaments"
+
 );
 
 
@@ -180,6 +182,33 @@ const res = await api.post(
 slotId
 
 }
+
+);
+
+
+return res.data;
+
+
+}
+
+
+
+
+
+
+
+
+
+export async function getTournamentMatches(
+
+id:string
+
+){
+
+
+const res = await api.get(
+
+`/tournaments/${id}/matches`
 
 );
 
