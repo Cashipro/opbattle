@@ -1,26 +1,17 @@
 "use client";
 
-
 import {
   useState
 } from "react";
-
 
 import {
   useRouter
 } from "next/navigation";
 
-
 import api from "@/lib/api";
 
 
-
-
-
-
-
 export default function Login(){
-
 
 
   const router = useRouter();
@@ -36,12 +27,7 @@ export default function Login(){
 
 
 
-
-
-
-
   async function handleLogin(e:any){
-
 
     e.preventDefault();
 
@@ -50,8 +36,6 @@ export default function Login(){
 
 
       setLoading(true);
-
-
 
 
       const res = await api.post(
@@ -63,16 +47,10 @@ export default function Login(){
       );
 
 
-
-
       console.log(
         "LOGIN RESPONSE:",
         res.data
       );
-
-
-
-
 
 
 
@@ -83,14 +61,10 @@ export default function Login(){
 
 
 
-
-
       const user =
         res.data.user ||
-        res.data.data?.user;
-
-
-
+        res.data.data?.user ||
+        {};
 
 
 
@@ -99,17 +73,12 @@ export default function Login(){
 
 
         alert(
-          "Login successful but token not received from server"
+          "Server ne token return nahi kiya"
         );
-
 
         return;
 
-
       }
-
-
-
 
 
 
@@ -122,23 +91,16 @@ export default function Login(){
 
 
 
-
       localStorage.setItem(
         "user",
-        JSON.stringify(user || {})
+        JSON.stringify(user)
       );
 
 
 
 
-
-
-
-
       document.cookie =
-        `token=${token}; path=/; max-age=86400`;
-
-
+      `token=${token}; path=/; max-age=86400; secure; samesite=lax`;
 
 
 
@@ -152,9 +114,7 @@ export default function Login(){
 
 
 
-
     }catch(error:any){
-
 
 
       console.log(
@@ -163,10 +123,15 @@ export default function Login(){
       );
 
 
-
       alert(
 
         error?.response?.data?.message ||
+
+        error?.response?.data?.error ||
+
+        JSON.stringify(error?.response?.data) ||
+
+        error.message ||
 
         "Login failed"
 
@@ -190,10 +155,6 @@ export default function Login(){
 
 
 
-
-
-
-
   return (
 
     <main
@@ -207,10 +168,6 @@ export default function Login(){
       p-5
       "
     >
-
-
-
-
 
 
       <div
@@ -227,10 +184,6 @@ export default function Login(){
       >
 
 
-
-
-
-
         <h1
           className="
           text-3xl
@@ -240,14 +193,8 @@ export default function Login(){
           mb-2
           "
         >
-
           TOURNAMENT HUB
-
         </h1>
-
-
-
-
 
 
 
@@ -258,37 +205,21 @@ export default function Login(){
           mb-8
           "
         >
-
           Login to your account
-
         </p>
 
 
 
 
 
-
-
-
-
         <form
-
           onSubmit={handleLogin}
-
-          className="
-          space-y-5
-          "
-
+          className="space-y-5"
         >
 
 
 
-
-
-
-
           <div>
-
 
             <label
               className="
@@ -297,12 +228,8 @@ export default function Login(){
               mb-2
               "
             >
-
               Email
-
             </label>
-
-
 
 
             <input
@@ -329,11 +256,7 @@ export default function Login(){
 
             />
 
-
           </div>
-
-
-
 
 
 
@@ -350,12 +273,8 @@ export default function Login(){
               mb-2
               "
             >
-
               Password
-
             </label>
-
-
 
 
             <input
@@ -391,8 +310,6 @@ export default function Login(){
 
 
 
-
-
           <button
 
             disabled={loading}
@@ -409,20 +326,12 @@ export default function Login(){
 
           >
 
-
             {
-
               loading
-
               ?
-
               "Logging in..."
-
               :
-
               "Login"
-
-
             }
 
 
@@ -431,15 +340,7 @@ export default function Login(){
 
 
 
-
-
-
-
         </form>
-
-
-
-
 
 
 
@@ -457,8 +358,6 @@ export default function Login(){
 
           {" "}
 
-
-
           <a
 
             href="/register"
@@ -469,9 +368,7 @@ export default function Login(){
             "
 
           >
-
             Register
-
           </a>
 
 
@@ -479,16 +376,7 @@ export default function Login(){
 
 
 
-
-
-
-
-
       </div>
-
-
-
-
 
 
     </main>
