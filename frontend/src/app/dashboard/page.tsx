@@ -7,16 +7,14 @@ useState
 } from "react";
 
 
+import Sidebar from "@/components/Sidebar";
+
 
 import {
-useRouter
-} from "next/navigation";
+getMyTournaments
+} from "@/services/tournament";
 
 
-
-import Navbar from "@/components/Navbar";
-
-import Footer from "@/components/Footer";
 
 
 
@@ -26,11 +24,12 @@ export default function Dashboard(){
 
 
 
-const router=useRouter();
+const [user,setUser] = useState<any>({});
+
+const [joined,setJoined] = useState(0);
 
 
 
-const [user,setUser]=useState<any>(null);
 
 
 
@@ -39,28 +38,21 @@ const [user,setUser]=useState<any>(null);
 useEffect(()=>{
 
 
-const data =
+const savedUser =
 localStorage.getItem("user");
 
 
+if(savedUser){
 
-if(!data){
-
-
-router.push("/login");
-
-
-return;
-
+setUser(
+JSON.parse(savedUser)
+);
 
 }
 
 
 
-setUser(
-JSON.parse(data)
-);
-
+load();
 
 
 },[]);
@@ -71,9 +63,33 @@ JSON.parse(data)
 
 
 
-if(!user){
 
-return null;
+async function load(){
+
+
+try{
+
+
+const data =
+await getMyTournaments();
+
+
+setJoined(
+data.length
+);
+
+
+
+}catch(error){
+
+
+console.log(error);
+
+
+
+}
+
+
 
 }
 
@@ -82,28 +98,53 @@ return null;
 
 
 
-return(
-
-<>
 
 
-<Navbar />
+return (
+
+<div className="
+flex
+min-h-screen
+bg-black
+text-white
+">
 
 
 
-<main className="min-h-screen p-6 md:p-10">
 
 
 
-<h1 className="text-3xl font-black">
+<Sidebar />
 
-Welcome
 
-<span className="text-[#00ff84] ml-2">
 
-{user.name}
 
-</span>
+
+
+
+
+<main className="
+flex-1
+p-6
+md:p-10
+">
+
+
+
+
+
+
+<h1 className="
+text-4xl
+font-black
+mb-2
+">
+
+Welcome,
+
+{" "}
+
+{user.name || "Player"}
 
 </h1>
 
@@ -111,54 +152,17 @@ Welcome
 
 
 
-<div className="grid md:grid-cols-3 gap-6 mt-10">
 
+<p className="
+text-gray-400
+mb-8
+">
 
-
-
-
-<div className="game-card p-6">
-
-
-<p className="text-gray-400">
-
-Email
+PUBG Tournament Dashboard
 
 </p>
 
 
-<h2 className="text-xl font-bold">
-
-{user.email}
-
-</h2>
-
-
-</div>
-
-
-
-
-
-
-<div className="game-card p-6">
-
-
-<p className="text-gray-400">
-
-PUBG UID
-
-</p>
-
-
-<h2 className="text-xl font-bold">
-
-{user.pubg_uid}
-
-</h2>
-
-
-</div>
 
 
 
@@ -166,19 +170,43 @@ PUBG UID
 
 
 
-<div className="game-card p-6">
+<div className="
+grid
+grid-cols-1
+md:grid-cols-3
+gap-6
+">
 
 
-<p className="text-gray-400">
+
+
+
+
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
+
+<p className="
+text-gray-400
+">
 
 Balance
 
 </p>
 
 
-<h2 className="text-2xl font-black text-[#00ff84]">
+<h2 className="
+text-3xl
+font-black
+text-green-400
+mt-3
+">
 
-$0.00
+{user.balance || 0}
 
 </h2>
 
@@ -189,34 +217,211 @@ $0.00
 
 
 
-</div>
 
 
 
 
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
 
+<p className="
+text-gray-400
+">
 
-
-
-<div className="game-card p-8 mt-10">
-
-
-<h2 className="text-2xl font-black">
-
-My Tournament
-
-</h2>
-
-
-<p className="text-gray-400 mt-3">
-
-No tournament joined yet.
+Joined Tournaments
 
 </p>
 
 
+<h2 className="
+text-3xl
+font-black
+text-blue-400
+mt-3
+">
+
+{joined}
+
+</h2>
+
 
 </div>
+
+
+
+
+
+
+
+
+
+<div className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-6
+">
+
+<p className="
+text-gray-400
+">
+
+Status
+
+</p>
+
+
+<h2 className="
+text-2xl
+font-black
+text-yellow-400
+mt-3
+">
+
+ACTIVE
+
+</h2>
+
+
+</div>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<h2 className="
+text-2xl
+font-bold
+mt-10
+mb-5
+">
+
+Quick Actions
+
+</h2>
+
+
+
+
+
+
+
+
+
+<div className="
+grid
+grid-cols-1
+md:grid-cols-3
+gap-5
+">
+
+
+
+
+
+
+<a
+
+href="/tournaments"
+
+className="
+bg-blue-600
+rounded-2xl
+p-6
+font-bold
+text-center
+hover:scale-105
+transition
+"
+
+>
+
+🏆 Browse Tournaments
+
+</a>
+
+
+
+
+
+
+
+
+<a
+
+href="/deposit"
+
+className="
+bg-green-600
+rounded-2xl
+p-6
+font-bold
+text-center
+hover:scale-105
+transition
+"
+
+>
+
+💰 Deposit
+
+</a>
+
+
+
+
+
+
+
+
+<a
+
+href="/withdraw"
+
+className="
+bg-red-600
+rounded-2xl
+p-6
+font-bold
+text-center
+hover:scale-105
+transition
+"
+
+>
+
+💸 Withdraw
+
+</a>
+
+
+
+
+
+
+
+
+</div>
+
 
 
 
@@ -228,11 +433,10 @@ No tournament joined yet.
 
 
 
-<Footer />
 
 
 
-</>
+</div>
 
 );
 
