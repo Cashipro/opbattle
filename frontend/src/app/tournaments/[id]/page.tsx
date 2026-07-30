@@ -1,59 +1,46 @@
 "use client";
 
-
 import {
-useEffect,
-useState
+  useEffect,
+  useState
 } from "react";
 
-
 import {
-useParams,
-useRouter
+  useParams,
+  useRouter
 } from "next/navigation";
-
 
 import Sidebar from "@/components/Sidebar";
 
-
 import {
-getTournament,
-joinTournament
+  getTournament,
+  joinTournament
 } from "@/services/tournament";
-
-
-
-
-
 
 
 
 export default function TournamentDetail(){
 
 
-
-const params = useParams<{id:string}>();
+const params = useParams();
 
 const router = useRouter();
 
 
-const id = params?.id;
+const id = params?.id as string;
 
 
 
+const [tournament,setTournament] =
+useState<any>(null);
 
 
+const [loading,setLoading] =
+useState(true);
 
 
-const [tournament,setTournament] = useState<any>(null);
-
-
-const [loading,setLoading] = useState(true);
-
-
-const [joining,setJoining] = useState(false);
-
-
+const [joining,setJoining] =
+useState(false);
 
 
 
@@ -63,17 +50,13 @@ const [joining,setJoining] = useState(false);
 
 useEffect(()=>{
 
-
 if(id){
 
 loadTournament();
 
 }
 
-
 },[id]);
-
-
 
 
 
@@ -87,20 +70,22 @@ async function loadTournament(){
 try{
 
 
-if(!id)return;
-
-
-const data = await getTournament(id);
+const data =
+await getTournament(id);
 
 
 setTournament(data);
 
 
 
-}catch(error){
+}catch(error:any){
 
 
-console.log(error);
+console.log(
+"TOURNAMENT LOAD ERROR",
+error.response?.data || error
+);
+
 
 
 }finally{
@@ -112,9 +97,7 @@ setLoading(false);
 }
 
 
-
 }
-
 
 
 
@@ -129,37 +112,76 @@ async function handleJoin(){
 try{
 
 
-if(!id)return;
+const token =
+localStorage.getItem("token");
+
+
+
+if(!token){
+
+
+alert(
+"Please login first"
+);
+
+
+router.push("/login");
+
+
+return;
+
+
+}
+
+
+
+
 
 
 setJoining(true);
 
 
 
+
+
+
+console.log(
+"JOIN TOKEN:",
+token
+);
+
+
+
+
+
+const res =
 await joinTournament(id);
+
+
+
+console.log(
+"JOIN RESPONSE:",
+res
+);
+
 
 
 
 
 
 alert(
-
 "Tournament joined successfully"
-
 );
 
 
 
 
 
-
-// DIRECT TEAM ROOM
 
 router.push(
-
 `/team-room/${id}`
-
 );
+
 
 
 
@@ -167,6 +189,13 @@ router.push(
 
 
 }catch(error:any){
+
+
+console.log(
+"JOIN ERROR:",
+error.response?.data || error
+);
+
 
 
 alert(
@@ -219,9 +248,7 @@ Loading Tournament...
 
 );
 
-
 }
-
 
 
 
@@ -271,15 +298,7 @@ text-white
 ">
 
 
-
-
-
-
 <Sidebar />
-
-
-
-
 
 
 
@@ -288,23 +307,16 @@ text-white
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
 ">
-
-
-
-
 
 
 <div className="
 max-w-5xl
 mx-auto
 ">
-
-
-
-
 
 
 
@@ -316,12 +328,6 @@ rounded-3xl
 p-6
 md:p-10
 ">
-
-
-
-
-
-
 
 
 <h1 className="
@@ -340,17 +346,12 @@ mb-8
 
 
 
-
-
-
 <div className="
 grid
 grid-cols-1
 sm:grid-cols-2
 gap-5
 ">
-
-
 
 
 
@@ -371,16 +372,12 @@ text-green-400
 ">
 
 {tournament.entry_fee}
-
 {" "}
-
 {tournament.currency}
 
 </h2>
 
 </div>
-
-
 
 
 
@@ -413,9 +410,6 @@ text-yellow-400
 
 
 
-
-
-
 <div className="
 bg-zinc-800
 rounded-2xl
@@ -426,20 +420,19 @@ p-5
 Start Date
 </p>
 
+
 <h2 className="font-bold">
 
 {
 new Date(
 tournament.start_date
 ).toLocaleDateString()
-
 }
 
 </h2>
 
+
 </div>
-
-
 
 
 
@@ -456,24 +449,20 @@ p-5
 Start Time
 </p>
 
+
 <h2 className="font-bold">
 
 {tournament.start_time}
 
 </h2>
 
+
 </div>
-
-
-
-
 
 
 
 
 </div>
-
-
 
 
 
@@ -487,6 +476,7 @@ bg-zinc-800
 rounded-2xl
 p-5
 ">
+
 
 <p className="text-gray-400">
 Status
@@ -505,7 +495,6 @@ text-blue-400
 
 
 </div>
-
 
 
 
@@ -557,19 +546,11 @@ joining
 
 
 
-
-
 </div>
 
 
 
-
-
-
 </div>
-
-
-
 
 
 
@@ -577,11 +558,7 @@ joining
 
 
 
-
-
-
 </div>
-
 
 );
 
