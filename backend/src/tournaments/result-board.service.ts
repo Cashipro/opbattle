@@ -1,5 +1,6 @@
 import {
-Injectable
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
@@ -34,8 +35,6 @@ private prisma:PrismaService
 
 
 
-// ROUND WISE RESULTS
-
 async tournamentResults(
 
 tournamentId:string
@@ -46,13 +45,13 @@ tournamentId:string
 
 
 
-return this.prisma.tournamentRound.findMany({
+const rounds =
+
+await this.prisma.tournamentRound.findMany({
 
 where:{
 
-
 tournament_id:tournamentId
-
 
 },
 
@@ -60,9 +59,7 @@ tournament_id:tournamentId
 
 orderBy:{
 
-
 round_number:"asc"
-
 
 },
 
@@ -159,6 +156,27 @@ name:true
 
 
 
+
+if(!rounds.length){
+
+throw new BadRequestException(
+
+"No results found"
+
+);
+
+}
+
+
+
+
+
+
+
+return rounds;
+
+
+
 }
 
 
@@ -168,8 +186,6 @@ name:true
 
 
 
-
-// FINAL PUBG RANKING
 
 async finalRanking(
 
@@ -196,7 +212,6 @@ match:{
 tournament_id:tournamentId
 
 
-
 }
 
 
@@ -209,13 +224,33 @@ include:{
 
 
 
-team:true
+team:{
+
+
+
+select:{
+
+
+
+id:true,
+
+
+team_number:true,
+
+
+name:true
 
 
 
 }
 
 
+
+}
+
+
+
+}
 
 });
 
@@ -225,11 +260,7 @@ team:true
 
 
 
-
-
-const ranking:any={};
-
-
+const ranking:any = {};
 
 
 
@@ -238,8 +269,6 @@ const ranking:any={};
 
 
 for(const item of results){
-
-
 
 
 
@@ -254,9 +283,7 @@ ranking[item.team_id]={
 team_id:item.team_id,
 
 
-
 team_number:item.team.team_number,
-
 
 
 team_name:item.team.name,
@@ -266,12 +293,7 @@ team_name:item.team.name,
 kills:0,
 
 
-
-points:0,
-
-
-
-matches:0
+points:0
 
 
 
@@ -287,19 +309,11 @@ matches:0
 
 
 
-
 ranking[item.team_id].kills += item.kills;
 
 
 
 ranking[item.team_id].points += item.points;
-
-
-
-ranking[item.team_id].matches += 1;
-
-
-
 
 
 
@@ -319,24 +333,20 @@ return Object.values(ranking)
 
 (a:any,b:any)=>
 
-
-
-b.points - a.points || b.kills - a.kills
-
-
+b.points - a.points
 
 )
 
 .map(
 
-(team:any,index)=>({
+(item:any,index)=>({
 
 
 
-rank:index + 1,
+rank:index+1,
 
 
-...team
+...item
 
 
 
@@ -346,12 +356,58 @@ rank:index + 1,
 
 
 
+}
 
+
+
+
+
+
+
+
+async teamRanking(
+
+tournamentId:string
+
+){
+
+
+
+const ranking =
+
+await this.finalRanking(tournamentId);
+
+
+
+
+
+
+
+return ranking.map((team:any)=>({
+
+
+
+rank:team.rank,
+
+
+team:
+
+`#${team.team_number} ${team.team_name}`,
+
+
+
+kills:team.kills,
+
+
+points:team.points
+
+
+
+}));
 
 
 
 }
-
 
 
 
