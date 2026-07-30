@@ -1,40 +1,56 @@
 import axios from "axios";
 
 
-
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 
 
 
 
+// GET ALL TOURNAMENTS
+
+export async function getTournaments(){
+
+    const res = await axios.get(
+        `${API}/tournaments`,
+        {
+            withCredentials:true
+        }
+    );
 
 
-// GET TOURNAMENT DETAIL
+    return res.data;
+
+}
+
+
+
+
+
+
+
+// GET SINGLE TOURNAMENT
 
 export async function getTournament(
 
-id:string
+    id:string
 
 ){
 
-const res = await axios.get(
+    const res = await axios.get(
 
-`${API}/tournaments/${id}`,
+        `${API}/tournaments/${id}`,
 
-{
-withCredentials:true
+        {
+            withCredentials:true
+        }
+
+    );
+
+
+    return res.data;
+
 }
-
-);
-
-
-return res.data;
-
-
-}
-
-
 
 
 
@@ -46,33 +62,53 @@ return res.data;
 
 export async function joinTournament(
 
-id:string
+    id:string
 
 ){
 
 
-const res = await axios.post(
+    const res = await axios.post(
 
-`${API}/tournaments/${id}/join`,
+        `${API}/tournaments/${id}/join`,
 
-{},
+        {},
 
-{
+        {
+            withCredentials:true
+        }
 
-withCredentials:true
-
-}
-
-);
+    );
 
 
-
-return res.data;
-
+    return res.data;
 
 }
 
 
+
+
+
+
+
+// MY TOURNAMENTS
+
+export async function getMyTournaments(){
+
+
+    const res = await axios.get(
+
+        `${API}/tournaments/user/my-tournaments`,
+
+        {
+            withCredentials:true
+        }
+
+    );
+
+
+    return res.data;
+
+}
 
 
 
@@ -84,27 +120,23 @@ return res.data;
 
 export async function getTeamRoom(
 
-id:string
+    id:string
 
 ){
 
 
-const res = await axios.get(
+    const res = await axios.get(
 
-`${API}/tournaments/${id}/team-room`,
+        `${API}/tournaments/${id}/team-room`,
 
-{
+        {
+            withCredentials:true
+        }
 
-withCredentials:true
-
-}
-
-);
+    );
 
 
-
-return res.data;
-
+    return res.data;
 
 }
 
@@ -114,41 +146,31 @@ return res.data;
 
 
 
-
-
-// SELECT SLOT
+// SELECT TEAM SLOT
 
 export async function selectSlot(
 
-slotId:string
+    slotId:string
 
 ){
 
 
-const res = await axios.post(
+    const res = await axios.post(
 
-`${API}/tournaments/team/select-slot`,
+        `${API}/tournaments/team/select-slot`,
 
-{
+        {
+            slotId
+        },
 
-slotId
+        {
+            withCredentials:true
+        }
 
-},
-
-
-{
-
-withCredentials:true
-
-}
+    );
 
 
-);
-
-
-
-return res.data;
-
+    return res.data;
 
 }
 
@@ -158,40 +180,30 @@ return res.data;
 
 
 
-
-
-// LEAVE SLOT
+// LEAVE TEAM SLOT
 
 export async function leaveSlot(
 
-slotId:string
+    slotId:string
 
 ){
 
 
-const res = await axios.post(
+    const res = await axios.post(
 
-`${API}/tournaments/team/leave-slot`,
+        `${API}/tournaments/team/leave-slot`,
 
-{
+        {
+            slotId
+        },
 
-slotId
+        {
+            withCredentials:true
+        }
 
-},
-
-
-{
-
-withCredentials:true
-
-}
+    );
 
 
-);
-
-
-
-return res.data;
-
+    return res.data;
 
 }
