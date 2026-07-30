@@ -201,14 +201,19 @@ user.id
 
 teamRoom(
 
-@Param('id') id:string
+@Param('id') id:string,
+
+
+@CurrentUser() user:any
 
 ){
 
 
 return this.teamRoomService.getRoom(
 
-id
+id,
+
+user.id
 
 );
 
