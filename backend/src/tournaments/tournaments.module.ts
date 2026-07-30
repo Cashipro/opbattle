@@ -9,9 +9,22 @@ PrismaModule
 
 
 
+
 import {
 TournamentsController
 } from './tournaments.controller';
+
+
+
+import {
+TournamentsService
+} from './tournaments.service';
+
+
+
+import {
+JoinService
+} from './join.service';
 
 
 
@@ -20,19 +33,11 @@ TeamRoomService
 } from './team-room.service';
 
 
-import {
-JoinService
-} from './join.service';
-
-
-import {
-TournamentsService
-} from './tournaments.service';
-
 
 import {
 MyTournamentsService
 } from './my-tournaments.service';
+
 
 
 import {
@@ -40,9 +45,12 @@ SelectSlotService
 } from './select-slot.service';
 
 
+
+
 import {
 AutoPlannerService
 } from './auto-planner.service';
+
 
 
 import {
@@ -50,9 +58,11 @@ PlannerService
 } from './planner.service';
 
 
+
 import {
 MatchGeneratorService
 } from './match-generator.service';
+
 
 
 import {
@@ -60,9 +70,11 @@ MatchManagementService
 } from './match-management.service';
 
 
+
 import {
 NextRoundService
 } from './next-round.service';
+
 
 
 import {
@@ -70,14 +82,18 @@ QualificationService
 } from './qualification.service';
 
 
+
 import {
 ResultService
 } from './result.service';
 
 
+
 import {
 ResultBoardService
 } from './result-board.service';
+
+
 
 
 
@@ -93,6 +109,8 @@ PrismaModule
 
 
 
+
+
 controllers:[
 
 TournamentsController
@@ -101,16 +119,19 @@ TournamentsController
 
 
 
+
+
 providers:[
 
 
-TeamRoomService,
+
+TournamentsService,
 
 
 JoinService,
 
 
-TournamentsService,
+TeamRoomService,
 
 
 MyTournamentsService,
@@ -118,6 +139,9 @@ MyTournamentsService,
 
 SelectSlotService,
 
+
+
+// MATCH SYSTEM
 
 AutoPlannerService,
 
@@ -143,20 +167,30 @@ ResultService,
 ResultBoardService
 
 
+
 ],
+
+
 
 
 
 exports:[
 
 
-TeamRoomService,
+
+TournamentsService,
 
 
 JoinService,
 
 
-TournamentsService,
+TeamRoomService,
+
+
+SelectSlotService,
+
+
+MyTournamentsService,
 
 
 ResultBoardService,
@@ -174,7 +208,9 @@ QualificationService,
 NextRoundService
 
 
+
 ]
+
 
 
 })
