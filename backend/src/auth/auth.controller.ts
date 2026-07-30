@@ -5,12 +5,12 @@ Body
 } from '@nestjs/common';
 
 
-import { AuthService } from './auth.service';
+
+import {
+AuthService
+} from './auth.service';
 
 
-import { RegisterDto } from './dto/register.dto';
-
-import { LoginDto } from './dto/login.dto';
 
 
 
@@ -32,19 +32,27 @@ private authService:AuthService
 
 
 
+
+
+
+
 @Post('register')
 
 register(
 
-@Body() data:RegisterDto
+@Body() body:any
 
 ){
 
+return this.authService.register(
 
-return this.authService.register(data);
+body
 
+);
 
 }
+
+
 
 
 
@@ -56,15 +64,18 @@ return this.authService.register(data);
 
 login(
 
-@Body() data:LoginDto
+@Body() body:any
 
 ){
 
+return this.authService.login(
 
-return this.authService.login(data);
+body
 
+);
 
 }
+
 
 
 
