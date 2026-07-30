@@ -1,11 +1,11 @@
 import {
-  Injectable,
-  BadRequestException
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
 import {
-  PrismaService
+PrismaService
 } from '../prisma/prisma.service';
 
 
@@ -15,6 +15,7 @@ import {
 
 
 @Injectable()
+
 export class TournamentsService {
 
 
@@ -44,14 +45,13 @@ where:{
 
 status:{
 
-
 not:"completed"
-
 
 }
 
 
 },
+
 
 
 orderBy:{
@@ -61,6 +61,7 @@ created_at:"desc"
 
 
 },
+
 
 
 select:{
@@ -90,13 +91,22 @@ start_time:true,
 status:true,
 
 
+max_teams:true,
+
+
+players_per_team:true,
+
+
 created_at:true
+
 
 
 }
 
 
+
 });
+
 
 
 }
@@ -123,6 +133,7 @@ await this.prisma.tournament.findUnique({
 
 where:{
 
+
 id
 
 },
@@ -132,9 +143,7 @@ id
 include:{
 
 
-
 teams:{
-
 
 
 orderBy:{
@@ -150,9 +159,7 @@ team_number:"asc"
 include:{
 
 
-
 slots:{
-
 
 
 orderBy:{
@@ -168,9 +175,7 @@ slot_number:"asc"
 include:{
 
 
-
 user:{
-
 
 
 select:{
@@ -189,7 +194,6 @@ pubg_uid:true
 
 
 }
-
 
 
 }
@@ -211,43 +215,7 @@ pubg_uid:true
 rounds:true,
 
 
-matches:true,
-
-
-joins:{
-
-
-
-include:{
-
-
-user:{
-
-
-select:{
-
-
-id:true,
-
-
-name:true,
-
-
-pubg_uid:true
-
-
-}
-
-
-}
-
-
-
-}
-
-
-
-}
+matches:true
 
 
 
@@ -263,10 +231,7 @@ pubg_uid:true
 
 
 
-
-
 if(!tournament){
-
 
 
 throw new BadRequestException(
@@ -283,49 +248,7 @@ throw new BadRequestException(
 
 
 
-
-
-return {
-
-
-id:tournament.id,
-
-
-name:tournament.name,
-
-
-entry_fee:tournament.entry_fee,
-
-
-currency:tournament.currency,
-
-
-reward:tournament.reward,
-
-
-start_date:tournament.start_date,
-
-
-start_time:tournament.start_time,
-
-
-status:tournament.status,
-
-
-
-teams:tournament.teams,
-
-
-
-totalTeams:tournament.teams.length,
-
-
-
-players:tournament.joins.length
-
-
-
-};
+return tournament;
 
 
 
@@ -373,12 +296,16 @@ throw new BadRequestException(
 
 
 
+return this.prisma.$transaction(async(tx)=>{
 
-const tournament =
 
-await this.prisma.tournament.create({
+
+
+
+const tournament = await tx.tournament.create({
 
 data:{
+
 
 
 name:data.name,
@@ -391,19 +318,45 @@ currency:data.currency,
 
 
 reward:data.reward
+
 ?
+
 Number(data.reward)
+
 :
+
 null,
 
 
-start_date:new Date(data.start_date),
+
+start_date:new Date(
+data.start_date
+),
+
 
 
 start_time:data.start_time,
 
 
-status:"upcoming"
+
+status:"upcoming",
+
+
+
+max_teams:data.max_teams
+
+?
+
+Number(data.max_teams)
+
+:
+
+100,
+
+
+
+players_per_team:4
+
 
 
 }
@@ -417,7 +370,109 @@ status:"upcoming"
 
 
 
+
+
+const totalTeams = tournament.max_teams;
+
+
+const members = tournament.players_per_team;
+
+
+
+
+
+
+
+for(
+
+let team=1;
+
+team<=totalTeams;
+
+team++
+
+){
+
+
+
+const createdTeam = await tx.tournamentTeam.create({
+
+data:{
+
+
+tournament_id:tournament.id,
+
+
+team_number:team,
+
+
+name:`Team ${team}`
+
+
+}
+
+});
+
+
+
+
+
+
+
+
+for(
+
+let slot=1;
+
+slot<=members;
+
+slot++
+
+){
+
+
+
+await tx.teamSlot.create({
+
+data:{
+
+
+team_id:createdTeam.id,
+
+
+slot_number:slot,
+
+
+user_id:null,
+
+
+joined_at:null
+
+
+}
+
+});
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
 return tournament;
+
+
+
+});
+
 
 
 }
