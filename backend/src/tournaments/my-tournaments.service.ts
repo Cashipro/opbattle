@@ -13,6 +13,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class MyTournamentsService {
@@ -32,6 +33,7 @@ private prisma:PrismaService
 
 
 
+
 async getMyTournaments(
 
 userId:string
@@ -42,9 +44,7 @@ userId:string
 
 
 
-const slots =
-
-await this.prisma.tournamentSlot.findMany({
+return this.prisma.tournamentJoin.findMany({
 
 where:{
 
@@ -60,11 +60,25 @@ include:{
 
 
 
-tournament:true,
+tournament:{
 
 
 
-team:{
+include:{
+
+
+
+teams:{
+
+
+
+orderBy:{
+
+
+team_number:"asc"
+
+
+},
 
 
 
@@ -76,20 +90,12 @@ slots:{
 
 
 
-orderBy:{
-
-
-slot_number:"asc"
-
-
-},
-
-
-
 include:{
 
 
+
 user:{
+
 
 
 select:{
@@ -128,15 +134,22 @@ pubg_uid:true
 
 
 
-},
+}
 
+
+
+}
+
+
+
+},
 
 
 
 orderBy:{
 
 
-created_at:"desc"
+joined_at:"desc"
 
 
 }
@@ -144,79 +157,6 @@ created_at:"desc"
 
 
 });
-
-
-
-
-
-
-
-
-return slots.map(item=>({
-
-
-
-tournament:{
-
-
-id:item.tournament.id,
-
-
-name:item.tournament.name,
-
-
-entry_fee:item.tournament.entry_fee,
-
-
-reward:item.tournament.reward,
-
-
-start_date:item.tournament.start_date,
-
-
-start_time:item.tournament.start_time,
-
-
-status:item.tournament.status
-
-
-},
-
-
-
-
-
-team:{
-
-
-id:item.team.id,
-
-
-name:item.team.name,
-
-
-team_number:item.team.team_number,
-
-
-
-players:item.team.slots.map(slot=>({
-
-
-slot_number:slot.slot_number,
-
-
-user:slot.user
-
-
-}))
-
-
-
-}
-
-
-
-}));
 
 
 
