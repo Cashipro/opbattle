@@ -35,7 +35,7 @@ private prisma:PrismaService
 
 
 
-// GET ALL MATCHES
+// ALL MATCHES OF TOURNAMENT
 
 async getMatches(
 
@@ -103,21 +103,19 @@ team:{
 
 
 
-include:{
+select:{
 
+
+id:true,
+
+
+team_number:true,
+
+
+name:true,
 
 
 slots:{
-
-
-
-orderBy:{
-
-
-slot_number:"asc"
-
-
-},
 
 
 
@@ -198,7 +196,7 @@ pubg_uid:true
 
 
 
-// GET SINGLE MATCH
+// SINGLE MATCH
 
 async getMatch(
 
@@ -228,10 +226,6 @@ include:{
 
 
 
-round:true,
-
-
-
 teams:{
 
 
@@ -244,8 +238,17 @@ team:{
 
 
 
-include:{
+select:{
 
+
+
+id:true,
+
+
+team_number:true,
+
+
+name:true,
 
 
 slots:{
@@ -305,7 +308,6 @@ pubg_uid:true
 
 
 });
-
 
 
 
@@ -346,7 +348,7 @@ return match;
 
 
 
-// UPDATE ROOM DETAILS
+// ADD ROOM DETAILS
 
 async updateRoom(
 
@@ -398,7 +400,6 @@ throw new BadRequestException(
 
 
 
-
 return this.prisma.tournamentMatch.update({
 
 where:{
@@ -421,7 +422,6 @@ room_password,
 
 
 status:"ready"
-
 
 
 }
@@ -493,7 +493,6 @@ throw new BadRequestException(
 
 
 
-
 return this.prisma.tournamentMatch.update({
 
 where:{
@@ -509,7 +508,7 @@ id:matchId
 data:{
 
 
-status:"playing"
+status:"started"
 
 
 }
@@ -581,7 +580,6 @@ throw new BadRequestException(
 
 
 
-
 return this.prisma.tournamentMatch.update({
 
 where:{
@@ -597,7 +595,7 @@ id:matchId
 data:{
 
 
-status:"completed"
+status:"finished"
 
 
 }
