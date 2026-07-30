@@ -26,16 +26,12 @@ leaveSlot
 
 
 
-
 export default function TeamRoom(){
-
 
 
 const params = useParams<{id:string}>();
 
 const id = params?.id;
-
-
 
 
 
@@ -50,13 +46,12 @@ const [loading,setLoading] = useState(true);
 
 
 
-
 useEffect(()=>{
 
 
 if(id){
 
-load();
+loadRoom();
 
 }
 
@@ -71,13 +66,10 @@ load();
 
 
 
-async function load(){
+async function loadRoom(){
 
 
 try{
-
-
-if(!id) return;
 
 
 const data = await getTeamRoom(id);
@@ -93,7 +85,6 @@ setTeams(data);
 console.log(error);
 
 
-
 }finally{
 
 
@@ -103,7 +94,6 @@ setLoading(false);
 }
 
 
-
 }
 
 
@@ -114,7 +104,7 @@ setLoading(false);
 
 
 
-async function join(slotId:string){
+async function joinSlot(slotId:string){
 
 
 try{
@@ -123,7 +113,7 @@ try{
 await selectSlot(slotId);
 
 
-load();
+loadRoom();
 
 
 
@@ -134,7 +124,7 @@ alert(
 
 error?.response?.data?.message ||
 
-"Unable to select slot"
+"Slot not available"
 
 );
 
@@ -152,17 +142,16 @@ error?.response?.data?.message ||
 
 
 
-
-async function leave(slotId:string){
+async function removeSlot(){
 
 
 try{
 
 
-await leaveSlot(slotId);
+await leaveSlot();
 
 
-load();
+loadRoom();
 
 
 
@@ -175,6 +164,35 @@ console.log(error);
 }
 
 
+}
+
+
+
+
+
+
+
+
+if(loading){
+
+
+return (
+
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
+
+Loading Room...
+
+</div>
+
+);
+
 
 }
 
@@ -185,22 +203,15 @@ console.log(error);
 
 
 
-
 return (
 
-<div
-className="
+
+<div className="
 flex
 min-h-screen
 bg-black
 text-white
-"
->
-
-
-
-
-
+">
 
 
 <Sidebar />
@@ -208,50 +219,33 @@ text-white
 
 
 
-
-
-
-
-<main
-className="
+<main className="
 flex-1
 p-4
 pt-20
-md:ml-64
 md:p-10
 md:pt-10
-"
->
+">
 
 
 
-
-
-
-
-<div
-className="
+<div className="
 max-w-7xl
 mx-auto
-"
->
+">
 
 
 
 
 
-
-
-<h1
-className="
+<h1 className="
 text-3xl
-md:text-4xl
+md:text-5xl
 font-black
 mb-8
-"
->
+">
 
-👥 Team Room
+🎮 PUBG Team Room
 
 </h1>
 
@@ -263,69 +257,12 @@ mb-8
 
 
 
-{
-
-loading
-
-?
-
-(
-
-<div
-className="
-text-gray-400
-text-center
-"
->
-
-Loading teams...
-
-</div>
-
-)
-
-:
-
-teams.length===0
-
-?
-
-(
-
-<div
-className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-8
-text-center
-text-gray-400
-"
->
-
-No Teams Generated
-
-</div>
-
-)
-
-:
-
-(
-
-<div
-className="
+<div className="
 grid
 grid-cols-1
-md:grid-cols-2
-xl:grid-cols-3
+lg:grid-cols-2
 gap-6
-"
->
-
-
-
+">
 
 
 
@@ -346,7 +283,7 @@ bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
-p-6
+p-5
 "
 
 >
@@ -355,15 +292,12 @@ p-6
 
 
 
-
-
-<h2
-className="
+<h2 className="
 text-2xl
-font-bold
+font-black
 mb-5
-"
->
+text-green-400
+">
 
 {team.name}
 
@@ -375,13 +309,11 @@ mb-5
 
 
 
-
-<div
-className="
-space-y-3
-"
->
-
+<div className="
+grid
+grid-cols-2
+gap-4
+">
 
 
 
@@ -390,23 +322,46 @@ space-y-3
 
 {
 
-team.slots?.map((slot:any)=>(
+team.slots.map((slot:any)=>(
 
 
 
-<div
+<button
 
 key={slot.id}
 
-className="
-bg-zinc-800
-rounded-xl
+onClick={()=>{
+
+if(!slot.user){
+
+joinSlot(slot.id);
+
+}
+
+}}
+
+className={`
+rounded-2xl
 p-4
-flex
-justify-between
-items-center
-gap-3
-"
+text-center
+border
+transition
+
+${
+
+slot.user
+
+?
+
+"bg-zinc-800 border-green-600"
+
+:
+
+"bg-black border-zinc-700 hover:border-green-400"
+
+}
+
+`}
 
 >
 
@@ -414,16 +369,36 @@ gap-3
 
 
 
+<div className="
+text-3xl
+">
+
+{
+
+slot.user
+
+?
+
+"👤"
+
+:
+
+"➕"
+
+}
+
+</div>
 
 
-<div>
 
 
-<p
-className="
+
+
+
+<p className="
 font-bold
-"
->
+mt-2
+">
 
 Slot {slot.slot_number}
 
@@ -435,35 +410,39 @@ Slot {slot.slot_number}
 
 
 
+
+<p className="
+text-sm
+text-gray-400
+break-all
+">
+
 {
 
 slot.user
 
 ?
 
-<p
-className="
-text-green-400
-text-sm
-"
->
-
-{slot.user.name}
-
-</p>
+slot.user.name
 
 :
 
-<p
-className="
-text-gray-400
-text-sm
-"
->
+"Empty"
 
-Empty
+}
 
 </p>
+
+
+
+
+
+</button>
+
+
+
+))
+
 
 }
 
@@ -478,75 +457,55 @@ Empty
 
 
 
+</div>
 
 
 
-{
+))
 
-slot.user
 
-?
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
+mt-8
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-5
+text-center
+">
 
 <button
 
-onClick={()=>leave(slot.id)}
+onClick={removeSlot}
 
 className="
 bg-red-600
-px-4
-py-2
-rounded-lg
-text-sm
-font-bold
+px-8
+py-3
+rounded-xl
+font-black
 "
 
 >
 
-Leave
+Leave Team
 
 </button>
 
-:
-
-<button
-
-onClick={()=>join(slot.id)}
-
-className="
-bg-green-600
-px-4
-py-2
-rounded-lg
-text-sm
-font-bold
-"
-
->
-
-Join
-
-</button>
-
-}
-
-
-
-</div>
-
-
-
-))
-
-
-
-}
-
-
-
-
-
-
-
 
 </div>
 
@@ -555,37 +514,7 @@ Join
 
 
 
-
 </div>
-
-
-
-))
-
-
-
-}
-
-
-
-
-
-
-
-</div>
-
-)
-
-}
-
-
-
-
-
-
-
-</div>
-
 
 
 
@@ -596,10 +525,8 @@ Join
 
 
 
-
-
-
 </div>
+
 
 );
 
