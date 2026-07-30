@@ -1,4 +1,8 @@
-import api from "@/lib/api";
+import axios from "axios";
+
+
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 
 
@@ -6,31 +10,7 @@ import api from "@/lib/api";
 
 
 
-
-// GET ALL TOURNAMENTS
-
-export async function getTournaments(){
-
-
-const res = await api.get(
-"/tournaments"
-);
-
-
-return res.data;
-
-
-}
-
-
-
-
-
-
-
-
-
-// GET SINGLE TOURNAMENT
+// GET TOURNAMENT DETAIL
 
 export async function getTournament(
 
@@ -38,10 +18,13 @@ id:string
 
 ){
 
+const res = await axios.get(
 
-const res = await api.get(
+`${API}/tournaments/${id}`,
 
-`/tournaments/${id}`
+{
+withCredentials:true
+}
 
 );
 
@@ -68,36 +51,17 @@ id:string
 ){
 
 
+const res = await axios.post(
 
-const res = await api.post(
+`${API}/tournaments/${id}/join`,
 
-`/tournaments/${id}/join`
+{},
 
-);
+{
 
-
-
-return res.data;
-
+withCredentials:true
 
 }
-
-
-
-
-
-
-
-
-
-// MY TOURNAMENTS
-
-export async function getMyTournaments(){
-
-
-const res = await api.get(
-
-"/tournaments/user/my-tournaments"
 
 );
 
@@ -125,10 +89,15 @@ id:string
 ){
 
 
+const res = await axios.get(
 
-const res = await api.get(
+`${API}/tournaments/${id}/team-room`,
 
-`/tournaments/${id}/team-room`
+{
+
+withCredentials:true
+
+}
 
 );
 
@@ -147,7 +116,7 @@ return res.data;
 
 
 
-// SELECT TEAM SLOT
+// SELECT SLOT
 
 export async function selectSlot(
 
@@ -156,17 +125,20 @@ slotId:string
 ){
 
 
+const res = await axios.post(
 
-const res = await api.post(
+`${API}/tournaments/team/select-slot`,
 
-"/tournaments/team/select-slot",
+{
+
+slotId
+
+},
 
 
 {
 
-
-slotId
-
+withCredentials:true
 
 }
 
@@ -188,7 +160,7 @@ return res.data;
 
 
 
-// LEAVE CURRENT SLOT
+// LEAVE SLOT
 
 export async function leaveSlot(
 
@@ -197,60 +169,20 @@ slotId:string
 ){
 
 
+const res = await axios.post(
 
-const res = await api.post(
-
-"/tournaments/team/leave-slot",
-
+`${API}/tournaments/team/leave-slot`,
 
 {
-
 
 slotId
 
-
-}
-
-
-);
-
-
-
-return res.data;
-
-
-}
-
-
-
-
-
-
-
-
-
-// UPDATE TEAM NAME
-
-export async function updateTeamName(
-
-teamId:string,
-
-name:string
-
-){
-
-
-
-const res = await api.put(
-
-`/tournaments/team/${teamId}/name`,
+},
 
 
 {
 
-
-name
-
+withCredentials:true
 
 }
 
