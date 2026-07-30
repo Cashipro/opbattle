@@ -2,12 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 
 
 model User {
@@ -39,9 +37,6 @@ model User {
   created_at DateTime @default(now())
 
 }
-
-
-
 
 
 
@@ -79,9 +74,6 @@ model Tournament {
 
 
 
-
-
-
 model TournamentJoin {
 
   id String @id @default(uuid())
@@ -103,9 +95,6 @@ model TournamentJoin {
   @@unique([tournament_id,user_id])
 
 }
-
-
-
 
 
 
@@ -134,15 +123,9 @@ model WalletTransaction {
 
 
 
-
-
-
-
-
 model Deposit {
 
   id String @id @default(uuid())
-
 
   user_id String
 
@@ -152,23 +135,12 @@ model Deposit {
 
   status String @default("pending")
 
-
   created_at DateTime @default(now())
 
 
-  user User @relation(
-    fields:[user_id],
-    references:[id]
-  )
+  user User @relation(fields: [user_id], references: [id])
 
 }
-
-
-
-
-
-
-
 
 model TournamentTeam {
 
@@ -177,12 +149,9 @@ model TournamentTeam {
 
   tournament_id String
 
-
   team_number Int
 
-
   name String
-
 
 
   tournament Tournament @relation(fields: [tournament_id], references: [id])
@@ -198,11 +167,6 @@ model TournamentTeam {
 
 
 
-
-
-
-
-
 model TeamSlot {
 
   id String @id @default(uuid())
@@ -210,15 +174,11 @@ model TeamSlot {
 
   team_id String
 
-
   slot_number Int
-
 
   user_id String?
 
-
   joined_at DateTime?
-
 
 
   team TournamentTeam @relation(fields: [team_id], references: [id])
@@ -230,26 +190,16 @@ model TeamSlot {
 
 
 
-
-
-
-
-
 model TournamentRound {
-
 
   id String @id @default(uuid())
 
 
   tournament_id String
 
-
   round_number Int
 
-
   name String
-
-
 
 
   tournament Tournament @relation(fields: [tournament_id], references: [id])
@@ -261,36 +211,22 @@ model TournamentRound {
 
 
 
-
-
-
-
-
 model TournamentMatch {
-
 
   id String @id @default(uuid())
 
 
   tournament_id String
 
-
   round_id String
-
 
   match_number Int
 
-
   room_id String?
-
 
   room_password String?
 
-
   status String @default("pending")
-
-
-
 
 
   tournament Tournament @relation(fields: [tournament_id], references: [id])
@@ -299,9 +235,7 @@ model TournamentMatch {
   round TournamentRound @relation(fields: [round_id], references: [id])
 
 
-
   teams MatchTeam[]
-
 
   results MatchResult[]
 
@@ -309,25 +243,14 @@ model TournamentMatch {
 
 
 
-
-
-
-
-
-
 model MatchTeam {
-
 
   id String @id @default(uuid())
 
 
   match_id String
 
-
   team_id String
-
-
-
 
 
   match TournamentMatch @relation(fields: [match_id], references: [id])
@@ -339,42 +262,26 @@ model MatchTeam {
 
 
 
-
-
-
-
-
-
 model MatchResult {
-
 
   id String @id @default(uuid())
 
 
   match_id String
 
-
   team_id String
-
 
   kills Int @default(0)
 
-
   position Int
 
-
   points Int
-
-
-
 
 
   match TournamentMatch @relation(fields: [match_id], references: [id])
 
 
   team TournamentTeam @relation(fields: [team_id], references: [id])
-
-
 
 
   @@unique([match_id,team_id])
