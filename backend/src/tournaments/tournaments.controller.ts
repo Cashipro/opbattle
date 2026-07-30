@@ -1,53 +1,53 @@
 import {
-Controller,
-Get,
-Param,
-Post,
-Put,
-Body,
-UseGuards
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Body,
+  UseGuards
 } from '@nestjs/common';
 
 
 
 import {
-TournamentsService
+  TournamentsService
 } from './tournaments.service';
 
 
 
 import {
-JoinService
+  JoinService
 } from './join.service';
 
 
 
 import {
-TeamRoomService
+  TeamRoomService
 } from './team-room.service';
 
 
 
 import {
-MyTournamentsService
+  MyTournamentsService
 } from './my-tournaments.service';
 
 
 
 import {
-SelectSlotService
+  SelectSlotService
 } from './select-slot.service';
 
 
 
 import {
-JwtGuard
+  JwtGuard
 } from '../auth/jwt.guard';
 
 
 
 import {
-CurrentUser
+  CurrentUser
 } from '../auth/current-user.decorator';
 
 
@@ -58,25 +58,19 @@ CurrentUser
 
 
 @Controller('tournaments')
-
 export class TournamentsController {
 
 
 
 constructor(
 
-
 private tournamentsService:TournamentsService,
-
 
 private joinService:JoinService,
 
-
 private teamRoomService:TeamRoomService,
 
-
 private myTournamentsService:MyTournamentsService,
-
 
 private selectSlotService:SelectSlotService
 
@@ -90,7 +84,6 @@ private selectSlotService:SelectSlotService
 
 
 
-// CREATE TOURNAMENT (ADMIN)
 
 @Post()
 
@@ -113,7 +106,6 @@ return this.tournamentsService.create(body);
 
 
 
-// ALL TOURNAMENTS
 
 @Get()
 
@@ -132,7 +124,6 @@ return this.tournamentsService.findAll();
 
 
 
-// TOURNAMENT DETAIL
 
 @Get(':id')
 
@@ -155,13 +146,16 @@ return this.tournamentsService.findOne(id);
 
 
 
-// USER JOIN TOURNAMENT
+
+
+
+// JOIN TOURNAMENT + CREATE ROOM
 
 @Post(':id/join')
 
 @UseGuards(JwtGuard)
 
-join(
+async join(
 
 @Param('id') id:string,
 
@@ -171,13 +165,44 @@ join(
 ){
 
 
-return this.joinService.joinTournament(
+
+const result =
+
+await this.joinService.joinTournament(
 
 user.id,
 
 id
 
 );
+
+
+
+
+
+// AUTO CREATE 100 TEAMS
+
+try{
+
+
+await this.teamRoomService.generateTeams(id);
+
+
+}catch(error){
+
+
+// already created ignore
+
+}
+
+
+
+
+
+
+
+return result;
+
 
 
 }
@@ -189,7 +214,6 @@ id
 
 
 
-// MY TOURNAMENTS
 
 @Get('user/my-tournaments')
 
@@ -218,30 +242,6 @@ user.id
 
 
 
-// GENERATE TEAMS AFTER JOIN
-
-@Post(':id/generate-teams')
-
-generateTeams(
-
-@Param('id') id:string
-
-){
-
-
-return this.teamRoomService.generateTeams(id);
-
-
-}
-
-
-
-
-
-
-
-
-// PUBG TEAM ROOM
 
 @Get(':id/team-room')
 
@@ -264,39 +264,6 @@ return this.teamRoomService.getRoom(id);
 
 
 
-// UPDATE TEAM NAME
-
-@Put('team/:teamId/name')
-
-updateTeamName(
-
-@Param('teamId') teamId:string,
-
-
-@Body() body:any
-
-){
-
-
-return this.teamRoomService.updateTeamName(
-
-teamId,
-
-body.name
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-// SELECT SLOT
 
 @Post('team/select-slot')
 
@@ -330,7 +297,6 @@ body.slotId
 
 
 
-// LEAVE SLOT
 
 @Post('team/leave-slot')
 
@@ -346,6 +312,37 @@ leaveSlot(
 return this.teamRoomService.leaveSlot(
 
 body.slotId
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+@Put('team/:teamId/name')
+
+updateTeamName(
+
+@Param('teamId') teamId:string,
+
+
+@Body() body:any
+
+){
+
+
+return this.teamRoomService.updateTeamName(
+
+teamId,
+
+body.name
 
 );
 
