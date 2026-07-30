@@ -1,12 +1,11 @@
 import {
-Injectable,
-BadRequestException
+  Injectable,
+  BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
-PrismaService
+  PrismaService
 } from '../prisma/prisma.service';
 
 
@@ -16,7 +15,6 @@ PrismaService
 
 
 @Injectable()
-
 export class JoinService {
 
 
@@ -45,8 +43,6 @@ tournamentId:string
 
 
 
-
-
 const tournament =
 
 await this.prisma.tournament.findUnique({
@@ -67,6 +63,7 @@ id:tournamentId
 
 if(!tournament){
 
+
 throw new BadRequestException(
 
 "Tournament not found"
@@ -81,7 +78,11 @@ throw new BadRequestException(
 
 
 
-if(tournament.status !== "upcoming"){
+
+if(
+tournament.status !== "upcoming"
+){
+
 
 throw new BadRequestException(
 
@@ -125,6 +126,7 @@ user_id:userId
 
 if(already){
 
+
 throw new BadRequestException(
 
 "You already joined this tournament"
@@ -161,6 +163,7 @@ id:userId
 
 if(!user){
 
+
 throw new BadRequestException(
 
 "User not found"
@@ -177,7 +180,9 @@ throw new BadRequestException(
 
 
 
-if(user.balance < tournament.entry_fee){
+if(
+user.balance < tournament.entry_fee
+){
 
 
 throw new BadRequestException(
@@ -202,6 +207,9 @@ return this.prisma.$transaction(async(tx:any)=>{
 
 
 
+
+// DEDUCT ENTRY FEE
+
 await tx.user.update({
 
 where:{
@@ -211,7 +219,6 @@ id:userId
 },
 
 data:{
-
 
 balance:{
 
@@ -231,17 +238,88 @@ decrement:tournament.entry_fee
 
 
 
+// CREATE JOIN RECORD
+
 const join =
 
 await tx.tournamentJoin.create({
 
 data:{
 
-
 tournament_id:tournamentId,
 
-
 user_id:userId
+
+}
+
+});
+
+
+
+
+
+
+
+
+
+// WALLET HISTORY
+
+await tx.walletTransaction.create({
+
+data:{
+
+user_id:userId,
+
+type:"TOURNAMENT_ENTRY",
+
+amount:-tournament.entry_fee,
+
+currency:tournament.currency,
+
+description:
+
+`Joined ${tournament.name}`
+
+}
+
+});
+
+
+
+
+
+
+
+
+
+// FIND EMPTY SLOT
+
+const emptySlot =
+
+await tx.teamSlot.findFirst({
+
+where:{
+
+
+user_id:null,
+
+
+team:{
+
+
+tournament_id:tournamentId
+
+
+}
+
+
+},
+
+
+orderBy:{
+
+
+created_at:"asc"
 
 
 }
@@ -256,7 +334,19 @@ user_id:userId
 
 
 
-await tx.walletTransaction.create({
+// AUTO ASSIGN SLOT
+
+if(emptySlot){
+
+
+
+await tx.teamSlot.update({
+
+where:{
+
+id:emptySlot.id
+
+},
 
 data:{
 
@@ -264,23 +354,17 @@ data:{
 user_id:userId,
 
 
-type:"TOURNAMENT_ENTRY",
-
-
-amount:-tournament.entry_fee,
-
-
-currency:tournament.currency,
-
-
-description:
-
-`Joined tournament ${tournament.name}`
+joined_at:new Date()
 
 
 }
 
+
 });
+
+
+
+}
 
 
 
@@ -296,31 +380,19 @@ return {
 message:"Tournament joined successfully",
 
 
-tournament:{
+join_id:join.id,
 
 
-id:tournament.id,
+team_room:
 
-
-name:tournament.name,
-
-
-entry_fee:tournament.entry_fee,
-
-
-currency:tournament.currency
-
-
-},
-
-
-join_id:join.id
-
+emptySlot
+?
+"ready"
+:
+"waiting"
 
 
 };
-
-
 
 
 
