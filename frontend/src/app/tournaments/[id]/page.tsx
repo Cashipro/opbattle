@@ -2,14 +2,14 @@
 
 
 import {
-useEffect,
-useState
+  useEffect,
+  useState
 } from "react";
 
 
 import {
-useParams,
-useRouter
+  useParams,
+  useRouter
 } from "next/navigation";
 
 
@@ -17,8 +17,8 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-getTournament,
-joinTournament
+  getTournament,
+  joinTournament
 } from "@/services/tournament";
 
 
@@ -30,22 +30,22 @@ joinTournament
 export default function TournamentDetail(){
 
 
-const params = useParams<{ id:string }>();
+  const params = useParams<{id:string}>();
 
-const router = useRouter();
+  const router = useRouter();
 
 
-const id = params?.id;
+  const id = params?.id;
 
 
 
 
 
-const [tournament,setTournament] = useState<any>(null);
+  const [tournament,setTournament] = useState<any>(null);
 
-const [loading,setLoading] = useState(true);
+  const [loading,setLoading] = useState(true);
 
-const [joining,setJoining] = useState(false);
+  const [joining,setJoining] = useState(false);
 
 
 
@@ -55,17 +55,17 @@ const [joining,setJoining] = useState(false);
 
 
 
-useEffect(()=>{
+  useEffect(()=>{
 
 
-if(id){
+    if(id){
 
-loadTournament();
+      loadTournament();
 
-}
+    }
 
 
-},[id]);
+  },[id]);
 
 
 
@@ -75,40 +75,39 @@ loadTournament();
 
 
 
-async function loadTournament(){
+  async function loadTournament(){
 
 
-try{
+    try{
 
 
-if(!id) return;
+      if(!id) return;
 
 
-const data =
-await getTournament(id);
+      const data = await getTournament(id);
 
 
-setTournament(data);
+      setTournament(data);
 
 
 
-}catch(error){
+    }catch(error){
 
 
-console.log(error);
+      console.log(error);
 
 
-}finally{
 
+    }finally{
 
-setLoading(false);
 
+      setLoading(false);
 
-}
 
+    }
 
 
-}
+  }
 
 
 
@@ -118,144 +117,136 @@ setLoading(false);
 
 
 
-async function handleJoin(){
+  async function handleJoin(){
 
 
-try{
+    try{
 
 
-if(!id) return;
+      if(!id) return;
 
 
-setJoining(true);
+      setJoining(true);
 
 
 
-await joinTournament(id);
 
+      await joinTournament(id);
 
 
-alert(
-"Tournament joined successfully"
-);
 
 
 
-router.push(
-"/my-tournaments"
-);
+      alert(
+        "Tournament joined successfully"
+      );
 
 
 
-}catch(error:any){
 
 
-alert(
+      // direct PUBG style room
 
-error?.response?.data?.message ||
+      router.push(
+        `/team-room/${id}`
+      );
 
-"Unable to join tournament"
 
-);
 
 
 
-}finally{
+    }catch(error:any){
 
 
-setJoining(false);
+      alert(
 
+        error?.response?.data?.message ||
 
-}
+        "Unable to join tournament"
 
+      );
 
 
-}
 
+    }finally{
 
 
+      setJoining(false);
 
 
+    }
 
 
 
+  }
 
-if(loading){
 
 
-return (
 
-<div
-className="
-min-h-screen
-bg-black
-text-white
-flex
-items-center
-justify-center
-"
->
 
-Loading tournament...
 
-</div>
 
-);
 
 
-}
+  if(loading){
 
 
+    return (
 
+      <div
+        className="
+        min-h-screen
+        bg-black
+        text-white
+        flex
+        items-center
+        justify-center
+        "
+      >
 
+        Loading tournament...
 
+      </div>
 
+    );
 
 
+  }
 
-if(!tournament){
 
 
-return (
 
-<div
-className="
-min-h-screen
-bg-black
-text-white
-flex
-items-center
-justify-center
-"
->
 
-Tournament not found
 
-</div>
 
-);
 
 
-}
+  if(!tournament){
 
 
+    return (
 
+      <div
+        className="
+        min-h-screen
+        bg-black
+        text-white
+        flex
+        items-center
+        justify-center
+        "
+      >
 
+        Tournament not found
 
+      </div>
 
+    );
 
 
+  }
 
-return (
 
-<div
-className="
-flex
-min-h-screen
-bg-black
-text-white
-"
->
 
 
 
@@ -263,73 +254,81 @@ text-white
 
 
 
-<Sidebar />
+  return (
 
+    <div
+      className="
+      flex
+      min-h-screen
+      bg-black
+      text-white
+      "
+    >
 
 
 
 
+      <Sidebar />
 
 
 
-<main
-className="
-flex-1
-p-4
-pt-20
-md:ml-64
-md:p-10
-md:pt-10
-"
->
 
 
 
 
+      <main
+        className="
+        flex-1
+        p-4
+        pt-20
+        md:p-10
+        md:pt-10
+        "
+      >
 
-<div
-className="
-max-w-5xl
-mx-auto
-"
->
 
 
 
+        <div
+          className="
+          max-w-5xl
+          mx-auto
+          "
+        >
 
 
 
 
 
-<div
-className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-md:p-10
-"
->
+          <div
+            className="
+            bg-zinc-900
+            border
+            border-zinc-800
+            rounded-3xl
+            p-6
+            md:p-10
+            "
+          >
 
 
 
 
 
+            <h1
+              className="
+              text-3xl
+              md:text-5xl
+              font-black
+              mb-8
+              "
+            >
 
+              {tournament.name}
 
-<h1
-className="
-text-3xl
-md:text-5xl
-font-black
-mb-8
-"
->
+            </h1>
 
-{tournament.name}
 
-</h1>
 
 
 
@@ -337,190 +336,191 @@ mb-8
 
 
 
+            <div
+              className="
+              grid
+              grid-cols-1
+              sm:grid-cols-2
+              gap-5
+              "
+            >
 
-<div
-className="
-grid
-grid-cols-1
-sm:grid-cols-2
-gap-5
-"
->
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Entry Fee
 
-<div
-className="
-bg-zinc-800
-rounded-2xl
-p-5
-"
->
+                </p>
 
-<p
-className="
-text-gray-400
-"
->
 
-Entry Fee
+                <h2
+                  className="
+                  text-2xl
+                  font-bold
+                  text-green-400
+                  mt-2
+                  "
+                >
 
-</p>
+                  {tournament.entry_fee}
 
+                  {" "}
 
-<h2
-className="
-text-2xl
-font-bold
-text-green-400
-mt-2
-"
->
+                  {tournament.currency || ""}
 
-{tournament.entry_fee}
+                </h2>
 
-{" "}
 
-{tournament.currency || ""}
+              </div>
 
-</h2>
 
 
-</div>
 
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Reward
 
+                </p>
 
-<div
-className="
-bg-zinc-800
-rounded-2xl
-p-5
-"
->
 
-<p
-className="
-text-gray-400
-"
->
+                <h2
+                  className="
+                  text-2xl
+                  font-bold
+                  text-yellow-400
+                  mt-2
+                  "
+                >
 
-Reward
+                  {tournament.reward || 0}
 
-</p>
+                </h2>
 
 
-<h2
-className="
-text-2xl
-font-bold
-text-yellow-400
-mt-2
-"
->
+              </div>
 
-{tournament.reward}
 
-</h2>
 
 
-</div>
 
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Start Date
 
+                </p>
 
-<div
-className="
-bg-zinc-800
-rounded-2xl
-p-5
-"
->
 
-<p
-className="
-text-gray-400
-"
->
+                <h2
+                  className="
+                  font-bold
+                  mt-2
+                  "
+                >
 
-Start Date
+                  {
+                    new Date(
+                      tournament.start_date
+                    ).toLocaleDateString()
+                  }
 
-</p>
+                </h2>
 
 
-<h2
-className="
-font-bold
-mt-2
-"
->
+              </div>
 
-{
-new Date(
-tournament.start_date
-).toLocaleDateString()
-}
 
-</h2>
 
 
-</div>
 
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Start Time
 
+                </p>
 
-<div
-className="
-bg-zinc-800
-rounded-2xl
-p-5
-"
->
 
-<p
-className="
-text-gray-400
-"
->
+                <h2
+                  className="
+                  font-bold
+                  mt-2
+                  "
+                >
 
-Start Time
+                  {tournament.start_time}
 
-</p>
+                </h2>
 
 
-<h2
-className="
-font-bold
-mt-2
-"
->
+              </div>
 
-{tournament.start_time}
 
-</h2>
 
 
-</div>
 
+            </div>
 
 
 
@@ -528,127 +528,117 @@ mt-2
 
 
 
-</div>
 
 
+            <div
+              className="
+              mt-6
+              bg-zinc-800
+              rounded-2xl
+              p-5
+              "
+            >
 
+              <p
+                className="
+                text-gray-400
+                "
+              >
 
+                Status
 
+              </p>
 
 
+              <h2
+                className="
+                text-blue-400
+                uppercase
+                font-bold
+                mt-2
+                "
+              >
 
+                {tournament.status}
 
-<div
-className="
-mt-6
-bg-zinc-800
-rounded-2xl
-p-5
-"
->
+              </h2>
 
-<p
-className="
-text-gray-400
-"
->
 
-Tournament Status
+            </div>
 
-</p>
 
 
-<h2
-className="
-uppercase
-font-bold
-text-blue-400
-mt-2
-"
->
 
-{tournament.status}
 
-</h2>
 
 
-</div>
 
 
+            <button
 
+              onClick={handleJoin}
 
+              disabled={joining}
 
+              className="
+              w-full
+              mt-8
+              bg-green-600
+              hover:bg-green-700
+              py-4
+              rounded-2xl
+              font-black
+              text-lg
+              disabled:opacity-50
+              "
 
+            >
 
 
+              {
 
-<button
+                joining
 
-onClick={handleJoin}
+                ?
 
-disabled={joining}
+                "Joining..."
 
-className="
-w-full
-mt-8
-bg-green-600
-hover:bg-green-700
-py-4
-rounded-2xl
-font-black
-text-lg
-disabled:opacity-50
-"
+                :
 
->
+                "JOIN TOURNAMENT"
 
-{
+              }
 
-joining
 
-?
+            </button>
 
-"Joining..."
 
-:
 
-"JOIN TOURNAMENT"
 
-}
 
-</button>
 
 
+          </div>
 
 
 
 
 
+        </div>
 
-</div>
 
 
 
 
+      </main>
 
 
-</div>
 
 
 
+    </div>
 
-
-
-</main>
-
-
-
-
-
-
-</div>
-
-);
+  );
 
 
 }
