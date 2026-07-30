@@ -4,12 +4,9 @@ BadRequestException
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
 
 
 
@@ -37,9 +34,7 @@ private prisma:PrismaService
 
 async generateMatches(
 
-tournamentId:string,
-
-roundId:string
+tournamentId:string
 
 ){
 
@@ -47,13 +42,20 @@ roundId:string
 
 
 
-const round =
+const rounds =
 
-await this.prisma.tournamentRound.findUnique({
+await this.prisma.tournamentRound.findMany({
 
 where:{
 
-id:roundId
+tournament_id:tournamentId
+
+},
+
+
+orderBy:{
+
+round_number:"asc"
 
 }
 
@@ -65,55 +67,15 @@ id:roundId
 
 
 
-if(!round){
+if(!rounds.length){
 
 throw new BadRequestException(
 
-"Round not found"
+"Create tournament plan first"
 
 );
 
 }
-
-
-
-
-
-
-
-
-
-const existingMatches =
-
-await this.prisma.tournamentMatch.count({
-
-where:{
-
-
-round_id:roundId
-
-
-}
-
-});
-
-
-
-
-
-
-
-if(existingMatches > 0){
-
-throw new BadRequestException(
-
-"Matches already generated"
-
-);
-
-}
-
-
 
 
 
@@ -127,24 +89,18 @@ await this.prisma.tournamentTeam.findMany({
 
 where:{
 
-
 tournament_id:tournamentId
-
 
 },
 
 
-
 orderBy:{
 
-
 team_number:"asc"
-
 
 }
 
 });
-
 
 
 
@@ -168,17 +124,21 @@ throw new BadRequestException(
 
 
 
-
-
 const teamsPerMatch = 25;
+
+
+
+
+
+
+
+for(const round of rounds){
+
 
 
 let index = 0;
 
-
 let matchNumber = 1;
-
-
 
 
 
@@ -192,28 +152,17 @@ while(index < teams.length){
 
 
 
-const match =
+const exists =
 
-await this.prisma.tournamentMatch.create({
+await this.prisma.tournamentMatch.findFirst({
 
-data:{
-
-
-
-tournament_id:tournamentId,
+where:{
 
 
-
-round_id:roundId,
-
+round_id:round.id,
 
 
-match_number:matchNumber,
-
-
-
-status:"pending"
-
+match_number:matchNumber
 
 
 }
@@ -221,6 +170,49 @@ status:"pending"
 });
 
 
+
+
+
+
+
+if(exists){
+
+index += teamsPerMatch;
+
+matchNumber++;
+
+continue;
+
+}
+
+
+
+
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.create({
+
+data:{
+
+
+tournament_id:tournamentId,
+
+
+round_id:round.id,
+
+
+match_number:matchNumber,
+
+
+status:"pending"
+
+
+}
+
+});
 
 
 
@@ -242,8 +234,6 @@ index + teamsPerMatch
 
 
 
-
-
 for(const team of matchTeams){
 
 
@@ -253,25 +243,19 @@ await this.prisma.matchTeam.create({
 data:{
 
 
-
 match_id:match.id,
-
 
 
 team_id:team.id
 
 
-
 }
-
-
 
 });
 
 
 
 }
-
 
 
 
@@ -288,10 +272,11 @@ matchNumber++;
 
 
 
-
 }
 
 
+
+}
 
 
 
@@ -302,28 +287,14 @@ matchNumber++;
 return {
 
 
-message:"Matches generated successfully",
-
-
-round:round.name,
-
-
-totalTeams:teams.length,
-
-
-totalMatches:matchNumber - 1
-
+message:"Matches generated successfully"
 
 
 };
 
 
 
-
-
-
 }
-
 
 
 
