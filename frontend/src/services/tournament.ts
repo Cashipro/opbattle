@@ -4,7 +4,7 @@ import api from "@/lib/api";
 
 
 
-// GET ALL TOURNAMENTS
+
 
 export async function getTournaments(){
 
@@ -26,8 +26,6 @@ return res.data;
 
 
 
-
-// GET SINGLE TOURNAMENT
 
 export async function getTournament(
 
@@ -56,8 +54,6 @@ return res.data;
 
 
 
-// JOIN TOURNAMENT
-
 export async function joinTournament(
 
 id:string
@@ -85,8 +81,6 @@ return res.data;
 
 
 
-// MY TOURNAMENTS
-
 export async function getMyTournaments(){
 
 
@@ -109,8 +103,6 @@ return res.data;
 
 
 
-
-// TEAM ROOM
 
 export async function getTeamRoom(
 
@@ -139,8 +131,6 @@ return res.data;
 
 
 
-// SELECT SLOT
-
 export async function selectSlot(
 
 slotId:string
@@ -154,12 +144,9 @@ const res = await api.post(
 
 {
 
-
 slotId
 
-
 }
-
 
 );
 
@@ -177,14 +164,22 @@ return res.data;
 
 
 
-// LEAVE SLOT
+export async function leaveSlot(
 
-export async function leaveSlot(){
+slotId:string
+
+){
 
 
 const res = await api.post(
 
-"/tournaments/team/leave-slot"
+"/tournaments/team/leave-slot",
+
+{
+
+slotId
+
+}
 
 );
 
