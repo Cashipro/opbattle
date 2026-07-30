@@ -14,6 +14,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class ResultService {
@@ -34,11 +35,15 @@ private prisma:PrismaService
 
 
 
+// GET MATCH TEAMS FOR ADMIN RESULT ENTRY
+
 async getMatchTeams(
 
 matchId:string
 
 ){
+
+
 
 
 
@@ -48,9 +53,7 @@ await this.prisma.tournamentMatch.findUnique({
 
 where:{
 
-
 id:matchId
-
 
 },
 
@@ -103,6 +106,7 @@ pubg_uid:true
 }
 
 
+
 }
 
 
@@ -138,15 +142,14 @@ pubg_uid:true
 
 
 
-if(!match){
 
+if(!match){
 
 throw new BadRequestException(
 
 "Match not found"
 
 );
-
 
 }
 
@@ -160,6 +163,9 @@ return match;
 
 
 
+
+
+
 }
 
 
@@ -169,6 +175,8 @@ return match;
 
 
 
+
+// ADD MATCH RESULT
 
 async addResult(
 
@@ -184,7 +192,7 @@ body:any
 
 const {
 
-matchTeamId,
+teamId,
 
 kills,
 
@@ -205,9 +213,7 @@ await this.prisma.tournamentMatch.findUnique({
 
 where:{
 
-
 id:matchId
-
 
 }
 
@@ -221,13 +227,11 @@ id:matchId
 
 if(!match){
 
-
 throw new BadRequestException(
 
 "Match not found"
 
 );
-
 
 }
 
@@ -237,15 +241,32 @@ throw new BadRequestException(
 
 
 
-if(match.status !== "finished"){
 
+const team =
+
+await this.prisma.tournamentTeam.findUnique({
+
+where:{
+
+id:teamId
+
+}
+
+});
+
+
+
+
+
+
+
+if(!team){
 
 throw new BadRequestException(
 
-"Finish match before adding result"
+"Team not found"
 
 );
-
 
 }
 
@@ -258,15 +279,22 @@ throw new BadRequestException(
 
 const already =
 
-await this.prisma.matchResult.findFirst({
+await this.prisma.matchResult.findUnique({
 
 where:{
+
+
+match_id_team_id:{
 
 
 match_id:matchId,
 
 
-team_id:matchTeamId
+team_id:teamId
+
+
+}
+
 
 
 }
@@ -281,14 +309,12 @@ team_id:matchTeamId
 
 if(already){
 
-
 throw new BadRequestException(
 
-"Result already added"
+"Result already added for this team"
 
 );
 
-
 }
 
 
@@ -298,53 +324,9 @@ throw new BadRequestException(
 
 
 
-const matchTeam =
+const killPoints =
 
-await this.prisma.matchTeam.findUnique({
-
-where:{
-
-
-id:matchTeamId
-
-
-},
-
-
-
-include:{
-
-
-team:true
-
-
-}
-
-
-
-});
-
-
-
-
-
-
-
-if(!matchTeam){
-
-
-throw new BadRequestException(
-
-"Team not found"
-
-);
-
-
-}
-
-
-
-
+Number(kills) || 0;
 
 
 
@@ -364,20 +346,10 @@ Number(position)
 
 
 
-const killPoints =
-
-Number(kills);
-
-
-
-
-
-
-
 
 const totalPoints =
 
-positionPoints + killPoints;
+killPoints + positionPoints;
 
 
 
@@ -398,28 +370,20 @@ data:{
 match_id:matchId,
 
 
-team_id:matchTeam.team_id,
+
+team_id:teamId,
 
 
-kills:Number(kills),
+
+kills:killPoints,
+
 
 
 position:Number(position),
 
 
+
 points:totalPoints
-
-
-
-},
-
-
-
-include:{
-
-
-
-team:true
 
 
 
@@ -435,11 +399,25 @@ team:true
 
 
 
-
 return {
 
 
-message:"Result saved successfully",
+message:"Result added successfully",
+
+
+team_number:team.team_number,
+
+
+team_name:team.name,
+
+
+kills:killPoints,
+
+
+position:Number(position),
+
+
+points:totalPoints,
 
 
 result
@@ -447,6 +425,9 @@ result
 
 
 };
+
+
+
 
 
 
@@ -468,7 +449,7 @@ position:number
 
 
 
-const points:any={
+const table:any={
 
 
 1:15,
@@ -508,11 +489,12 @@ const points:any={
 
 
 
-return points[position] || 0;
+return table[position] || 0;
 
 
 
 }
+
 
 
 
