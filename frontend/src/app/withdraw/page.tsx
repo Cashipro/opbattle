@@ -66,12 +66,15 @@ alert(
 
 return (
 
-<div className="
+<div
+className="
 flex
 min-h-screen
 bg-black
 text-white
-">
+"
+>
+
 
 
 
@@ -87,34 +90,44 @@ text-white
 
 
 
-<main className="
+<main
+className="
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
-">
+"
+>
 
 
 
 
 
 
-<div className="
+
+<div
+className="
 max-w-3xl
 mx-auto
-">
+"
+>
 
 
 
 
 
-<h1 className="
+
+
+<h1
+className="
 text-3xl
 md:text-4xl
 font-black
 mb-8
-">
+"
+>
 
 💸 Withdraw
 
@@ -126,14 +139,17 @@ mb-8
 
 
 
-<div className="
+
+<div
+className="
 bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
 p-6
 space-y-5
-">
+"
+>
 
 
 
@@ -144,11 +160,13 @@ space-y-5
 
 <div>
 
-<label className="
+<label
+className="
 text-gray-400
 block
 mb-2
-">
+"
+>
 
 Amount
 
@@ -171,6 +189,7 @@ bg-zinc-800
 rounded-xl
 p-4
 outline-none
+text-white
 "
 
  />
@@ -187,11 +206,13 @@ outline-none
 
 <div>
 
-<label className="
+<label
+className="
 text-gray-400
 block
 mb-2
-">
+"
+>
 
 Network
 
@@ -210,29 +231,24 @@ bg-zinc-800
 rounded-xl
 p-4
 outline-none
+text-white
 "
 
 >
 
 
 <option value="">
-
 Select Network
-
 </option>
 
 
 <option value="TRC20">
-
 USDT TRC20
-
 </option>
 
 
 <option value="BEP20">
-
 USDT BEP20
-
 </option>
 
 
@@ -251,11 +267,13 @@ USDT BEP20
 
 <div>
 
-<label className="
+<label
+className="
 text-gray-400
 block
 mb-2
-">
+"
+>
 
 Wallet Address
 
@@ -276,6 +294,7 @@ bg-zinc-800
 rounded-xl
 p-4
 outline-none
+text-white
 "
 
  />
@@ -317,7 +336,6 @@ Request Withdrawal
 
 
 
-
 </div>
 
 
@@ -327,12 +345,15 @@ Request Withdrawal
 
 
 
-<h2 className="
+
+<h2
+className="
 text-2xl
 font-bold
 mt-10
 mb-5
-">
+"
+>
 
 Withdrawal History
 
@@ -344,47 +365,60 @@ Withdrawal History
 
 
 
-<div className="
+
+<div
+className="
 bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
 p-6
 overflow-x-auto
-">
+"
+>
 
 
 
 
 
-<table className="
+
+
+<table
+className="
 w-full
 min-w-[600px]
-">
+"
+>
 
 <thead>
 
-<tr className="
+<tr
+className="
 text-gray-400
 border-b
 border-zinc-700
-">
+"
+>
 
 <th className="p-3 text-left">
 Amount
 </th>
 
+
 <th className="p-3 text-left">
 Network
 </th>
+
 
 <th className="p-3 text-left">
 Status
 </th>
 
+
 <th className="p-3 text-left">
 Date
 </th>
+
 
 </tr>
 
@@ -392,8 +426,11 @@ Date
 
 
 
-<tbody>
 
+
+
+
+<tbody>
 
 <tr>
 
@@ -401,22 +438,30 @@ Date
 -
 </td>
 
+
 <td className="p-3">
 -
 </td>
 
-<td className="p-3 text-yellow-400">
+
+<td className="
+p-3
+text-yellow-400
+">
 No Data
 </td>
 
+
 <td className="p-3">
 -
 </td>
+
 
 </tr>
 
 
 </tbody>
+
 
 
 </table>
@@ -425,22 +470,27 @@ No Data
 
 
 
-</div>
-
-
-
-
-
 
 
 
 </div>
+
+
+
+
+
+
+
+
+</div>
+
 
 
 
 
 
 </main>
+
 
 
 
