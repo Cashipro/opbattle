@@ -1,23 +1,23 @@
 import {
 Injectable,
 UnauthorizedException,
-ConflictException,
+ConflictException
 } from '@nestjs/common';
 
 
-import { PrismaService } from '../prisma/prisma.service';
+import {
+PrismaService
+} from '../prisma/prisma.service';
 
-
-import { JwtService } from '@nestjs/jwt';
 
 
 import * as bcrypt from 'bcrypt';
 
 
 
-import { RegisterDto } from './dto/register.dto';
-
-import { LoginDto } from './dto/login.dto';
+import {
+JwtService
+} from '@nestjs/jwt';
 
 
 
@@ -31,9 +31,11 @@ export class AuthService {
 
 constructor(
 
-private prisma: PrismaService,
+private prisma:PrismaService,
 
-private jwt: JwtService
+
+private jwtService:JwtService
+
 
 ){}
 
@@ -41,11 +43,17 @@ private jwt: JwtService
 
 
 
-async register(data:RegisterDto){
 
 
 
-const emailExist = await this.prisma.user.findUnique({
+
+async register(data:any){
+
+
+
+const existingUser =
+
+await this.prisma.user.findUnique({
 
 where:{
 
@@ -57,11 +65,17 @@ email:data.email
 
 
 
-if(emailExist){
+
+
+if(existingUser){
+
 
 throw new ConflictException(
-"Email already registered"
+
+"Email already exists"
+
 );
+
 
 }
 
@@ -69,7 +83,12 @@ throw new ConflictException(
 
 
 
-const pubgExist = await this.prisma.user.findUnique({
+
+
+
+const existingPubg =
+
+await this.prisma.user.findUnique({
 
 where:{
 
@@ -81,11 +100,17 @@ pubg_uid:data.pubg_uid
 
 
 
-if(pubgExist){
+
+
+if(existingPubg){
+
 
 throw new ConflictException(
+
 "PUBG UID already registered"
+
 );
+
 
 }
 
@@ -93,17 +118,26 @@ throw new ConflictException(
 
 
 
-const hashedPassword =
+
+
+const passwordHash =
+
 await bcrypt.hash(
+
 data.password,
+
 10
+
 );
 
 
 
 
 
+
+
 const user =
+
 await this.prisma.user.create({
 
 data:{
@@ -115,13 +149,10 @@ name:data.name,
 email:data.email,
 
 
-pubg_uid:data.pubg_uid,
+password:passwordHash,
 
 
-password:hashedPassword,
-
-
-balance:0
+pubg_uid:data.pubg_uid
 
 
 
@@ -134,24 +165,16 @@ balance:0
 
 
 
+
+
 return {
 
-message:"Account created successfully",
 
-user:{
-
-
-id:user.id,
-
-name:user.name,
-
-email:user.email,
+message:"Account Created",
 
 
-pubg_uid:user.pubg_uid
+userId:user.id
 
-
-}
 
 
 };
@@ -167,11 +190,13 @@ pubg_uid:user.pubg_uid
 
 
 
-async login(data:LoginDto){
+
+async login(data:any){
 
 
 
 const user =
+
 await this.prisma.user.findUnique({
 
 where:{
@@ -185,11 +210,17 @@ email:data.email
 
 
 
+
+
 if(!user){
 
+
 throw new UnauthorizedException(
-"Invalid email or password"
+
+"Invalid Email"
+
 );
+
 
 }
 
@@ -198,7 +229,9 @@ throw new UnauthorizedException(
 
 
 
-const passwordMatch =
+
+const match =
+
 await bcrypt.compare(
 
 data.password,
@@ -211,11 +244,17 @@ user.password
 
 
 
-if(!passwordMatch){
+
+
+if(!match){
+
 
 throw new UnauthorizedException(
-"Invalid email or password"
+
+"Wrong Password"
+
 );
+
 
 }
 
@@ -223,12 +262,19 @@ throw new UnauthorizedException(
 
 
 
+
+
+
+
 const token =
-this.jwt.sign({
+
+this.jwtService.sign({
 
 id:user.id,
 
+
 email:user.email
+
 
 });
 
@@ -237,10 +283,8 @@ email:user.email
 
 
 
+
 return {
-
-
-message:"Login successful",
 
 
 token,
@@ -261,15 +305,19 @@ email:user.email,
 pubg_uid:user.pubg_uid
 
 
+
 }
+
 
 
 };
 
 
 
-
 }
+
+
+
 
 
 
