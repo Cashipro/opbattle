@@ -1,22 +1,20 @@
 import {
-Injectable,
-UnauthorizedException,
-ConflictException
+  Injectable,
+  UnauthorizedException,
+  ConflictException
 } from '@nestjs/common';
 
 
 import {
-PrismaService
+  PrismaService
 } from '../prisma/prisma.service';
-
 
 
 import * as bcrypt from 'bcrypt';
 
 
-
 import {
-JwtService
+  JwtService
 } from '@nestjs/jwt';
 
 
@@ -152,7 +150,10 @@ email:data.email,
 password:passwordHash,
 
 
-pubg_uid:data.pubg_uid
+pubg_uid:data.pubg_uid,
+
+
+role:"user"
 
 
 
@@ -273,7 +274,10 @@ this.jwtService.sign({
 id:user.id,
 
 
-email:user.email
+email:user.email,
+
+
+role:user.role
 
 
 });
@@ -302,7 +306,10 @@ name:user.name,
 email:user.email,
 
 
-pubg_uid:user.pubg_uid
+pubg_uid:user.pubg_uid,
+
+
+role:user.role
 
 
 
