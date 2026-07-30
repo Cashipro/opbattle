@@ -22,6 +22,12 @@ AdminTournamentService
 
 
 
+import {
+AutoPlannerService
+} from '../tournaments/auto-planner.service';
+
+
+
 
 
 
@@ -45,7 +51,12 @@ AdminTournamentController
 
 providers:[
 
-AdminTournamentService
+
+AdminTournamentService,
+
+
+AutoPlannerService
+
 
 ]
 
