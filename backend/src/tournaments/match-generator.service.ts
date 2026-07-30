@@ -4,9 +4,12 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
 
 
 
@@ -30,31 +33,31 @@ private prisma:PrismaService
 
 
 
+
+
 async generateMatches(
 
-tournamentId:string
+tournamentId:string,
+
+roundId:string
 
 ){
 
 
 
-const rounds =
 
-await this.prisma.tournamentRound.findMany({
+
+const round =
+
+await this.prisma.tournamentRound.findUnique({
 
 where:{
 
-tournament_id:tournamentId
 
-},
+id:roundId
 
-
-orderBy:{
-
-round_number:'asc'
 
 }
-
 
 });
 
@@ -62,15 +65,57 @@ round_number:'asc'
 
 
 
-if(!rounds.length){
+
+
+if(!round){
 
 throw new BadRequestException(
 
-"Create tournament plan first"
+"Round not found"
 
 );
 
 }
+
+
+
+
+
+
+
+
+
+const existingMatches =
+
+await this.prisma.tournamentMatch.count({
+
+where:{
+
+
+round_id:roundId
+
+
+}
+
+});
+
+
+
+
+
+
+
+
+if(existingMatches > 0){
+
+throw new BadRequestException(
+
+"Matches already generated for this round"
+
+);
+
+}
+
 
 
 
@@ -84,20 +129,51 @@ await this.prisma.tournamentTeam.findMany({
 
 where:{
 
+
 tournament_id:tournamentId
+
 
 },
 
 
+
 orderBy:{
 
-team_number:'asc'
+
+team_number:"asc"
+
 
 }
 
 
+
 });
 
+
+
+
+
+
+
+
+if(!teams.length){
+
+throw new BadRequestException(
+
+"No teams available"
+
+);
+
+}
+
+
+
+
+
+
+
+
+const teamsPerMatch = 25;
 
 
 
@@ -106,70 +182,31 @@ team_number:'asc'
 
 let index = 0;
 
+let matchNumber = 1;
 
-
-
-
-for(const round of rounds){
 
 
 
 
 
 
-const matchCount =
+while(index < teams.length){
 
-Math.ceil(
 
-teams.length / 25
+
+
+
+const matchTeams =
+
+teams.slice(
+
+index,
+
+index + teamsPerMatch
 
 );
 
 
-
-
-
-
-for(
-
-let m=1;
-
-m<=matchCount;
-
-m++
-
-){
-
-
-
-
-
-
-const existing =
-
-await this.prisma.tournamentMatch.findFirst({
-
-where:{
-
-round_id:round.id,
-
-match_number:m
-
-}
-
-});
-
-
-
-
-
-
-
-if(existing){
-
-continue;
-
-}
 
 
 
@@ -186,31 +223,22 @@ data:{
 tournament_id:tournamentId,
 
 
-round_id:round.id,
+round_id:roundId,
 
 
-match_number:m
+match_number:matchNumber,
+
+
+status:"pending"
+
 
 
 }
 
+
+
 });
 
-
-
-
-
-
-
-const matchTeams =
-
-teams.slice(
-
-index,
-
-index + 25
-
-);
 
 
 
@@ -233,7 +261,9 @@ match_id:match.id,
 team_id:team.id
 
 
+
 }
+
 
 
 });
@@ -247,10 +277,11 @@ team_id:team.id
 
 
 
-index +=25;
+
+index += teamsPerMatch;
 
 
-
+matchNumber++;
 
 
 
@@ -258,20 +289,35 @@ index +=25;
 
 
 
-}
+
+
 
 
 
 
 return {
 
-message:"Matches Generated Successfully"
+
+message:"Matches generated successfully",
+
+
+round:round.name,
+
+
+matchesCreated:matchNumber-1
+
+
 
 };
 
 
 
+
+
+
 }
+
+
 
 
 
