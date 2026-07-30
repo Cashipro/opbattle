@@ -1,9 +1,9 @@
 import {
 Controller,
 Get,
+Param,
 Post,
 Put,
-Param,
 Body,
 UseGuards
 } from '@nestjs/common';
@@ -48,6 +48,8 @@ CurrentUser
 
 
 
+
+
 @Controller('tournaments')
 
 export class TournamentsController {
@@ -56,15 +58,21 @@ export class TournamentsController {
 
 constructor(
 
+
 private tournamentsService:TournamentsService,
+
 
 private joinService:JoinService,
 
+
 private teamRoomService:TeamRoomService,
+
 
 private myTournamentsService:MyTournamentsService,
 
+
 private selectSlotService:SelectSlotService
+
 
 ){}
 
@@ -96,7 +104,7 @@ return this.tournamentsService.findAll();
 
 
 
-// DETAIL PAGE
+// TOURNAMENT DETAIL
 
 @Get(':id')
 
@@ -130,6 +138,7 @@ join(
 
 @Param('id') id:string,
 
+
 @CurrentUser() user:any
 
 ){
@@ -160,7 +169,7 @@ id
 
 @UseGuards(JwtGuard)
 
-myTournament(
+myTournaments(
 
 @CurrentUser() user:any
 
@@ -184,9 +193,11 @@ user.id
 
 
 
-// PUBG ROOM
+// PUBG TEAM ROOM
 
 @Get(':id/team-room')
+
+@UseGuards(JwtGuard)
 
 teamRoom(
 
@@ -195,39 +206,9 @@ teamRoom(
 ){
 
 
-return this.teamRoomService.getRoom(id);
+return this.teamRoomService.getRoom(
 
-
-}
-
-
-
-
-
-
-
-
-
-// SELECT PLAYER POSITION
-
-@Post('team/select-slot')
-
-@UseGuards(JwtGuard)
-
-selectSlot(
-
-@Body() body:any,
-
-@CurrentUser() user:any
-
-){
-
-
-return this.selectSlotService.selectSlot(
-
-user.id,
-
-body.slotId
+id
 
 );
 
@@ -242,43 +223,16 @@ body.slotId
 
 
 
-// REMOVE POSITION
-
-@Post('team/leave-slot')
-
-@UseGuards(JwtGuard)
-
-leaveSlot(
-
-@Body() body:any
-
-){
-
-
-return this.teamRoomService.leaveSlot(
-
-body.slotId
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-// CHANGE TEAM NAME (ADMIN)
+// CHANGE TEAM NAME
 
 @Put('team/:teamId/name')
 
-updateName(
+@UseGuards(JwtGuard)
+
+updateTeamName(
 
 @Param('teamId') teamId:string,
+
 
 @Body() body:any
 
@@ -304,25 +258,57 @@ body.name
 
 
 
-// ADMIN ADD MORE TEAMS
+// SELECT SLOT
 
-@Post(':id/increase-teams')
+@Post('team/select-slot')
 
-increaseTeams(
+@UseGuards(JwtGuard)
 
-@Param('id') id:string,
+selectSlot(
+
+@Body() body:any,
+
+
+@CurrentUser() user:any
+
+){
+
+
+return this.selectSlotService.selectSlot(
+
+user.id,
+
+body.slotId
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+// LEAVE SLOT
+
+@Post('team/leave-slot')
+
+@UseGuards(JwtGuard)
+
+leaveSlot(
 
 @Body() body:any
 
 ){
 
 
+return this.teamRoomService.leaveSlot(
 
-return this.teamRoomService.increaseTeams(
-
-id,
-
-Number(body.amount || 0)
+body.slotId
 
 );
 
