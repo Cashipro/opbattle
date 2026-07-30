@@ -4,9 +4,12 @@ BadRequestException
 } from '@nestjs/common';
 
 
+
 import {
 PrismaService
 } from '../prisma/prisma.service';
+
+
 
 
 
@@ -22,6 +25,8 @@ constructor(
 private prisma:PrismaService
 
 ){}
+
+
 
 
 
@@ -48,10 +53,32 @@ tournament_id:tournamentId
 },
 
 
+
+orderBy:{
+
+
+round_number:"asc"
+
+
+},
+
+
+
 include:{
 
 
+
 matches:{
+
+
+
+orderBy:{
+
+
+match_number:"asc"
+
+
+},
 
 
 
@@ -67,8 +94,36 @@ include:{
 
 
 
-team:true
+team:{
 
+
+
+include:{
+
+
+
+slots:{
+
+
+
+include:{
+
+
+
+user:{
+
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+pubg_uid:true
 
 
 }
@@ -82,13 +137,12 @@ team:true
 
 
 
-},
+}
 
 
-orderBy:{
 
+}
 
-match_number:'asc'
 
 
 }
@@ -99,14 +153,16 @@ match_number:'asc'
 
 
 
-},
+}
 
 
 
-orderBy:{
+}
 
 
-round_number:'asc'
+
+}
+
 
 
 }
@@ -119,6 +175,119 @@ round_number:'asc'
 
 }
 
+
+
+
+
+
+
+
+
+async getMatch(
+
+matchId:string
+
+){
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.findUnique({
+
+where:{
+
+
+id:matchId
+
+
+},
+
+
+
+include:{
+
+
+
+teams:{
+
+
+
+include:{
+
+
+
+team:{
+
+
+
+include:{
+
+
+
+slots:{
+
+
+
+include:{
+
+
+
+user:true
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+if(!match){
+
+throw new BadRequestException(
+
+"Match not found"
+
+);
+
+}
+
+
+
+return match;
+
+
+
+}
 
 
 
@@ -130,22 +299,13 @@ round_number:'asc'
 
 async updateRoom(
 
-
 matchId:string,
-
 
 room_id:string,
 
-
-room_password:string,
-
-
-status:string
-
+room_password:string
 
 ){
-
-
 
 
 
@@ -155,7 +315,9 @@ await this.prisma.tournamentMatch.findUnique({
 
 where:{
 
+
 id:matchId
+
 
 }
 
@@ -165,8 +327,8 @@ id:matchId
 
 
 
-if(!match){
 
+if(!match){
 
 throw new BadRequestException(
 
@@ -174,8 +336,8 @@ throw new BadRequestException(
 
 );
 
-
 }
+
 
 
 
@@ -194,6 +356,7 @@ id:matchId
 },
 
 
+
 data:{
 
 
@@ -203,7 +366,7 @@ room_id,
 room_password,
 
 
-status
+status:"ready"
 
 
 }
@@ -214,8 +377,91 @@ status
 
 
 
+}
+
+
+
+
+
+
+
+
+
+async finishMatch(
+
+matchId:string
+
+){
+
+
+
+const match =
+
+await this.prisma.tournamentMatch.findUnique({
+
+where:{
+
+
+id:matchId
+
 
 }
+
+});
+
+
+
+
+
+
+
+if(!match){
+
+throw new BadRequestException(
+
+"Match not found"
+
+);
+
+}
+
+
+
+
+
+
+
+
+return this.prisma.tournamentMatch.update({
+
+where:{
+
+
+id:matchId
+
+
+},
+
+
+
+data:{
+
+
+status:"finished"
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
 
 
 
