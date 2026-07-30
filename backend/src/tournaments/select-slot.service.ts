@@ -11,22 +11,14 @@ PrismaService
 
 
 
-
-
-
 @Injectable()
 
 export class SelectSlotService {
 
 
-
 constructor(
-
 private prisma:PrismaService
-
 ){}
-
-
 
 
 
@@ -47,37 +39,17 @@ slotId:string
 const slot = await this.prisma.teamSlot.findUnique({
 
 where:{
-
 id:slotId
-
 },
 
 
-
 include:{
-
-
-team:{
-
-
-include:{
-
-
-tournament:true
-
-
-}
-
-
-}
-
-
-
+user:true,
+team:true
 }
 
 
 });
-
 
 
 
@@ -87,13 +59,9 @@ tournament:true
 
 if(!slot){
 
-
 throw new BadRequestException(
-
 "Slot not found"
-
 );
-
 
 }
 
@@ -103,17 +71,13 @@ throw new BadRequestException(
 
 
 
-
+// AGAR KOI PEHLY SE BETHA HAI
 
 if(slot.user_id){
 
-
 throw new BadRequestException(
-
 "Slot already occupied"
-
 );
-
 
 }
 
@@ -123,33 +87,24 @@ throw new BadRequestException(
 
 
 
-
-
-// REMOVE USER FROM OLD POSITION
+// USER KA PURANA SLOT REMOVE
 
 await this.prisma.teamSlot.updateMany({
 
 where:{
 
-
 user_id:userId
-
 
 },
 
 
-
 data:{
-
 
 user_id:null,
 
-
 joined_at:null
 
-
 }
-
 
 
 });
@@ -161,68 +116,36 @@ joined_at:null
 
 
 
-
-// ADD USER TO NEW SLOT
+// NAYA SLOT ASSIGN
 
 const updated = await this.prisma.teamSlot.update({
 
 where:{
 
-
 id:slotId
 
-
 },
-
 
 
 data:{
 
-
 user_id:userId,
 
-
 joined_at:new Date()
-
 
 },
 
 
-
 include:{
 
+user:true,
 
-team:true,
-
-
-user:{
-
-
-select:{
-
-
-id:true,
-
-
-name:true,
-
-
-pubg_uid:true
-
+team:true
 
 }
-
-
-}
-
-
-
-}
-
 
 
 });
-
 
 
 
@@ -233,42 +156,19 @@ pubg_uid:true
 
 return {
 
+message:"Slot selected",
 
-message:"Position selected successfully",
+team:updated.team,
 
+slot:updated.slot_number,
 
-
-team:{
-
-
-id:updated.team.id,
-
-
-name:updated.team.name,
-
-
-team_number:updated.team.team_number
-
-
-},
-
-
-
-slot_number:updated.slot_number,
-
-
-
-player:updated.user
-
-
+user:updated.user
 
 };
 
 
 
 }
-
-
 
 
 
