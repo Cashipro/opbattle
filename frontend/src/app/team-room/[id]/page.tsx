@@ -31,18 +31,18 @@ import {
 export default function TeamRoom(){
 
 
-  const params = useParams<{id:string}>();
+const params = useParams<{id:string}>();
 
+const id = params?.id;
 
-  const id = params?.id;
 
 
 
 
+const [teams,setTeams] = useState<any[]>([]);
 
-  const [teams,setTeams] = useState<any[]>([]);
+const [loading,setLoading] = useState(true);
 
-  const [loading,setLoading] = useState(true);
 
 
 
@@ -51,18 +51,18 @@ export default function TeamRoom(){
 
 
 
+useEffect(()=>{
 
-  useEffect(()=>{
 
+if(id){
 
-    if(id){
+loadRoom();
 
-      loadRoom();
+}
 
-    }
 
+},[id]);
 
-  },[id]);
 
 
 
@@ -71,40 +71,39 @@ export default function TeamRoom(){
 
 
 
+async function loadRoom(){
 
-  async function loadRoom(){
 
+try{
 
-    try{
 
+const data = await getTeamRoom(id);
 
-      if(!id) return;
 
+setTeams(data);
 
-      const data = await getTeamRoom(id);
 
 
-      setTeams(data);
+}catch(error){
 
 
+console.log(error);
 
-    }catch(error){
 
 
-      console.log(error);
+}finally{
 
 
+setLoading(false);
 
-    }finally{
 
+}
 
-      setLoading(false);
 
 
-    }
+}
 
 
-  }
 
 
 
@@ -112,38 +111,38 @@ export default function TeamRoom(){
 
 
 
+async function chooseSlot(slotId:string){
 
 
-  async function chooseSlot(slotId:string){
+try{
 
 
-    try{
+await selectSlot(slotId);
 
 
-      await selectSlot(slotId);
+loadRoom();
 
 
-      loadRoom();
 
+}catch(error:any){
 
 
-    }catch(error:any){
+alert(
 
+error?.response?.data?.message ||
 
-      alert(
+"Slot not available"
 
-        error?.response?.data?.message ||
+);
 
-        "Slot unavailable"
 
-      );
+}
 
 
-    }
 
+}
 
 
-  }
 
 
 
@@ -151,32 +150,32 @@ export default function TeamRoom(){
 
 
 
+async function removeSlot(slotId:string){
 
 
-  async function removeSlot(slotId:string){
+try{
 
 
-    try{
+await leaveSlot(slotId);
 
 
-      await leaveSlot(slotId);
+loadRoom();
 
 
-      loadRoom();
 
+}catch(error){
 
 
-    }catch(error){
+console.log(error);
 
 
-      console.log(error);
+}
 
 
-    }
 
+}
 
 
-  }
 
 
 
@@ -184,32 +183,30 @@ export default function TeamRoom(){
 
 
 
+if(loading){
 
 
-  if(loading){
+return (
 
+<div className="
+min-h-screen
+bg-black
+text-white
+flex
+items-center
+justify-center
+">
 
-    return (
+Loading PUBG Room...
 
-      <div
-        className="
-        min-h-screen
-        bg-black
-        text-white
-        flex
-        items-center
-        justify-center
-        "
-      >
+</div>
 
-        Loading Room...
+);
 
-      </div>
 
-    );
+}
 
 
-  }
 
 
 
@@ -217,23 +214,25 @@ export default function TeamRoom(){
 
 
 
+// pair teams
 
+const pairs=[];
 
-  return (
 
-    <div
-      className="
-      flex
-      min-h-screen
-      bg-black
-      text-white
-      "
-    >
+for(
+let i=0;
+i<teams.length;
+i+=2
+){
 
+pairs.push([
+teams[i],
+teams[i+1]
+]);
 
+}
 
 
-      <Sidebar />
 
 
 
@@ -241,347 +240,375 @@ export default function TeamRoom(){
 
 
 
-      <main
-        className="
-        flex-1
-        p-4
-        pt-20
-        md:p-10
-        "
-      >
+return (
 
+<div className="
+flex
+min-h-screen
+bg-black
+text-white
+">
 
 
+<Sidebar />
 
 
-        <div
-          className="
-          max-w-7xl
-          mx-auto
-          "
-        >
 
 
 
+<main className="
+flex-1
+p-4
+pt-20
+md:p-10
+">
 
 
-          <h1
-            className="
-            text-3xl
-            md:text-5xl
-            font-black
-            mb-8
-            "
-          >
 
-            🎮 PUBG Tournament Room
 
-          </h1>
 
+<div className="
+max-w-7xl
+mx-auto
+">
 
 
 
 
 
 
+<h1 className="
+text-3xl
+md:text-5xl
+font-black
+mb-8
+">
 
+🎮 PUBG Room
 
-          <div
-            className="
-            grid
-            grid-cols-1
-            xl:grid-cols-2
-            gap-6
-            "
-          >
+</h1>
 
 
 
 
 
-          {
-            teams.map((team:any)=>(
 
 
-              <div
-                key={team.id}
-                className="
-                bg-zinc-900
-                border
-                border-zinc-800
-                rounded-3xl
-                p-5
-                "
-              >
 
 
+<div className="
+space-y-6
+">
 
 
 
-                <h2
-                  className="
-                  text-2xl
-                  font-black
-                  mb-5
-                  flex
-                  justify-between
-                  "
-                >
 
-                  <span>
-                    {team.name}
-                  </span>
 
 
-                  <span className="
-                  text-green-400
-                  text-sm
-                  "
-                  >
+{
 
-                    Team {team.team_number}
+pairs.map((pair:any,index)=>(
 
-                  </span>
 
+<div
+key={index}
+className="
+grid
+grid-cols-1
+xl:grid-cols-2
+gap-6
+"
+>
 
-                </h2>
 
 
 
 
 
+{
 
+pair.map((team:any)=>(
 
 
+team &&
 
-                <div
-                  className="
-                  grid
-                  grid-cols-2
-                  gap-4
-                  "
-                >
+<div
+key={team.id}
+className="
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-5
+"
+>
 
 
 
 
 
-                {
-                  team.slots?.map((slot:any)=>(
+<div className="
+flex
+justify-between
+items-center
+mb-5
+">
 
 
+<h2 className="
+text-2xl
+font-black
+">
 
-                    <div
-                      key={slot.id}
-                      className="
-                      bg-zinc-800
-                      rounded-2xl
-                      p-4
-                      min-h-[130px]
-                      flex
-                      flex-col
-                      justify-between
-                      "
-                    >
+{team.name}
 
+</h2>
 
 
+<span className="
+text-green-400
+font-bold
+">
 
+#{team.team_number}
 
-                      <div>
+</span>
 
 
-                        <p
-                          className="
-                          text-gray-400
-                          text-sm
-                          "
-                        >
+</div>
 
-                          Slot {slot.slot_number}
 
-                        </p>
 
 
 
 
 
-                        {
-                          slot.user
 
-                          ?
+<div className="
+grid
+grid-cols-2
+gap-4
+">
 
-                          <div
-                          className="
-                          mt-3
-                          "
-                          >
 
-                            <p
-                            className="
-                            font-bold
-                            text-green-400
-                            "
-                            >
 
-                              👑 {slot.user.name}
 
-                            </p>
+{
 
+team.slots.map((slot:any)=>(
 
-                            <p
-                            className="
-                            text-xs
-                            text-gray-400
-                            "
-                            >
 
-                              {slot.user.pubg_uid}
+<div
+key={slot.id}
+className="
+bg-zinc-800
+rounded-2xl
+p-4
+min-h-[120px]
+flex
+flex-col
+justify-between
+"
+>
 
-                            </p>
 
 
-                          </div>
 
 
-                          :
+<div>
 
-                          <p
-                          className="
-                          text-gray-500
-                          mt-5
-                          "
-                          >
 
-                            Empty 👤
+<p className="
+text-gray-400
+text-sm
+">
 
-                          </p>
+Slot {slot.slot_number}
 
+</p>
 
-                        }
 
 
 
-                      </div>
 
+{
 
+slot.user
 
+?
 
+<div className="
+mt-3
+">
 
+<p className="
+font-bold
+text-green-400
+">
 
+👤 {slot.user.name}
 
+</p>
 
 
-                      {
+<p className="
+text-xs
+text-gray-400
+">
 
-                        slot.user
+{slot.user.pubg_uid}
 
-                        ?
+</p>
 
-                        <button
 
-                        onClick={()=>removeSlot(slot.id)}
+</div>
 
-                        className="
-                        mt-3
-                        bg-red-600
-                        rounded-xl
-                        py-2
-                        text-sm
-                        font-bold
-                        "
 
-                        >
+:
 
-                          Leave
+<p className="
+text-gray-500
+mt-4
+">
 
-                        </button>
+Empty Slot
 
+</p>
 
-                        :
 
-                        <button
+}
 
-                        onClick={()=>chooseSlot(slot.id)}
 
-                        className="
-                        mt-3
-                        bg-green-600
-                        rounded-xl
-                        py-2
-                        text-sm
-                        font-bold
-                        "
 
-                        >
+</div>
 
-                          Join Slot
 
-                        </button>
 
 
-                      }
 
 
 
 
+{
 
+slot.user
 
-                    </div>
+?
 
+<button
 
+onClick={()=>removeSlot(slot.id)}
 
-                  ))
+className="
+bg-red-600
+rounded-xl
+py-2
+mt-3
+font-bold
+"
 
-                }
+>
 
+Leave
 
+</button>
 
 
-                </div>
+:
 
+<button
 
+onClick={()=>chooseSlot(slot.id)}
 
+className="
+bg-green-600
+rounded-xl
+py-2
+mt-3
+font-bold
+"
 
+>
 
+Join
 
-              </div>
+</button>
 
 
-            ))
-          }
+}
 
 
 
 
+</div>
 
 
+))
 
-          </div>
+}
 
 
 
+</div>
 
 
 
 
-        </div>
 
+</div>
 
 
 
+))
 
 
-      </main>
+}
 
 
 
 
 
+</div>
 
-    </div>
 
-  );
+
+
+
+))
+
+
+}
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+</main>
+
+
+
+
+
+
+</div>
+
+
+);
+
 
 
 }
