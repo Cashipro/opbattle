@@ -3,13 +3,9 @@ Injectable
 } from '@nestjs/common';
 
 
-
 import {
 PrismaService
 } from '../prisma/prisma.service';
-
-
-
 
 
 
@@ -18,16 +14,11 @@ PrismaService
 export class MyTournamentsService {
 
 
-
 constructor(
 
-private prisma:PrismaService
+private prisma: PrismaService
 
 ){}
-
-
-
-
 
 
 
@@ -36,7 +27,6 @@ async getMyTournaments(
 userId:string
 
 ){
-
 
 
 return this.prisma.tournamentJoin.findMany({
@@ -54,16 +44,13 @@ user_id:userId
 include:{
 
 
-
 tournament:{
-
 
 
 include:{
 
 
 teams:{
-
 
 
 orderBy:{
@@ -80,7 +67,6 @@ include:{
 
 
 slots:{
-
 
 
 include:{
@@ -107,25 +93,22 @@ pubg_uid:true
 }
 
 
-
 }
-
-
-
-}
-
 
 
 }
 
 
+}
+
 
 }
 
 
-
 }
 
+
+}
 
 
 },
@@ -141,9 +124,7 @@ joined_at:"desc"
 }
 
 
-
 });
-
 
 
 }
