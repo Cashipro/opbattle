@@ -2,13 +2,13 @@
 
 
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react";
 
 
 import {
-  useParams
+useParams
 } from "next/navigation";
 
 
@@ -16,10 +16,11 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-  getTeamRoom,
-  selectSlot,
-  leaveSlot
+getTeamRoom,
+selectSlot,
+leaveSlot
 } from "@/services/tournament";
+
 
 
 
@@ -30,9 +31,12 @@ import {
 export default function TeamRoom(){
 
 
+
 const params = useParams<{id:string}>();
 
 const id = params?.id;
+
+
 
 
 
@@ -74,6 +78,9 @@ async function loadRoom(){
 try{
 
 
+if(!id)return;
+
+
 const data = await getTeamRoom(id);
 
 
@@ -96,6 +103,7 @@ setLoading(false);
 }
 
 
+
 }
 
 
@@ -106,11 +114,7 @@ setLoading(false);
 
 
 
-async function joinSlot(
-
-slotId:string
-
-){
+async function join(slotId:string){
 
 
 try{
@@ -135,24 +139,22 @@ error?.response?.data?.message ||
 );
 
 
-}
-
 
 }
 
 
 
+}
 
 
 
 
 
 
-async function removeSlot(
 
-slotId:string
 
-){
+
+async function leave(slotId:string){
 
 
 try{
@@ -172,6 +174,7 @@ console.log(error);
 
 
 }
+
 
 
 }
@@ -198,36 +201,12 @@ items-center
 justify-center
 ">
 
-Loading PUBG Room...
+Loading Room...
 
 </div>
 
 );
 
-
-}
-
-
-
-
-
-
-
-
-
-const pairs=[];
-
-
-for(
-let i=0;
-i<teams.length;
-i+=2
-){
-
-pairs.push([
-teams[i],
-teams[i+1]
-]);
 
 }
 
@@ -249,7 +228,10 @@ text-white
 ">
 
 
+
 <Sidebar />
+
+
 
 
 
@@ -266,6 +248,7 @@ md:p-10
 
 
 
+
 <div className="
 max-w-7xl
 mx-auto
@@ -276,38 +259,18 @@ mx-auto
 
 
 
-<div className="
-flex
-justify-between
-items-center
-mb-8
-">
-
 <h1 className="
 text-3xl
 md:text-5xl
 font-black
+mb-8
 ">
 
-🎮 PUBG ROOM
+🎮 PUBG TEAM ROOM
 
 </h1>
 
 
-<div className="
-text-green-400
-font-bold
-">
-
-Teams {teams.length}/100
-
-</div>
-
-
-</div>
-
-
-
 
 
 
@@ -315,29 +278,89 @@ Teams {teams.length}/100
 
 
 <div className="
-space-y-6
+bg-zinc-900
+border
+border-zinc-800
+rounded-3xl
+p-5
+mb-8
 ">
 
 
 
 
+<div className="
+grid
+grid-cols-2
+md:grid-cols-4
+gap-4
+text-center
+">
 
-{
 
-pairs.map(
-(pair:any,index:number)=>(
+<div>
+<p className="text-gray-400">
+Room ID
+</p>
+<p className="font-bold text-green-400">
+1729559
+</p>
+</div>
+
+
+<div>
+<p className="text-gray-400">
+Password
+</p>
+<p className="font-bold">
+None
+</p>
+</div>
+
+
+<div>
+<p className="text-gray-400">
+Players
+</p>
+<p className="font-bold">
+{teams.length * 4}/400
+</p>
+</div>
+
+
+<div>
+<p className="text-gray-400">
+Mode
+</p>
+<p className="font-bold">
+Squad
+</p>
+</div>
 
 
 
-<div
-key={index}
-className="
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="
 grid
 grid-cols-1
-xl:grid-cols-2
+lg:grid-cols-2
 gap-6
-"
->
+">
+
+
 
 
 
@@ -345,15 +368,14 @@ gap-6
 
 {
 
-pair.map((team:any)=>(
+teams.map((team:any)=>(
 
-
-
-team &&
 
 
 <div
+
 key={team.id}
+
 className="
 bg-zinc-900
 border
@@ -361,38 +383,22 @@ border-zinc-800
 rounded-3xl
 p-5
 "
+
 >
 
 
 
 
 
-<div className="
-flex
-justify-between
-mb-5
-">
-
 <h2 className="
 text-2xl
 font-black
+mb-5
 ">
 
 {team.name}
 
 </h2>
-
-
-<span className="
-text-green-400
-">
-
-#{team.team_number}
-
-</span>
-
-
-</div>
 
 
 
@@ -405,7 +411,8 @@ text-green-400
 <div className="
 grid
 grid-cols-2
-gap-4
+sm:grid-cols-4
+gap-3
 ">
 
 
@@ -414,29 +421,79 @@ gap-4
 
 {
 
-team.slots.map((slot:any)=>(
+
+team.slots?.map((slot:any)=>(
 
 
 
 <div
+
 key={slot.id}
+
 className="
 bg-zinc-800
-rounded-2xl
+rounded-xl
 p-4
+text-center
+min-h-[140px]
+flex
+flex-col
+justify-between
 "
+
 >
 
 
 
 
 
-<p className="
-text-gray-400
-text-sm
+
+
+<div className="
+text-4xl
 ">
 
-Slot {slot.slot_number}
+{
+
+slot.user
+
+?
+
+"👑"
+
+:
+
+"👤"
+
+}
+
+</div>
+
+
+
+
+
+
+
+<p className="
+font-bold
+text-sm
+break-all
+">
+
+{
+
+slot.user
+
+?
+
+slot.user.name
+
+:
+
+"Empty"
+
+}
 
 </p>
 
@@ -452,40 +509,17 @@ slot.user
 
 ?
 
-<div className="
-mt-3
-">
-
-<p className="
-font-bold
-text-green-400
-">
-
-👤 {slot.user.name}
-
-</p>
-
-
-<p className="
-text-xs
-text-gray-400
-">
-
-{slot.user.pubg_uid}
-
-</p>
-
+(
 
 <button
 
-onClick={()=>removeSlot(slot.id)}
+onClick={()=>leave(slot.id)}
 
 className="
-mt-3
-w-full
 bg-red-600
-rounded-xl
+rounded-lg
 py-2
+text-xs
 font-bold
 "
 
@@ -495,79 +529,76 @@ Leave
 
 </button>
 
-
-</div>
-
+)
 
 :
 
+(
+
 <button
 
-onClick={()=>joinSlot(slot.id)}
+onClick={()=>join(slot.id)}
 
 className="
-mt-5
-w-full
 bg-green-600
-rounded-xl
+rounded-lg
 py-2
+text-xs
 font-bold
 "
 
 >
 
-Join Slot
+Join
 
 </button>
-
-
-}
-
-
-
-
-
-
-</div>
-
-
-
-))
-
-
-}
-
-
-
-</div>
-
-
-
-
-
-
-</div>
-
-
-
-))
-
-
-
-}
-
-
-
-
-
-
-</div>
-
-
 
 )
 
 
+
+}
+
+
+
+
+
+
+
+
+</div>
+
+
+
+))
+
+
+
+}
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+))
+
+
+
 }
 
 
@@ -584,10 +615,9 @@ Join Slot
 
 
 
+
+
 </div>
-
-
-
 
 
 
@@ -599,7 +629,6 @@ Join Slot
 
 
 </div>
-
 
 );
 
