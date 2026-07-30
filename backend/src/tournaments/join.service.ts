@@ -1,28 +1,25 @@
 import {
-  Injectable,
-  BadRequestException
+Injectable,
+BadRequestException
 } from '@nestjs/common';
 
 
 import {
-  PrismaService
+PrismaService
 } from '../prisma/prisma.service';
 
 
 
 
 
-
-
 @Injectable()
+
 export class JoinService {
 
 
 
 constructor(
-
 private prisma:PrismaService
-
 ){}
 
 
@@ -43,14 +40,14 @@ tournamentId:string
 
 
 
+
+
 const tournament =
 
 await this.prisma.tournament.findUnique({
 
 where:{
-
 id:tournamentId
-
 }
 
 });
@@ -63,11 +60,8 @@ id:tournamentId
 
 if(!tournament){
 
-
 throw new BadRequestException(
-
 "Tournament not found"
-
 );
 
 }
@@ -78,20 +72,13 @@ throw new BadRequestException(
 
 
 
-
-if(
-tournament.status !== "upcoming"
-){
-
+if(tournament.status !== "upcoming"){
 
 throw new BadRequestException(
-
-"Tournament joining closed"
-
+"Joining closed"
 );
 
 }
-
 
 
 
@@ -126,11 +113,8 @@ user_id:userId
 
 if(already){
 
-
 throw new BadRequestException(
-
-"You already joined this tournament"
-
+"You already joined"
 );
 
 }
@@ -148,12 +132,11 @@ const user =
 await this.prisma.user.findUnique({
 
 where:{
-
 id:userId
-
 }
 
 });
+
 
 
 
@@ -163,11 +146,8 @@ id:userId
 
 if(!user){
 
-
 throw new BadRequestException(
-
 "User not found"
-
 );
 
 }
@@ -179,16 +159,10 @@ throw new BadRequestException(
 
 
 
-
-if(
-user.balance < tournament.entry_fee
-){
-
+if(user.balance < tournament.entry_fee){
 
 throw new BadRequestException(
-
 "Insufficient balance"
-
 );
 
 }
@@ -201,29 +175,23 @@ throw new BadRequestException(
 
 
 
-return this.prisma.$transaction(async(tx:any)=>{
+return this.prisma.$transaction(async(tx)=>{
 
 
 
 
 
-
-// DEDUCT ENTRY FEE
 
 await tx.user.update({
 
 where:{
-
 id:userId
-
 },
 
 data:{
 
 balance:{
-
 decrement:tournament.entry_fee
-
 }
 
 }
@@ -237,8 +205,6 @@ decrement:tournament.entry_fee
 
 
 
-
-// CREATE JOIN RECORD
 
 const join =
 
@@ -260,9 +226,6 @@ user_id:userId
 
 
 
-
-
-// WALLET HISTORY
 
 await tx.walletTransaction.create({
 
@@ -292,36 +255,18 @@ description:
 
 
 
-// FIND EMPTY SLOT
 
-const emptySlot =
 
-await tx.teamSlot.findFirst({
+// CHECK TEAMS
+
+const teamCount =
+
+await tx.tournamentTeam.count({
 
 where:{
-
-
-user_id:null,
-
-
-team:{
-
 
 tournament_id:tournamentId
 
-
-}
-
-
-},
-
-
-orderBy:{
-
-
-created_at:"asc"
-
-
 }
 
 });
@@ -334,33 +279,67 @@ created_at:"asc"
 
 
 
-// AUTO ASSIGN SLOT
+// CREATE PUBG ROOM
 
-if(emptySlot){
+if(teamCount === 0){
 
 
 
-await tx.teamSlot.update({
 
-where:{
 
-id:emptySlot.id
+for(let t=1;t<=100;t++){
 
-},
+
+
+const team =
+
+await tx.tournamentTeam.create({
 
 data:{
 
+tournament_id:tournamentId,
 
-user_id:userId,
+team_number:t,
+
+name:`Team ${t}`
+
+}
+
+});
 
 
-joined_at:new Date()
+
+
+
+
+
+
+
+for(let s=1;s<=4;s++){
+
+
+
+await tx.teamSlot.create({
+
+data:{
+
+team_id:team.id,
+
+slot_number:s,
+
+user_id:null
+
+}
+
+});
+
 
 
 }
 
 
-});
+
+}
 
 
 
@@ -377,22 +356,24 @@ joined_at:new Date()
 return {
 
 
-message:"Tournament joined successfully",
+message:
+
+"Tournament joined successfully",
 
 
 join_id:join.id,
 
 
-team_room:
+room:
 
-emptySlot
-?
-"ready"
-:
-"waiting"
+`/tournaments/${tournamentId}/team-room`
+
 
 
 };
+
+
+
 
 
 
