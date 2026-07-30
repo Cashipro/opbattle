@@ -62,12 +62,17 @@ id:slotId
 include:{
 
 
+
 team:true
+
 
 
 }
 
+
+
 });
+
 
 
 
@@ -94,6 +99,7 @@ throw new BadRequestException(
 
 if(slot.user_id){
 
+
 throw new BadRequestException(
 
 "Slot already occupied"
@@ -109,13 +115,15 @@ throw new BadRequestException(
 
 
 
+
 return this.prisma.$transaction(async(tx)=>{
 
 
 
 
 
-// Remove old slot if user already selected one
+
+// Remove previous slot if user changed team
 
 await tx.teamSlot.updateMany({
 
@@ -132,7 +140,10 @@ user_id:userId
 data:{
 
 
-user_id:null
+user_id:null,
+
+
+joined_at:null
 
 
 }
@@ -148,17 +159,14 @@ user_id:null
 
 
 
-// Assign new slot
 
-const updatedSlot =
+const updated =
 
 await tx.teamSlot.update({
 
 where:{
 
-
 id:slotId
-
 
 },
 
@@ -185,6 +193,7 @@ joined_at:new Date()
 
 
 
+
 return {
 
 
@@ -197,11 +206,14 @@ team_number:slot.team.team_number,
 team_name:slot.team.name,
 
 
-slot_number:updatedSlot.slot_number
+slot_number:updated.slot_number
 
 
 
 };
+
+
+
 
 
 
