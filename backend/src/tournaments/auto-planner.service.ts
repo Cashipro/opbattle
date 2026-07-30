@@ -81,168 +81,13 @@ throw new BadRequestException(
 
 
 
-let teams =
-
-await this.prisma.tournamentTeam.findMany({
-
-where:{
-
-
-tournament_id:tournamentId
-
-
-},
-
-
-
-orderBy:{
-
-
-team_number:"asc"
-
-
-}
-
-});
-
-
-
-
-
-
-
-
-// AUTO GENERATE TEAMS IF NOT EXIST
-
-if(!teams.length){
-
-
-
-
-
-for(
-
-let i=1;
-
-i<=tournament.total_teams;
-
-i++
-
-){
-
-
-
-
-
-const team =
-
-await this.prisma.tournamentTeam.create({
-
-data:{
-
-
-tournament_id:tournamentId,
-
-
-team_number:i,
-
-
-name:`Team ${i}`
-
-
-}
-
-});
-
-
-
-
-
-
-
-
-for(
-
-let s=1;
-
-s<=4;
-
-s++
-
-){
-
-
-
-await this.prisma.teamSlot.create({
-
-data:{
-
-
-team_id:team.id,
-
-
-slot_number:s
-
-
-}
-
-});
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-teams = await this.prisma.tournamentTeam.findMany({
-
-where:{
-
-tournament_id:tournamentId
-
-},
-
-
-orderBy:{
-
-team_number:"asc"
-
-}
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
 const existingRound =
 
 await this.prisma.tournamentRound.findFirst({
 
 where:{
 
-
-tournament_id:tournamentId,
-
-
-round_number:1
-
+tournament_id:tournamentId
 
 }
 
@@ -254,58 +99,105 @@ round_number:1
 
 
 
+if(existingRound){
 
-let round = existingRound;
+throw new BadRequestException(
 
+"Tournament plan already created"
 
+);
 
-
-
-
-
-if(!round){
-
+}
 
 
-round = await this.prisma.tournamentRound.create({
+
+
+
+
+
+
+
+const teams =
+
+await this.prisma.tournamentTeam.findMany({
+
+where:{
+
+tournament_id:tournamentId
+
+},
+
+
+
+orderBy:{
+
+team_number:"asc"
+
+}
+
+});
+
+
+
+
+
+
+
+if(!teams.length){
+
+throw new BadRequestException(
+
+"No teams available"
+
+);
+
+}
+
+
+
+
+
+
+
+
+
+const teamsPerMatch = 25;
+
+
+
+const totalMatches = Math.ceil(
+
+teams.length / teamsPerMatch
+
+);
+
+
+
+
+
+
+
+
+
+const round =
+
+await this.prisma.tournamentRound.create({
 
 data:{
 
 
+
 tournament_id:tournamentId,
+
 
 
 round_number:1,
 
 
+
 name:"Round 1"
 
 
-}
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-const existingMatches =
-
-await this.prisma.tournamentMatch.count({
-
-where:{
-
-
-round_id:round.id
-
 
 }
 
@@ -316,45 +208,14 @@ round_id:round.id
 
 
 
-
-if(existingMatches > 0){
-
-
-
-return {
-
-
-message:"Tournament plan already created",
-
-
-teams:teams.length,
-
-
-matches:existingMatches
-
-
-
-};
-
-
-
-}
-
-
-
-
-
-
-
-
-
-const perMatch = 25;
 
 
 
 let index = 0;
 
+
 let matchNumber = 1;
+
 
 
 
@@ -376,13 +237,17 @@ await this.prisma.tournamentMatch.create({
 data:{
 
 
+
 tournament_id:tournamentId,
+
 
 
 round_id:round.id,
 
 
+
 match_number:matchNumber,
+
 
 
 status:"pending"
@@ -400,13 +265,15 @@ status:"pending"
 
 
 
+
 const matchTeams = teams.slice(
 
 index,
 
-index + perMatch
+index + teamsPerMatch
 
 );
+
 
 
 
@@ -424,7 +291,9 @@ await this.prisma.matchTeam.create({
 data:{
 
 
+
 match_id:match.id,
+
 
 
 team_id:team.id
@@ -446,7 +315,7 @@ team_id:team.id
 
 
 
-index += perMatch;
+index += teamsPerMatch;
 
 
 matchNumber++;
@@ -457,7 +326,6 @@ matchNumber++;
 
 
 }
-
 
 
 
@@ -478,7 +346,7 @@ round:round.name,
 totalTeams:teams.length,
 
 
-totalMatches:matchNumber - 1
+totalMatches:totalMatches
 
 
 
