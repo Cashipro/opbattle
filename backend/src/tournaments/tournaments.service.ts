@@ -13,6 +13,7 @@ PrismaService
 
 
 
+
 @Injectable()
 
 export class TournamentsService {
@@ -37,6 +38,8 @@ async findAll(){
 
 
 
+
+
 return this.prisma.tournament.findMany({
 
 where:{
@@ -49,6 +52,7 @@ not:"completed"
 
 
 }
+
 
 
 },
@@ -65,31 +69,29 @@ created_at:"desc"
 
 
 
+include:{
+
+
+
+_count:{
+
+
+
 select:{
 
 
-id:true,
+teams:true,
 
 
-name:true,
+joins:true
 
 
-entry_fee:true,
+
+}
 
 
-reward:true,
 
-
-start_date:true,
-
-
-start_time:true,
-
-
-status:true,
-
-
-created_at:true
+}
 
 
 
@@ -98,6 +100,9 @@ created_at:true
 
 
 });
+
+
+
 
 
 
@@ -116,6 +121,8 @@ async findOne(
 id:string
 
 ){
+
+
 
 
 
@@ -170,7 +177,9 @@ slot_number:"asc"
 include:{
 
 
+
 user:{
+
 
 
 select:{
@@ -188,9 +197,6 @@ pubg_uid:true
 }
 
 
-}
-
-
 
 }
 
@@ -202,6 +208,28 @@ pubg_uid:true
 
 }
 
+
+
+}
+
+
+
+}
+
+
+
+},
+
+
+
+rounds:{
+
+
+
+orderBy:{
+
+
+round_number:"asc"
 
 
 }
@@ -216,7 +244,11 @@ pubg_uid:true
 
 
 
+
+
+
 }
+
 
 
 
