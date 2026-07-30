@@ -81,9 +81,7 @@ throw new BadRequestException(
 
 
 
-
 if(tournament.status !== "upcoming"){
-
 
 throw new BadRequestException(
 
@@ -91,7 +89,6 @@ throw new BadRequestException(
 
 );
 
-
 }
 
 
@@ -102,28 +99,19 @@ throw new BadRequestException(
 
 
 
-const alreadyJoined =
+const already =
 
 await this.prisma.tournamentJoin.findUnique({
 
 where:{
 
-
-
 tournament_id_user_id:{
-
-
 
 tournament_id:tournamentId,
 
-
 user_id:userId
 
-
-
 }
-
-
 
 }
 
@@ -135,8 +123,7 @@ user_id:userId
 
 
 
-
-if(alreadyJoined){
+if(already){
 
 throw new BadRequestException(
 
@@ -189,6 +176,7 @@ throw new BadRequestException(
 
 
 
+
 if(user.balance < tournament.entry_fee){
 
 
@@ -214,6 +202,7 @@ return this.prisma.$transaction(async(tx)=>{
 
 
 
+// deduct entry fee
 
 await tx.user.update({
 
@@ -223,21 +212,16 @@ id:userId
 
 },
 
-
 data:{
 
 
 balance:{
 
-
 decrement:tournament.entry_fee
 
-
 }
 
-
 }
-
 
 });
 
@@ -247,6 +231,9 @@ decrement:tournament.entry_fee
 
 
 
+
+
+// create join record
 
 const join =
 
@@ -261,7 +248,6 @@ tournament_id:tournamentId,
 user_id:userId
 
 
-
 }
 
 });
@@ -272,6 +258,9 @@ user_id:userId
 
 
 
+
+
+// wallet history
 
 await tx.walletTransaction.create({
 
@@ -281,10 +270,13 @@ data:{
 user_id:userId,
 
 
-type:"tournament_entry",
+type:"TOURNAMENT_ENTRY",
 
 
-amount:tournament.entry_fee,
+amount:-tournament.entry_fee,
+
+
+currency:tournament.currency,
 
 
 description:
@@ -292,10 +284,10 @@ description:
 `Joined tournament ${tournament.name}`
 
 
-
 }
 
 });
+
 
 
 
@@ -310,7 +302,22 @@ return {
 message:"Tournament joined successfully",
 
 
-tournament_id:tournamentId,
+tournament:{
+
+
+id:tournament.id,
+
+
+name:tournament.name,
+
+
+entry_fee:tournament.entry_fee,
+
+
+currency:tournament.currency
+
+
+},
 
 
 join_id:join.id
@@ -323,19 +330,13 @@ join_id:join.id
 
 
 
-
 });
 
 
 
 
 
-
 }
-
-
-
-
 
 
 
