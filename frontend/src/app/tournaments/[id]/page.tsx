@@ -2,14 +2,14 @@
 
 
 import {
-useEffect,
-useState
+  useEffect,
+  useState
 } from "react";
 
 
 import {
-useParams,
-useRouter
+  useParams,
+  useRouter
 } from "next/navigation";
 
 
@@ -17,8 +17,8 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-getTournament,
-joinTournament
+  getTournament,
+  joinTournament
 } from "@/services/tournament";
 
 
@@ -30,22 +30,22 @@ joinTournament
 export default function TournamentDetail(){
 
 
-const params = useParams();
+  const params = useParams<{ id: string }>();
 
-const router = useRouter();
+  const router = useRouter();
 
 
-const id = params.id as string;
+  const id = params?.id;
 
 
 
 
 
-const [tournament,setTournament] = useState<any>(null);
+  const [tournament,setTournament] = useState<any>(null);
 
-const [loading,setLoading] = useState(true);
+  const [loading,setLoading] = useState(true);
 
-const [joining,setJoining] = useState(false);
+  const [joining,setJoining] = useState(false);
 
 
 
@@ -54,18 +54,18 @@ const [joining,setJoining] = useState(false);
 
 
 
-useEffect(()=>{
 
+  useEffect(()=>{
 
-if(id){
 
-loadTournament();
+    if(id){
 
-}
+      loadTournament();
 
+    }
 
-},[id]);
 
+  },[id]);
 
 
 
@@ -73,516 +73,581 @@ loadTournament();
 
 
 
-async function loadTournament(){
 
 
-try{
+  async function loadTournament(){
 
 
-const data =
-await getTournament(id);
+    try{
 
 
-setTournament(data);
+      if(!id) return;
 
 
+      const data =
+        await getTournament(id);
 
-}catch(error){
 
+      setTournament(data);
 
-console.log(error);
 
 
+    }catch(error){
 
-}finally{
 
+      console.log(error);
 
-setLoading(false);
 
 
-}
+    }finally{
 
 
+      setLoading(false);
 
-}
 
+    }
 
 
 
+  }
 
 
 
 
-async function handleJoin(){
 
 
-try{
 
 
-setJoining(true);
 
+  async function handleJoin(){
 
 
-await joinTournament(id);
+    try{
 
 
+      if(!id) return;
 
-alert(
-"Tournament joined successfully"
-);
 
+      setJoining(true);
 
 
-router.push(
-"/my-tournaments"
-);
 
+      await joinTournament(id);
 
 
-}catch(error:any){
 
+      alert(
+        "Tournament joined successfully"
+      );
 
-alert(
 
-error?.response?.data?.message ||
 
-"Unable to join tournament"
+      router.push(
+        "/my-tournaments"
+      );
 
-);
 
 
+    }catch(error:any){
 
-}finally{
 
+      alert(
 
-setJoining(false);
+        error?.response?.data?.message ||
 
+        "Unable to join tournament"
 
-}
+      );
 
 
 
-}
+    }finally{
 
 
+      setJoining(false);
 
 
+    }
 
 
 
+  }
 
-if(loading){
 
 
-return (
 
-<div className="
-min-h-screen
-bg-black
-text-white
-flex
-items-center
-justify-center
-">
 
-Loading tournament...
 
-</div>
 
-);
 
 
-}
+  if(loading){
 
 
+    return (
 
+      <div
+        className="
+        min-h-screen
+        bg-black
+        text-white
+        flex
+        items-center
+        justify-center
+        "
+      >
 
+        Loading tournament...
 
+      </div>
 
+    );
 
 
-if(!tournament){
+  }
 
 
-return (
 
-<div className="
-min-h-screen
-bg-black
-text-white
-flex
-items-center
-justify-center
-">
 
-Tournament not found
 
-</div>
 
-);
 
 
-}
 
+  if(!tournament){
 
 
+    return (
 
+      <div
+        className="
+        min-h-screen
+        bg-black
+        text-white
+        flex
+        items-center
+        justify-center
+        "
+      >
 
+        Tournament not found
 
+      </div>
 
+    );
 
-return (
 
-<div className="
-flex
-min-h-screen
-bg-black
-text-white
-">
+  }
 
 
 
 
 
 
-<Sidebar />
 
 
 
+  return (
 
 
+    <div
+      className="
+      flex
+      min-h-screen
+      bg-black
+      text-white
+      "
+    >
 
 
 
-<main className="
-flex-1
-p-4
-pt-20
-md:p-10
-md:pt-10
-">
 
 
 
+      <Sidebar />
 
 
-<div className="
-max-w-5xl
-mx-auto
-">
 
 
 
 
 
 
+      <main
+        className="
+        flex-1
+        p-4
+        pt-20
+        md:p-10
+        md:pt-10
+        "
+      >
 
-<div className="
-bg-zinc-900
-border
-border-zinc-800
-rounded-3xl
-p-6
-md:p-10
-">
 
 
 
 
+        <div
+          className="
+          max-w-5xl
+          mx-auto
+          "
+        >
 
 
 
-<h1 className="
-text-3xl
-md:text-5xl
-font-black
-mb-8
-">
 
-{tournament.name}
 
-</h1>
 
 
+          <div
+            className="
+            bg-zinc-900
+            border
+            border-zinc-800
+            rounded-3xl
+            p-6
+            md:p-10
+            "
+          >
 
 
 
 
 
 
-<div className="
-grid
-grid-cols-1
-sm:grid-cols-2
-gap-5
-">
 
+            <h1
+              className="
+              text-3xl
+              md:text-5xl
+              font-black
+              mb-8
+              "
+            >
 
+              {tournament.name}
 
+            </h1>
 
 
-<div className="
-bg-zinc-800
-rounded-2xl
-p-5
-">
 
-<p className="
-text-gray-400
-">
 
-Entry Fee
 
-</p>
 
 
-<h2 className="
-text-2xl
-font-bold
-text-green-400
-mt-2
-">
 
-{tournament.entry_fee}
+            <div
+              className="
+              grid
+              grid-cols-1
+              sm:grid-cols-2
+              gap-5
+              "
+            >
 
-{" "}
 
-{tournament.currency || ""}
 
-</h2>
 
 
-</div>
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Entry Fee
 
+                </p>
 
 
+                <h2
+                  className="
+                  text-2xl
+                  font-bold
+                  text-green-400
+                  mt-2
+                  "
+                >
 
+                  {tournament.entry_fee}
 
+                  {" "}
 
-<div className="
-bg-zinc-800
-rounded-2xl
-p-5
-">
+                  {tournament.currency || ""}
 
-<p className="
-text-gray-400
-">
+                </h2>
 
-Reward
 
-</p>
+              </div>
 
 
-<h2 className="
-text-2xl
-font-bold
-text-yellow-400
-mt-2
-">
 
-{tournament.reward}
 
-</h2>
 
 
-</div>
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Reward
 
+                </p>
 
 
-<div className="
-bg-zinc-800
-rounded-2xl
-p-5
-">
+                <h2
+                  className="
+                  text-2xl
+                  font-bold
+                  text-yellow-400
+                  mt-2
+                  "
+                >
 
-<p className="
-text-gray-400
-">
+                  {tournament.reward}
 
-Start Date
+                </h2>
 
-</p>
 
+              </div>
 
-<h2 className="
-font-bold
-mt-2
-">
 
-{
-new Date(
-tournament.start_date
-).toLocaleDateString()
-}
 
-</h2>
 
 
-</div>
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Start Date
 
+                </p>
 
-<div className="
-bg-zinc-800
-rounded-2xl
-p-5
-">
 
-<p className="
-text-gray-400
-">
+                <h2
+                  className="
+                  font-bold
+                  mt-2
+                  "
+                >
 
-Start Time
+                  {
+                    new Date(
+                      tournament.start_date
+                    ).toLocaleDateString()
+                  }
 
-</p>
+                </h2>
 
 
-<h2 className="
-font-bold
-mt-2
-">
+              </div>
 
-{tournament.start_time}
 
-</h2>
 
 
-</div>
 
 
 
 
 
+              <div
+                className="
+                bg-zinc-800
+                rounded-2xl
+                p-5
+                "
+              >
 
+                <p
+                  className="
+                  text-gray-400
+                  "
+                >
 
+                  Start Time
 
-</div>
+                </p>
 
 
+                <h2
+                  className="
+                  font-bold
+                  mt-2
+                  "
+                >
 
+                  {tournament.start_time}
 
+                </h2>
 
 
+              </div>
 
 
 
-<div className="
-mt-6
-bg-zinc-800
-rounded-2xl
-p-5
-">
 
-<p className="
-text-gray-400
-">
 
-Tournament Status
 
-</p>
 
 
-<h2 className="
-uppercase
-font-bold
-text-blue-400
-mt-2
-">
+            </div>
 
-{tournament.status}
 
-</h2>
 
 
-</div>
 
 
 
 
 
+            <div
+              className="
+              mt-6
+              bg-zinc-800
+              rounded-2xl
+              p-5
+              "
+            >
 
+              <p
+                className="
+                text-gray-400
+                "
+              >
 
+                Tournament Status
 
-<button
+              </p>
 
-onClick={handleJoin}
 
-disabled={joining}
+              <h2
+                className="
+                uppercase
+                font-bold
+                text-blue-400
+                mt-2
+                "
+              >
 
-className="
-w-full
-mt-8
-bg-green-600
-hover:bg-green-700
-py-4
-rounded-2xl
-font-black
-text-lg
-disabled:opacity-50
-"
+                {tournament.status}
 
->
+              </h2>
 
-{
 
-joining
+            </div>
 
-?
 
-"Joining..."
 
-:
 
-"JOIN TOURNAMENT"
 
-}
 
-</button>
 
 
 
+            <button
 
+              onClick={handleJoin}
 
+              disabled={joining}
 
+              className="
+              w-full
+              mt-8
+              bg-green-600
+              hover:bg-green-700
+              py-4
+              rounded-2xl
+              font-black
+              text-lg
+              disabled:opacity-50
+              "
 
+            >
 
-</div>
+              {
 
+                joining
 
+                ?
 
+                "Joining..."
 
+                :
 
+                "JOIN TOURNAMENT"
 
-</div>
+              }
 
 
+            </button>
 
 
 
 
-</main>
 
 
 
 
+          </div>
 
 
-</div>
 
-);
+
+
+
+        </div>
+
+
+
+
+
+
+      </main>
+
+
+
+
+
+
+    </div>
+
+
+  );
 
 
 }
