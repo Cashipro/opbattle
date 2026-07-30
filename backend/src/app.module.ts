@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 
 import { TournamentsModule } from './tournaments/tournaments.module';
 
-import { AdminTournamentModule } from './admin/admin-tournament.module';
+import { AdminModule } from './admin/admin.module';
 
 
 
@@ -16,31 +16,20 @@ import { AdminTournamentModule } from './admin/admin-tournament.module';
 
 imports:[
 
-
 ConfigModule.forRoot({
-
-isGlobal:true
-
+  isGlobal:true
 }),
-
 
 PrismaModule,
 
-
 AuthModule,
-
 
 TournamentsModule,
 
-
-AdminTournamentModule
-
-
+AdminModule
 
 ]
 
-
 })
-
 
 export class AppModule {}
