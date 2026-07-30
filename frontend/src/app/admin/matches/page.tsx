@@ -17,13 +17,16 @@ import {
 export default function AdminMatchesPage(){
 
 
+const [tournaments,setTournaments] =
+useState<any[]>([]);
+
+
 const [matches,setMatches] =
 useState<any[]>([]);
 
 
 const [loading,setLoading] =
 useState(true);
-
 
 
 const [rooms,setRooms] =
@@ -36,7 +39,7 @@ useState<any>({});
 
 useEffect(()=>{
 
-loadMatches();
+loadTournaments();
 
 },[]);
 
@@ -46,7 +49,7 @@ loadMatches();
 
 
 
-async function loadMatches(){
+async function loadTournaments(){
 
 
 try{
@@ -59,29 +62,44 @@ await api.get(
 
 
 
-let allMatches:any[] = [];
+setTournaments(
+res.data || []
+);
 
 
 
-for(const tournament of res.data || []){
+let temp:any[]=[];
+
+
+
+(res.data || []).forEach((tournament:any)=>{
 
 
 if(tournament.matches){
 
 
-allMatches.push(
-...tournament.matches
+temp.push(
+...tournament.matches.map((m:any)=>({
+
+...m,
+
+tournamentName:
+tournament.name
+
+}))
+
 );
 
 
 }
 
 
-}
+
+});
 
 
 
-setMatches(allMatches);
+setMatches(temp);
 
 
 
@@ -141,9 +159,7 @@ setRooms({
 
 
 
-async function addRoom(
-id:string
-){
+async function addRoom(id:string){
 
 
 try{
@@ -169,7 +185,7 @@ rooms[id]?.room_password
 
 
 
-loadMatches();
+loadTournaments();
 
 
 
@@ -182,6 +198,7 @@ console.log(error);
 }
 
 
+
 }
 
 
@@ -191,9 +208,7 @@ console.log(error);
 
 
 
-async function finishMatch(
-id:string
-){
+async function finishMatch(id:string){
 
 
 try{
@@ -207,7 +222,7 @@ await api.post(
 
 
 
-loadMatches();
+loadTournaments();
 
 
 
@@ -218,6 +233,7 @@ console.log(error);
 
 
 }
+
 
 
 }
@@ -236,7 +252,9 @@ space-y-8
 ">
 
 
+
 <div>
+
 
 <h1 className="
 text-4xl
@@ -258,7 +276,7 @@ text-zinc-400
 mt-2
 ">
 
-Manage rooms and match status
+Manage tournament matches
 
 </p>
 
@@ -269,7 +287,6 @@ Manage rooms and match status
 
 
 
-<div className="space-y-5">
 
 
 {
@@ -279,26 +296,42 @@ loading
 ?
 
 <p className="text-zinc-400">
+
 Loading matches...
+
 </p>
+
 
 
 :
 
 
-matches.length === 0
+matches.length===0
+
 
 ?
 
-<p className="text-zinc-400">
-No matches found
+<p className="
+text-zinc-400
+">
+
+No matches available
+
 </p>
+
 
 
 :
 
 
+
+<div className="space-y-5">
+
+
+{
+
 matches.map((match:any)=>(
+
 
 
 <div
@@ -316,32 +349,20 @@ p-6
 >
 
 
-
-<div className="
-flex
-justify-between
-items-center
-mb-6
-">
-
-
-<div>
-
-
 <h2 className="
 text-2xl
 font-black
+mb-2
 ">
 
-{match.tournament?.name || "Tournament Match"}
+{match.tournamentName}
 
 </h2>
 
 
-
 <p className="
 text-zinc-400
-mt-1
+mb-5
 ">
 
 Status:
@@ -349,31 +370,6 @@ Status:
 {match.status}
 
 </p>
-
-
-</div>
-
-
-
-
-<div className="
-bg-zinc-800
-px-4
-py-2
-rounded-xl
-">
-
-ID:
-{" "}
-{match.id.slice(0,8)}
-
-</div>
-
-
-
-</div>
-
-
 
 
 
@@ -384,7 +380,6 @@ grid
 md:grid-cols-2
 gap-4
 ">
-
 
 
 <input
@@ -413,7 +408,6 @@ e.target.value
 }
 
 />
-
 
 
 
@@ -460,7 +454,6 @@ e.target.value
 flex
 gap-3
 mt-5
-flex-wrap
 ">
 
 
@@ -478,17 +471,18 @@ py-3
 rounded-xl
 font-bold
 flex
-items-center
 gap-2
+items-center
 "
 
 >
 
-<Save className="w-5 h-5"/>
+<Save/>
 
 Save Room
 
 </button>
+
 
 
 
@@ -508,13 +502,13 @@ py-3
 rounded-xl
 font-bold
 flex
-items-center
 gap-2
+items-center
 "
 
 >
 
-<CheckCircle className="w-5 h-5"/>
+<CheckCircle/>
 
 Finish
 
@@ -522,14 +516,16 @@ Finish
 
 
 
-</div>
-
-
-
 
 
 </div>
 
+
+
+
+
+
+</div>
 
 
 ))
@@ -538,8 +534,11 @@ Finish
 }
 
 
-
 </div>
+
+
+}
+
 
 
 </div>
