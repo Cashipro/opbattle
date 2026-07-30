@@ -1,11 +1,11 @@
 import {
-Injectable,
-BadRequestException
+  Injectable,
+  BadRequestException
 } from '@nestjs/common';
 
 
 import {
-PrismaService
+  PrismaService
 } from '../prisma/prisma.service';
 
 
@@ -13,14 +13,11 @@ PrismaService
 
 
 @Injectable()
-
 export class TeamRoomService {
 
 
 constructor(
-
-private prisma:PrismaService
-
+  private prisma:PrismaService
 ){}
 
 
@@ -31,7 +28,229 @@ private prisma:PrismaService
 
 
 
-// GET PUBG STYLE ROOM
+// CREATE PUBG ROOM WITH 100 TEAMS
+
+async generateTeams(
+  tournamentId:string
+){
+
+
+const tournament =
+
+await this.prisma.tournament.findUnique({
+
+where:{
+id:tournamentId
+},
+
+include:{
+joins:true
+}
+
+});
+
+
+
+
+
+if(!tournament){
+
+throw new BadRequestException(
+"Tournament not found"
+);
+
+}
+
+
+
+
+
+
+
+
+
+const existing =
+
+await this.prisma.tournamentTeam.count({
+
+where:{
+tournament_id:tournamentId
+}
+
+});
+
+
+
+
+
+
+
+if(existing){
+
+return {
+
+message:"Teams already created"
+
+};
+
+}
+
+
+
+
+
+
+
+
+
+let playerIndex = 0;
+
+
+
+// CREATE 100 TEAMS
+
+for(
+let teamNumber = 1;
+teamNumber <= 100;
+teamNumber++
+){
+
+
+
+const team =
+
+await this.prisma.tournamentTeam.create({
+
+data:{
+
+
+tournament_id:tournamentId,
+
+
+team_number:teamNumber,
+
+
+name:`Team ${teamNumber}`
+
+
+}
+
+});
+
+
+
+
+
+
+
+
+
+// 4 SLOTS EACH TEAM
+
+for(
+let slotNumber = 1;
+slotNumber <= 4;
+slotNumber++
+){
+
+
+
+let userId = null;
+
+let joinedAt = null;
+
+
+
+
+
+
+if(
+tournament.joins[playerIndex]
+){
+
+
+userId =
+tournament.joins[playerIndex].user_id;
+
+
+joinedAt =
+new Date();
+
+
+
+playerIndex++;
+
+
+}
+
+
+
+
+
+
+
+await this.prisma.teamSlot.create({
+
+data:{
+
+
+team_id:team.id,
+
+
+slot_number:slotNumber,
+
+
+user_id:userId,
+
+
+joined_at:joinedAt
+
+
+}
+
+
+});
+
+
+
+
+
+}
+
+
+
+
+}
+
+
+
+
+
+
+
+
+return {
+
+message:"100 PUBG teams created",
+
+teams:100
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// GET PUBG ROOM
 
 async getRoom(
 
@@ -41,7 +260,7 @@ tournamentId:string
 
 
 
-const teams = await this.prisma.tournamentTeam.findMany({
+return this.prisma.tournamentTeam.findMany({
 
 where:{
 
@@ -50,11 +269,13 @@ tournament_id:tournamentId
 },
 
 
+
 orderBy:{
 
 team_number:"asc"
 
 },
+
 
 
 include:{
@@ -81,7 +302,9 @@ select:{
 
 id:true,
 
+
 name:true,
+
 
 pubg_uid:true
 
@@ -95,9 +318,7 @@ pubg_uid:true
 }
 
 
-
 }
-
 
 
 }
@@ -107,28 +328,6 @@ pubg_uid:true
 });
 
 
-
-
-
-
-
-if(!teams.length){
-
-
-throw new BadRequestException(
-
-"No teams available"
-
-);
-
-}
-
-
-
-return teams;
-
-
-
 }
 
 
@@ -139,42 +338,29 @@ return teams;
 
 
 
-// USER SELECT SLOT
+// SELECT PLAYER SLOT
 
-async selectSlot(
+async joinSlot(
 
-userId:string,
+slotId:string,
 
-slotId:string
+userId:string
 
 ){
 
 
 
-const slot = await this.prisma.teamSlot.findUnique({
+const slot =
+
+await this.prisma.teamSlot.findUnique({
 
 where:{
 
-
 id:slotId
-
-
-},
-
-
-include:{
-
-
-team:true
-
 
 }
 
-
-
 });
-
-
 
 
 
@@ -182,11 +368,8 @@ team:true
 
 if(!slot){
 
-
 throw new BadRequestException(
-
 "Slot not found"
-
 );
 
 }
@@ -199,11 +382,8 @@ throw new BadRequestException(
 
 if(slot.user_id){
 
-
 throw new BadRequestException(
-
 "Slot already occupied"
-
 );
 
 }
@@ -215,31 +395,24 @@ throw new BadRequestException(
 
 
 
-// REMOVE OLD SLOT
+
+// REMOVE OLD POSITION
 
 await this.prisma.teamSlot.updateMany({
 
 where:{
 
-
 user_id:userId
-
 
 },
 
-
 data:{
-
 
 user_id:null,
 
-
 joined_at:null
 
-
 }
-
-
 
 });
 
@@ -251,18 +424,15 @@ joined_at:null
 
 
 
-// ADD NEW SLOT
+// ADD NEW POSITION
 
 return this.prisma.teamSlot.update({
 
 where:{
 
-
 id:slotId
 
-
 },
-
 
 data:{
 
@@ -274,8 +444,6 @@ joined_at:new Date()
 
 
 }
-
-
 
 });
 
@@ -295,22 +463,19 @@ joined_at:new Date()
 
 async leaveSlot(
 
-userId:string
+slotId:string
 
 ){
 
 
 
-return this.prisma.teamSlot.updateMany({
+return this.prisma.teamSlot.update({
 
 where:{
 
-
-user_id:userId
-
+id:slotId
 
 },
-
 
 data:{
 
@@ -323,73 +488,7 @@ joined_at:null
 
 }
 
-
-
 });
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// CHANGE TEAM NAME ADMIN
-
-async updateTeamName(
-
-teamId:string,
-
-name:string
-
-){
-
-
-
-if(!name || name.length < 3){
-
-throw new BadRequestException(
-
-"Team name too short"
-
-);
-
-}
-
-
-
-
-
-
-
-return this.prisma.tournamentTeam.update({
-
-where:{
-
-
-id:teamId
-
-
-},
-
-
-data:{
-
-
-name:name.trim()
-
-
-}
-
-
-
-});
-
 
 
 }
