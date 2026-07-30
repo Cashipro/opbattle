@@ -108,7 +108,7 @@ throw new BadRequestException(
 
 
 
-return this.prisma.$transaction(async(tx)=>{
+return this.prisma.$transaction(async(tx:any)=>{
 
 
 
