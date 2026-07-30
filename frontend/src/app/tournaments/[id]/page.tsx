@@ -2,14 +2,14 @@
 
 
 import {
-  useEffect,
-  useState
+useEffect,
+useState
 } from "react";
 
 
 import {
-  useParams,
-  useRouter
+useParams,
+useRouter
 } from "next/navigation";
 
 
@@ -17,8 +17,8 @@ import Sidebar from "@/components/Sidebar";
 
 
 import {
-  getTournament,
-  joinTournament
+getTournament,
+joinTournament
 } from "@/services/tournament";
 
 
@@ -26,7 +26,9 @@ import {
 
 
 
+
 export default function TournamentDetail(){
+
 
 
 const params = useParams<{id:string}>();
@@ -96,7 +98,6 @@ setTournament(data);
 console.log(error);
 
 
-
 }finally{
 
 
@@ -142,15 +143,19 @@ alert(
 
 
 
-// DIRECT TEAM ROOM
 
 router.push(
-`/tournaments/${id}/team-room`
+
+`/team-room/${id}`
+
 );
 
 
 
+
+
 }catch(error:any){
+
 
 
 alert(
@@ -197,9 +202,7 @@ items-center
 justify-center
 ">
 
-
-Loading Tournament...
-
+Loading tournament...
 
 </div>
 
@@ -207,6 +210,7 @@ Loading Tournament...
 
 
 }
+
 
 
 
@@ -229,9 +233,7 @@ items-center
 justify-center
 ">
 
-
-Tournament Not Found
-
+Tournament not found
 
 </div>
 
@@ -258,12 +260,7 @@ text-white
 ">
 
 
-
-
-
-
 <Sidebar />
-
 
 
 
@@ -277,8 +274,6 @@ pt-20
 md:p-10
 md:pt-10
 ">
-
-
 
 
 
@@ -305,8 +300,6 @@ md:p-10
 
 
 
-
-
 <h1 className="
 text-3xl
 md:text-5xl
@@ -314,11 +307,9 @@ font-black
 mb-8
 ">
 
-🏆 {tournament.name}
+{tournament.name}
 
 </h1>
-
-
 
 
 
@@ -332,6 +323,8 @@ grid-cols-1
 sm:grid-cols-2
 gap-5
 ">
+
+
 
 
 
@@ -351,7 +344,6 @@ Entry Fee
 
 </p>
 
-
 <h2 className="
 text-2xl
 font-bold
@@ -366,7 +358,6 @@ mt-2
 {tournament.currency}
 
 </h2>
-
 
 </div>
 
@@ -392,7 +383,6 @@ Reward
 
 </p>
 
-
 <h2 className="
 text-2xl
 font-bold
@@ -403,7 +393,6 @@ mt-2
 {tournament.reward || 0}
 
 </h2>
-
 
 </div>
 
@@ -429,8 +418,7 @@ Start Date
 
 </p>
 
-
-<p className="
+<h2 className="
 font-bold
 mt-2
 ">
@@ -441,8 +429,7 @@ tournament.start_date
 ).toLocaleDateString()
 }
 
-</p>
-
+</h2>
 
 </div>
 
@@ -464,22 +451,21 @@ p-5
 text-gray-400
 ">
 
-Start Time
+Time
 
 </p>
 
-
-<p className="
+<h2 className="
 font-bold
 mt-2
 ">
 
 {tournament.start_time}
 
-</p>
-
+</h2>
 
 </div>
+
 
 
 
@@ -503,7 +489,6 @@ rounded-2xl
 p-5
 ">
 
-
 <p className="
 text-gray-400
 ">
@@ -513,16 +498,16 @@ Status
 </p>
 
 
-<p className="
-text-blue-400
+<h2 className="
 uppercase
-font-black
+font-bold
+text-blue-400
 mt-2
 ">
 
 {tournament.status}
 
-</p>
+</h2>
 
 
 </div>
@@ -555,22 +540,19 @@ disabled:opacity-50
 
 >
 
-
 {
 
 joining
 
 ?
 
-"Joining..."
+"Joining Room..."
 
 :
 
 "JOIN TOURNAMENT"
 
 }
-
-
 
 </button>
 
@@ -593,8 +575,6 @@ joining
 
 
 
-
-
 </main>
 
 
@@ -602,9 +582,7 @@ joining
 
 
 
-
 </div>
-
 
 );
 
