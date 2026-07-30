@@ -3,7 +3,6 @@ Module
 } from '@nestjs/common';
 
 
-
 import {
 PrismaModule
 } from '../prisma/prisma.module';
@@ -25,6 +24,12 @@ AdminTournamentService
 import {
 AutoPlannerService
 } from '../tournaments/auto-planner.service';
+
+
+
+import {
+NextRoundService
+} from '../tournaments/next-round.service';
 
 
 
@@ -55,11 +60,13 @@ providers:[
 AdminTournamentService,
 
 
-AutoPlannerService
+AutoPlannerService,
+
+
+NextRoundService
 
 
 ]
-
 
 
 })
