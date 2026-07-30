@@ -27,15 +27,12 @@ import {
 
 
 
-
 export default function TeamRoom(){
 
 
 const params = useParams<{id:string}>();
 
 const id = params?.id;
-
-
 
 
 
@@ -90,7 +87,6 @@ setTeams(data);
 console.log(error);
 
 
-
 }finally{
 
 
@@ -100,7 +96,6 @@ setLoading(false);
 }
 
 
-
 }
 
 
@@ -111,7 +106,11 @@ setLoading(false);
 
 
 
-async function chooseSlot(slotId:string){
+async function joinSlot(
+
+slotId:string
+
+){
 
 
 try{
@@ -131,7 +130,7 @@ alert(
 
 error?.response?.data?.message ||
 
-"Slot not available"
+"Slot unavailable"
 
 );
 
@@ -139,7 +138,6 @@ error?.response?.data?.message ||
 }
 
 
-
 }
 
 
@@ -150,7 +148,11 @@ error?.response?.data?.message ||
 
 
 
-async function removeSlot(slotId:string){
+async function removeSlot(
+
+slotId:string
+
+){
 
 
 try{
@@ -170,7 +172,6 @@ console.log(error);
 
 
 }
-
 
 
 }
@@ -213,8 +214,6 @@ Loading PUBG Room...
 
 
 
-
-// pair teams
 
 const pairs=[];
 
@@ -277,16 +276,35 @@ mx-auto
 
 
 
+<div className="
+flex
+justify-between
+items-center
+mb-8
+">
+
 <h1 className="
 text-3xl
 md:text-5xl
 font-black
-mb-8
 ">
 
-🎮 PUBG Room
+🎮 PUBG ROOM
 
 </h1>
+
+
+<div className="
+text-green-400
+font-bold
+">
+
+Teams {teams.length}/100
+
+</div>
+
+
+</div>
 
 
 
@@ -304,10 +322,11 @@ space-y-6
 
 
 
-
 {
 
-pairs.map((pair:any,index)=>(
+pairs.map(
+(pair:any,index:number)=>(
+
 
 
 <div
@@ -324,13 +343,14 @@ gap-6
 
 
 
-
 {
 
 pair.map((team:any)=>(
 
 
+
 team &&
+
 
 <div
 key={team.id}
@@ -350,10 +370,8 @@ p-5
 <div className="
 flex
 justify-between
-items-center
 mb-5
 ">
-
 
 <h2 className="
 text-2xl
@@ -367,7 +385,6 @@ font-black
 
 <span className="
 text-green-400
-font-bold
 ">
 
 #{team.team_number}
@@ -376,6 +393,7 @@ font-bold
 
 
 </div>
+
 
 
 
@@ -393,9 +411,11 @@ gap-4
 
 
 
+
 {
 
 team.slots.map((slot:any)=>(
+
 
 
 <div
@@ -404,18 +424,11 @@ className="
 bg-zinc-800
 rounded-2xl
 p-4
-min-h-[120px]
-flex
-flex-col
-justify-between
 "
 >
 
 
 
-
-
-<div>
 
 
 <p className="
@@ -426,6 +439,8 @@ text-sm
 Slot {slot.slot_number}
 
 </p>
+
+
 
 
 
@@ -461,49 +476,16 @@ text-gray-400
 </p>
 
 
-</div>
-
-
-:
-
-<p className="
-text-gray-500
-mt-4
-">
-
-Empty Slot
-
-</p>
-
-
-}
-
-
-
-</div>
-
-
-
-
-
-
-
-
-{
-
-slot.user
-
-?
-
 <button
 
 onClick={()=>removeSlot(slot.id)}
 
 className="
+mt-3
+w-full
 bg-red-600
 rounded-xl
 py-2
-mt-3
 font-bold
 "
 
@@ -514,23 +496,27 @@ Leave
 </button>
 
 
+</div>
+
+
 :
 
 <button
 
-onClick={()=>chooseSlot(slot.id)}
+onClick={()=>joinSlot(slot.id)}
 
 className="
+mt-5
+w-full
 bg-green-600
 rounded-xl
 py-2
-mt-3
 font-bold
 "
 
 >
 
-Join
+Join Slot
 
 </button>
 
@@ -540,19 +526,6 @@ Join
 
 
 
-</div>
-
-
-))
-
-}
-
-
-
-</div>
-
-
-
 
 
 </div>
@@ -566,15 +539,19 @@ Join
 
 
 
-
-
 </div>
 
 
 
 
 
+
+</div>
+
+
+
 ))
+
 
 
 }
@@ -588,10 +565,27 @@ Join
 
 
 
+)
+
+
+}
+
+
+
+
 
 
 
 </div>
+
+
+
+
+
+
+
+</div>
+
 
 
 
@@ -608,7 +602,6 @@ Join
 
 
 );
-
 
 
 }
