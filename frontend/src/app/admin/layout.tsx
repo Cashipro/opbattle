@@ -48,6 +48,33 @@ useEffect(()=>{
 
 
 
+const pathname =
+window.location.pathname;
+
+
+
+
+
+// Admin login page ko protect nahi karna
+
+if(pathname === "/admin/login"){
+
+
+setChecking(false);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+
+
 const token =
 localStorage.getItem("token");
 
@@ -65,6 +92,7 @@ localStorage.getItem("user") || "{}"
 
 
 
+
 if(!token){
 
 
@@ -75,6 +103,7 @@ return;
 
 
 }
+
 
 
 
@@ -100,11 +129,12 @@ return;
 
 
 
+
 setChecking(false);
 
 
 
-},[]);
+},[router]);
 
 
 
@@ -135,6 +165,34 @@ Checking admin access...
 
 
 }
+
+
+
+
+
+
+
+// Admin login page ke liye sidebar nahi dikhana
+
+if(
+window.location.pathname === "/admin/login"
+){
+
+
+return (
+
+<>
+
+{children}
+
+</>
+
+);
+
+
+}
+
+
 
 
 
