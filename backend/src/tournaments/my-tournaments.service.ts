@@ -56,6 +56,16 @@ user_id:userId
 
 
 
+orderBy:{
+
+
+joined_at:"desc"
+
+
+},
+
+
+
 include:{
 
 
@@ -87,6 +97,16 @@ include:{
 
 
 slots:{
+
+
+
+orderBy:{
+
+
+slot_number:"asc"
+
+
+},
 
 
 
@@ -130,12 +150,18 @@ pubg_uid:true
 
 
 
-}
+},
 
 
 
-}
+rounds:{
 
+
+
+orderBy:{
+
+
+round_number:"asc"
 
 
 }
@@ -146,10 +172,26 @@ pubg_uid:true
 
 
 
+matches:{
+
+
+
 orderBy:{
 
 
-joined_at:"desc"
+match_number:"asc"
+
+
+}
+
+
+
+}
+
+
+
+}
+
 
 
 }
