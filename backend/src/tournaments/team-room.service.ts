@@ -35,13 +35,15 @@ private prisma:PrismaService
 
 
 
-// AUTO CREATE TEAMS AFTER JOIN
+// AUTO GENERATE TEAMS
 
 async generateTeams(
 
 tournamentId:string
 
 ){
+
+
 
 
 
@@ -56,6 +58,7 @@ id:tournamentId
 }
 
 });
+
 
 
 
@@ -78,15 +81,13 @@ throw new BadRequestException(
 
 
 
-const existing =
+const existingTeams =
 
 await this.prisma.tournamentTeam.count({
 
 where:{
 
-
 tournament_id:tournamentId
-
 
 }
 
@@ -98,7 +99,7 @@ tournament_id:tournamentId
 
 
 
-if(existing > 0){
+if(existingTeams > 0){
 
 throw new BadRequestException(
 
@@ -117,9 +118,9 @@ throw new BadRequestException(
 
 for(
 
-let i=1;
+let i = 1;
 
-i<=tournament.total_teams;
+i <= tournament.total_teams;
 
 i++
 
@@ -156,15 +157,13 @@ name:`Team ${i}`
 
 
 
-
-
 for(
 
-let slot=1;
+let s = 1;
 
-slot<=4;
+s <= 4;
 
-slot++
+s++
 
 ){
 
@@ -178,7 +177,7 @@ data:{
 team_id:team.id,
 
 
-slot_number:slot
+slot_number:s
 
 
 }
@@ -200,11 +199,18 @@ slot_number:slot
 
 return {
 
-message:"Teams generated successfully",
 
-teams:tournament.total_teams
+message:"PUBG teams created successfully",
+
+
+totalTeams:tournament.total_teams
+
+
 
 };
+
+
+
 
 
 
@@ -218,7 +224,7 @@ teams:tournament.total_teams
 
 
 
-// SHOW ROOM
+// TEAM ROOM DATA
 
 async getRoom(
 
@@ -228,7 +234,11 @@ tournamentId:string
 
 
 
-return this.prisma.tournamentTeam.findMany({
+
+
+const teams =
+
+await this.prisma.tournamentTeam.findMany({
 
 where:{
 
@@ -275,6 +285,7 @@ include:{
 user:{
 
 
+
 select:{
 
 
@@ -311,6 +322,50 @@ pubg_uid:true
 
 
 
+
+
+
+
+
+
+return teams.map(team=>({
+
+
+
+id:team.id,
+
+
+team_number:team.team_number,
+
+
+name:team.name || `Team ${team.team_number}`,
+
+
+
+slots:team.slots.map(slot=>({
+
+
+id:slot.id,
+
+
+slot_number:slot.slot_number,
+
+
+user:slot.user
+
+
+
+}))
+
+
+
+}));
+
+
+
+
+
+
 }
 
 
@@ -321,7 +376,7 @@ pubg_uid:true
 
 
 
-// EDIT TEAM NAME
+// UPDATE TEAM NAME
 
 async updateTeamName(
 
@@ -333,15 +388,18 @@ name:string
 
 
 
-if(!name){
+
+
+if(!name || name.trim().length < 3){
 
 throw new BadRequestException(
 
-"Team name required"
+"Team name must be minimum 3 characters"
 
 );
 
 }
+
 
 
 
@@ -364,7 +422,7 @@ id:teamId
 data:{
 
 
-name
+name:name.trim()
 
 
 }
@@ -372,6 +430,9 @@ name
 
 
 });
+
+
+
 
 
 
@@ -407,6 +468,16 @@ where:{
 
 
 id:slotId
+
+
+},
+
+
+
+include:{
+
+
+team:true
 
 
 }
@@ -452,8 +523,6 @@ throw new BadRequestException(
 
 
 
-// remove old slot
-
 await this.prisma.teamSlot.updateMany({
 
 where:{
@@ -477,7 +546,6 @@ user_id:null
 
 
 });
-
 
 
 
@@ -517,6 +585,7 @@ joined_at:new Date()
 
 
 
+
 }
 
 
@@ -534,6 +603,8 @@ async leaveSlot(
 slotId:string
 
 ){
+
+
 
 
 
@@ -563,8 +634,10 @@ user_id:null
 
 
 
-}
 
+
+
+}
 
 
 
