@@ -5,9 +5,7 @@ import {
   useState
 } from "react";
 
-
 import api from "@/lib/api";
-
 
 import {
   Trophy,
@@ -17,10 +15,7 @@ import {
 
 
 
-
-
 export default function AdminTournamentsPage(){
-
 
 
 const [tournaments,setTournaments] =
@@ -31,14 +26,17 @@ const [loading,setLoading] =
 useState(true);
 
 
-
 const [showForm,setShowForm] =
+useState(false);
+
+
+const [creating,setCreating] =
 useState(false);
 
 
 
 const [form,setForm] =
-useState<any>({
+useState({
 
 name:"",
 
@@ -51,7 +49,6 @@ reward:"",
 start_date:"",
 
 start_time:""
-
 
 });
 
@@ -74,6 +71,7 @@ loadTournaments();
 
 
 
+
 async function loadTournaments(){
 
 
@@ -86,17 +84,34 @@ await api.get(
 );
 
 
+console.log(
+"TOURNAMENT LIST:",
+res.data
+);
+
 
 setTournaments(
-res.data || []
+Array.isArray(res.data)
+?
+res.data
+:
+res.data?.tournaments || []
 );
 
 
 
-}catch(error){
+}catch(error:any){
 
 
-console.log(error);
+console.log(
+"LOAD ERROR:",
+error.response?.data || error
+);
+
+
+alert(
+"Cannot load tournaments"
+);
 
 
 }finally{
@@ -108,7 +123,6 @@ setLoading(false);
 }
 
 
-
 }
 
 
@@ -117,8 +131,10 @@ setLoading(false);
 
 
 
+
+
 function change(
-field:string,
+field:keyof typeof form,
 value:string
 ){
 
@@ -141,23 +157,76 @@ setForm({
 
 
 
+
 async function createTournament(){
 
 
 try{
 
 
+setCreating(true);
+
+
+
+const payload = {
+
+
+name:form.name,
+
+
+entry_fee:Number(form.entry_fee),
+
+
+currency:form.currency,
+
+
+reward:Number(form.reward || 0),
+
+
+start_date:
+`${form.start_date}T00:00:00`,
+
+
+start_time:form.start_time
+
+
+};
+
+
+
+console.log(
+"SENDING:",
+payload
+);
+
+
+
+const res =
 await api.post(
 
 "/admin/tournaments",
 
-form
+payload
 
 );
 
 
 
+console.log(
+"CREATE RESPONSE:",
+res.data
+);
+
+
+
+alert(
+"Tournament created successfully"
+);
+
+
+
 setShowForm(false);
+
 
 
 setForm({
@@ -174,7 +243,6 @@ start_date:"",
 
 start_time:""
 
-
 });
 
 
@@ -183,18 +251,48 @@ loadTournaments();
 
 
 
-}catch(error){
+}catch(error:any){
 
 
-console.log(error);
+console.log(
+"CREATE ERROR:",
+error.response?.data || error
+);
+
+
+
+alert(
+
+error.response?.data?.message ||
+
+"Tournament creation failed"
+
+);
+
+
+
+}finally{
+
+
+setCreating(false);
+
+
+}
 
 
 }
 
 
 
-}
-  async function closeTournament(id:string){
+
+
+
+
+
+
+async function closeTournament(
+id:string
+){
 
 
 try{
@@ -207,15 +305,22 @@ await api.post(
 );
 
 
+alert(
+"Tournament closed"
+);
+
 
 loadTournaments();
 
 
 
-}catch(error){
+}catch(error:any){
 
 
-console.log(error);
+console.log(
+"CLOSE ERROR:",
+error.response?.data || error
+);
 
 
 }
@@ -285,9 +390,9 @@ Create and manage tournaments
 
 <button
 
-onClick={()=>
-setShowForm(true)
-}
+type="button"
+
+onClick={()=>setShowForm(true)}
 
 className="
 bg-green-600
@@ -319,9 +424,8 @@ Create
 
 
 
-{
 
-showForm &&
+{showForm && (
 
 <div className="
 bg-zinc-900
@@ -351,13 +455,6 @@ Create Tournament
 
 placeholder="Tournament Name"
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-"
-
 value={form.name}
 
 onChange={(e)=>
@@ -366,6 +463,13 @@ change(
 e.target.value
 )
 }
+
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
 
 />
 
@@ -378,12 +482,7 @@ e.target.value
 
 placeholder="Entry Fee"
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-"
+type="number"
 
 value={form.entry_fee}
 
@@ -394,8 +493,14 @@ e.target.value
 )
 }
 
-/>
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
 
+/>
 
 
 
@@ -406,12 +511,7 @@ e.target.value
 
 placeholder="Reward"
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-"
+type="number"
 
 value={form.reward}
 
@@ -422,8 +522,14 @@ e.target.value
 )
 }
 
-/>
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
 
+/>
 
 
 
@@ -434,13 +540,6 @@ e.target.value
 
 type="date"
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-"
-
 value={form.start_date}
 
 onChange={(e)=>
@@ -450,8 +549,14 @@ e.target.value
 )
 }
 
-/>
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
 
+/>
 
 
 
@@ -462,13 +567,6 @@ e.target.value
 
 type="time"
 
-className="
-w-full
-bg-zinc-800
-rounded-xl
-p-4
-"
-
 value={form.start_time}
 
 onChange={(e)=>
@@ -478,8 +576,14 @@ e.target.value
 )
 }
 
-/>
+className="
+w-full
+bg-zinc-800
+rounded-xl
+p-4
+"
 
+/>
 
 
 
@@ -494,6 +598,10 @@ gap-3
 
 <button
 
+type="button"
+
+disabled={creating}
+
 onClick={createTournament}
 
 className="
@@ -506,18 +614,28 @@ font-bold
 
 >
 
-Save
+{
+
+creating
+?
+"Creating..."
+:
+"Save"
+
+}
 
 </button>
 
 
 
 
+
+
 <button
 
-onClick={()=>
-setShowForm(false)
-}
+type="button"
+
+onClick={()=>setShowForm(false)}
 
 className="
 bg-red-600
@@ -538,15 +656,16 @@ Cancel
 </button>
 
 
-</div>
-
-
-
 
 </div>
 
 
-}
+
+
+</div>
+
+)}
+
 
 
 
@@ -568,9 +687,7 @@ loading
 ?
 
 <p className="text-zinc-400">
-
 Loading...
-
 </p>
 
 
@@ -610,21 +727,18 @@ text-zinc-400
 mt-2
 ">
 
-Status:
-{" "}
-{item.status}
+Status: {item.status}
 
 </p>
 
 
 
 
-
 <button
 
-onClick={()=>
-closeTournament(item.id)
-}
+type="button"
+
+onClick={()=>closeTournament(item.id)}
 
 className="
 mt-5
