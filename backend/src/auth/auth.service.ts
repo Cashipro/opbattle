@@ -309,7 +309,10 @@ email:user.email,
 pubg_uid:user.pubg_uid,
 
 
-role:user.role
+role:user.role,
+
+
+balance:user.balance
 
 
 
@@ -322,6 +325,89 @@ role:user.role
 
 
 }
+
+
+
+
+
+
+
+
+
+// GET CURRENT USER DATA
+
+async getUser(
+
+userId:string
+
+){
+
+
+
+const user =
+
+await this.prisma.user.findUnique({
+
+where:{
+
+id:userId
+
+},
+
+
+select:{
+
+
+id:true,
+
+
+name:true,
+
+
+email:true,
+
+
+pubg_uid:true,
+
+
+role:true,
+
+
+balance:true
+
+
+}
+
+
+});
+
+
+
+
+
+if(!user){
+
+
+throw new UnauthorizedException(
+
+"User not found"
+
+);
+
+
+}
+
+
+
+
+
+return user;
+
+
+
+}
+
+
 
 
 
