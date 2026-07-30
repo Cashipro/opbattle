@@ -3,7 +3,6 @@ Module
 } from '@nestjs/common';
 
 
-
 import {
 PrismaModule
 } from '../prisma/prisma.module';
@@ -15,7 +14,6 @@ PrismaModule
 import {
 AdminTournamentController
 } from './admin-tournament.controller';
-
 
 
 import {
@@ -31,7 +29,6 @@ AdminDepositController
 } from './admin-deposit.controller';
 
 
-
 import {
 AdminDepositService
 } from './admin-deposit.service';
@@ -45,10 +42,22 @@ AdminStatsController
 } from './admin-stats.controller';
 
 
-
 import {
 AdminStatsService
 } from './admin-stats.service';
+
+
+
+
+
+import {
+AdminWithdrawalController
+} from './admin-withdrawal.controller';
+
+
+import {
+AdminWithdrawalService
+} from './admin-withdrawal.service';
 
 
 
@@ -59,10 +68,10 @@ AutoPlannerService
 } from '../tournaments/auto-planner.service';
 
 
-
 import {
 NextRoundService
 } from '../tournaments/next-round.service';
+
 
 
 
@@ -91,7 +100,10 @@ AdminTournamentController,
 AdminDepositController,
 
 
-AdminStatsController
+AdminStatsController,
+
+
+AdminWithdrawalController
 
 
 ],
@@ -112,6 +124,9 @@ AdminDepositService,
 AdminStatsService,
 
 
+AdminWithdrawalService,
+
+
 AutoPlannerService,
 
 
@@ -124,4 +139,4 @@ NextRoundService
 })
 
 
-export class AdminModule{}
+export class AdminModule {}
