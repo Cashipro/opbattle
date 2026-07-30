@@ -8,9 +8,11 @@ import {
 PrismaService
 } from '../prisma/prisma.service';
 
+
 import {
 TeamRoomService
 } from '../tournaments/team-room.service';
+
 
 
 
@@ -63,13 +65,11 @@ if(
 
 ){
 
-
 throw new BadRequestException(
 
 "Missing tournament fields"
 
 );
-
 
 }
 
@@ -80,13 +80,12 @@ throw new BadRequestException(
 
 
 
-return this.prisma.$transaction(async(tx)=>{
+const tournament =
 
-
-
-const tournament = await tx.tournament.create({
+await this.prisma.tournament.create({
 
 data:{
+
 
 
 name:data.name,
@@ -106,81 +105,28 @@ Number(data.reward)
 
 :
 
-0,
+null,
 
 
 
-start_date:new Date(
-data.start_date
-),
-
+start_date:new Date(data.start_date),
 
 
 start_time:data.start_time,
-
 
 
 status:"upcoming",
 
 
 
-max_teams:data.max_teams
+// default PUBG room
 
-?
-
-Number(data.max_teams)
-
-:
-
-100,
-
+max_teams:100,
 
 
 players_per_team:4
 
 
-}
-
-
-
-});
-
-
-
-
-
-
-
-
-const teams = tournament.max_teams;
-
-
-
-for(
-
-let i=1;
-
-i<=teams;
-
-i++
-
-){
-
-
-
-const team = await tx.tournamentTeam.create({
-
-data:{
-
-
-tournament_id:tournament.id,
-
-
-team_number:i,
-
-
-name:`Team ${i}`
-
 
 }
 
@@ -192,42 +138,14 @@ name:`Team ${i}`
 
 
 
-for(
 
-let s=1;
+// AUTO CREATE 100 TEAMS
 
-s<=4;
+await this.teamRoomService.createTeams(
 
-s++
+tournament.id
 
-){
-
-
-
-await tx.teamSlot.create({
-
-data:{
-
-
-team_id:team.id,
-
-
-slot_number:s,
-
-
-user_id:null
-
-
-}
-
-});
-
-
-}
-
-
-
-}
+);
 
 
 
@@ -236,11 +154,17 @@ user_id:null
 
 
 
-return tournament;
+return {
+
+
+message:"Tournament created with PUBG room",
+
+
+tournament
 
 
 
-});
+};
 
 
 
@@ -264,29 +188,6 @@ orderBy:{
 
 
 created_at:"desc"
-
-
-},
-
-
-
-include:{
-
-
-teams:{
-
-
-include:{
-
-
-slots:true
-
-
-}
-
-
-}
-
 
 
 }
@@ -319,12 +220,9 @@ return this.prisma.tournament.update({
 
 where:{
 
-
 id
 
-
 },
-
 
 
 data:{
@@ -334,8 +232,6 @@ status:"closed"
 
 
 }
-
-
 
 });
 
@@ -363,9 +259,7 @@ return this.prisma.tournamentTeam.findMany({
 
 where:{
 
-
 tournament_id:id
-
 
 },
 
@@ -373,9 +267,7 @@ tournament_id:id
 
 orderBy:{
 
-
 team_number:"asc"
-
 
 },
 
@@ -395,9 +287,7 @@ user:true
 
 }
 
-
 }
-
 
 
 }
@@ -432,10 +322,10 @@ return this.teamRoomService.increaseTeams(
 
 id,
 
-amount
+
+amount || 100
 
 );
-
 
 
 }
@@ -458,35 +348,11 @@ data:any
 
 
 
-if(
-
-!data.room_id
-
-){
-
-
-throw new BadRequestException(
-
-"Room ID required"
-
-);
-
-
-}
-
-
-
-
-
-
-
 return this.prisma.tournamentMatch.update({
 
 where:{
 
-
 id:matchId
-
 
 },
 
@@ -498,11 +364,10 @@ data:{
 room_id:data.room_id,
 
 
-room_password:data.room_password || null,
+room_password:data.room_password,
 
 
 status:"live"
-
 
 
 }
@@ -535,9 +400,7 @@ return this.prisma.tournamentMatch.update({
 
 where:{
 
-
 id:matchId
-
 
 },
 
@@ -558,8 +421,6 @@ status:"completed"
 
 
 }
-
-
 
 
 
