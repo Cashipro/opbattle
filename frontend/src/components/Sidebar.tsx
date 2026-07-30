@@ -1,6 +1,5 @@
 "use client";
 
-
 import Link from "next/link";
 
 import {
@@ -27,13 +26,10 @@ LogOut
 
 
 
-
-
 export default function Sidebar(){
 
 
 const [open,setOpen] = useState(false);
-
 
 
 
@@ -107,7 +103,7 @@ return (
 <>
 
 
-{/* MOBILE BUTTON */}
+{/* MOBILE MENU BUTTON */}
 
 <button
 
@@ -118,17 +114,18 @@ md:hidden
 fixed
 top-4
 left-4
-z-50
+z-[60]
 bg-zinc-900
-p-3
-rounded-xl
 border
 border-zinc-700
+p-3
+rounded-xl
+text-white
 "
 
 >
 
-<Menu />
+<Menu/>
 
 </button>
 
@@ -139,7 +136,7 @@ border-zinc-700
 
 
 
-{/* OVERLAY */}
+{/* MOBILE OVERLAY */}
 
 {
 
@@ -168,6 +165,7 @@ md:hidden
 
 
 
+
 {/* SIDEBAR */}
 
 <aside
@@ -175,7 +173,6 @@ md:hidden
 className={`
 
 fixed
-z-50
 top-0
 left-0
 h-screen
@@ -184,12 +181,10 @@ bg-zinc-950
 border-r
 border-zinc-800
 p-5
+z-50
 text-white
-transform
 transition-transform
 duration-300
-
-md:translate-x-0
 
 ${
 
@@ -201,9 +196,11 @@ open
 
 :
 
-"-translate-x-full md:translate-x-0"
+"-translate-x-full"
 
 }
+
+md:translate-x-0
 
 `}
 
@@ -217,13 +214,10 @@ open
 
 <div className="
 flex
-justify-between
 items-center
+justify-between
 mb-10
 ">
-
-
-
 
 
 <h1 className="
@@ -232,11 +226,9 @@ font-black
 text-green-400
 ">
 
-TOURNAMENT HUB
+OPBATTLE
 
 </h1>
-
-
 
 
 
@@ -252,17 +244,14 @@ md:hidden
 
 >
 
-<X />
+<X/>
 
 </button>
 
 
 
-
-
-
-
 </div>
+
 
 
 
@@ -276,13 +265,9 @@ space-y-2
 ">
 
 
-
-
-
 {
 
 menu.map((item)=>(
-
 
 
 <Link
@@ -301,6 +286,7 @@ p-3
 rounded-xl
 hover:bg-zinc-800
 transition
+font-bold
 "
 
 >
@@ -309,14 +295,18 @@ transition
 <item.icon size={20}/>
 
 
+<span>
+
 {item.name}
+
+</span>
 
 
 </Link>
 
 
-
 ))
+
 
 }
 
@@ -331,23 +321,27 @@ transition
 
 
 
+
 <button
 
 className="
 absolute
 bottom-6
+left-5
 flex
 items-center
 gap-3
 text-red-400
-p-3
+font-bold
 "
 
 >
 
+
 <LogOut size={20}/>
 
 Logout
+
 
 </button>
 
@@ -356,10 +350,7 @@ Logout
 
 
 
-
-
 </aside>
-
 
 
 
