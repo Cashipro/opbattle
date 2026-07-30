@@ -49,12 +49,15 @@ router.push("/login");
 
 return (
 
-<div className="
+<div
+className="
 flex
 min-h-screen
 bg-black
 text-white
-">
+"
+>
+
 
 
 
@@ -70,34 +73,44 @@ text-white
 
 
 
-<main className="
+<main
+className="
 flex-1
 p-4
 pt-20
+md:ml-64
 md:p-10
 md:pt-10
-">
+"
+>
 
 
 
 
 
-<div className="
+
+
+<div
+className="
 max-w-3xl
 mx-auto
-">
+"
+>
 
 
 
 
 
 
-<h1 className="
+
+<h1
+className="
 text-3xl
 md:text-4xl
 font-black
 mb-8
-">
+"
+>
 
 ⚙ Settings
 
@@ -110,14 +123,17 @@ mb-8
 
 
 
-<div className="
+<div
+className="
 bg-zinc-900
 border
 border-zinc-800
 rounded-3xl
 p-6
 space-y-6
-">
+"
+>
+
 
 
 
@@ -128,15 +144,22 @@ space-y-6
 
 <div>
 
-<h2 className="
+
+<h2
+className="
 text-xl
 font-bold
 mb-3
-">
+"
+>
 
 Account Security
 
 </h2>
+
+
+
+
 
 
 
@@ -153,9 +176,13 @@ rounded-xl
 p-4
 mb-3
 outline-none
+text-white
 "
 
 />
+
+
+
 
 
 
@@ -173,9 +200,15 @@ bg-zinc-800
 rounded-xl
 p-4
 outline-none
+text-white
 "
 
 />
+
+
+
+
+
 
 
 
@@ -198,6 +231,10 @@ Update Password
 
 
 
+
+
+
+
 </div>
 
 
@@ -208,25 +245,34 @@ Update Password
 
 
 
-<div className="
+<div
+className="
 border-t
 border-zinc-800
 pt-6
-">
+"
+>
 
 
 
 
 
-<h2 className="
+
+
+
+<h2
+className="
 text-xl
 font-bold
 mb-3
-">
+"
+>
 
 Account Actions
 
 </h2>
+
+
 
 
 
@@ -257,13 +303,6 @@ hover:bg-red-700
 
 
 
-</div>
-
-
-
-
-
-
 
 
 </div>
@@ -276,12 +315,23 @@ hover:bg-red-700
 
 
 </div>
+
+
+
+
+
+
+
+
+</div>
+
 
 
 
 
 
 </main>
+
 
 
 
