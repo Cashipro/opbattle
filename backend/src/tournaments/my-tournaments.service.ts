@@ -13,7 +13,6 @@ PrismaService
 
 
 
-
 @Injectable()
 
 export class MyTournamentsService {
@@ -32,15 +31,11 @@ private prisma:PrismaService
 
 
 
-
-
 async getMyTournaments(
 
 userId:string
 
 ){
-
-
 
 
 
@@ -56,16 +51,6 @@ user_id:userId
 
 
 
-orderBy:{
-
-
-joined_at:"desc"
-
-
-},
-
-
-
 include:{
 
 
@@ -75,7 +60,6 @@ tournament:{
 
 
 include:{
-
 
 
 teams:{
@@ -95,27 +79,14 @@ team_number:"asc"
 include:{
 
 
-
 slots:{
-
-
-
-orderBy:{
-
-
-slot_number:"asc"
-
-
-},
 
 
 
 include:{
 
 
-
 user:{
-
 
 
 select:{
@@ -133,6 +104,13 @@ pubg_uid:true
 }
 
 
+}
+
+
+
+}
+
+
 
 }
 
@@ -154,44 +132,10 @@ pubg_uid:true
 
 
 
-rounds:{
-
-
-
 orderBy:{
 
 
-round_number:"asc"
-
-
-}
-
-
-
-},
-
-
-
-matches:{
-
-
-
-orderBy:{
-
-
-match_number:"asc"
-
-
-}
-
-
-
-}
-
-
-
-}
-
+joined_at:"desc"
 
 
 }
@@ -202,14 +146,7 @@ match_number:"asc"
 
 
 
-
-
-
 }
-
-
-
-
 
 
 
