@@ -1,6 +1,11 @@
 "use client";
 
 
+import {
+  useState
+} from "react";
+
+
 import Link from "next/link";
 
 
@@ -10,7 +15,9 @@ import {
   Swords,
   Users,
   Medal,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 
 
@@ -28,6 +35,12 @@ export default function AdminSidebar(){
 
 
 const router = useRouter();
+
+
+const [open,setOpen] =
+useState(false);
+
+
 
 
 
@@ -58,12 +71,87 @@ router.push("/login");
 
 
 
+const links = [
+
+{
+name:"Dashboard",
+url:"/admin",
+icon:<LayoutDashboard/>
+},
+
+{
+name:"Tournaments",
+url:"/admin/tournaments",
+icon:<Trophy/>
+},
+
+{
+name:"Matches",
+url:"/admin/matches",
+icon:<Swords/>
+},
+
+{
+name:"Teams",
+url:"/admin/teams",
+icon:<Users/>
+},
+
+{
+name:"Results",
+url:"/admin/results",
+icon:<Medal/>
+}
+
+];
+
+
+
+
+
+
+
+
 return (
 
-<aside className="
+<>
+
+
+
+<button
+
+onClick={()=>
+setOpen(true)
+}
+
+className="
+md:hidden
 fixed
-left-0
+top-4
+left-4
+z-[60]
+bg-zinc-900
+p-3
+rounded-xl
+"
+
+>
+
+<Menu/>
+
+</button>
+
+
+
+
+
+
+
+<aside className={`
+
+fixed
 top-0
+left-0
 h-screen
 w-72
 bg-zinc-950
@@ -71,22 +159,79 @@ border-r
 border-zinc-800
 p-6
 z-50
+transition-transform
+duration-300
+
+
+${
+
+open
+
+?
+
+"translate-x-0"
+
+:
+
+"-translate-x-full"
+
+}
+
+
+md:translate-x-0
+
+`}>
+
+
+
+
+
+
+
+<div className="
+flex
+justify-between
+items-center
+mb-10
 ">
-
-
-
 
 
 <h1 className="
 text-3xl
 font-black
 text-green-400
-mb-10
 ">
 
 OPBATTLE
 
 </h1>
+
+
+
+
+
+<button
+
+onClick={()=>
+setOpen(false)
+}
+
+className="
+md:hidden
+"
+
+>
+
+<X/>
+
+</button>
+
+
+
+
+</div>
+
+
 
 
 
@@ -99,12 +244,20 @@ space-y-3
 ">
 
 
+{
 
+links.map((item)=>(
 
 
 <Link
 
-href="/admin"
+key={item.url}
+
+href={item.url}
+
+onClick={()=>
+setOpen(false)
+}
 
 className="
 flex
@@ -119,130 +272,20 @@ font-bold
 
 >
 
-<LayoutDashboard/>
 
-Dashboard
+{item.icon}
+
+
+{item.name}
+
 
 </Link>
 
 
+))
 
 
-
-
-
-<Link
-
-href="/admin/tournaments"
-
-className="
-flex
-items-center
-gap-3
-bg-zinc-900
-hover:bg-zinc-800
-rounded-xl
-p-4
-font-bold
-"
-
->
-
-<Trophy/>
-
-Tournaments
-
-</Link>
-
-
-
-
-
-
-
-<Link
-
-href="/admin/matches"
-
-className="
-flex
-items-center
-gap-3
-bg-zinc-900
-hover:bg-zinc-800
-rounded-xl
-p-4
-font-bold
-"
-
->
-
-<Swords/>
-
-Matches
-
-</Link>
-
-
-
-
-
-
-
-<Link
-
-href="/admin/teams"
-
-className="
-flex
-items-center
-gap-3
-bg-zinc-900
-hover:bg-zinc-800
-rounded-xl
-p-4
-font-bold
-"
-
->
-
-<Users/>
-
-Teams
-
-</Link>
-
-
-
-
-
-
-
-<Link
-
-href="/admin/results"
-
-className="
-flex
-items-center
-gap-3
-bg-zinc-900
-hover:bg-zinc-800
-rounded-xl
-p-4
-font-bold
-"
-
->
-
-<Medal/>
-
-Results
-
-</Link>
-
-
-
+}
 
 
 
@@ -275,9 +318,12 @@ gap-2
 
 >
 
+
 <LogOut/>
 
+
 Logout
+
 
 </button>
 
@@ -286,9 +332,13 @@ Logout
 
 
 
-
 </aside>
 
+
+
+
+
+</>
 
 );
 
