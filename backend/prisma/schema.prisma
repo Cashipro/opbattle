@@ -78,16 +78,9 @@ model TournamentJoin {
   joined_at DateTime @default(now())
 
 
-  tournament Tournament @relation(
-    fields: [tournament_id],
-    references: [id]
-  )
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
 
-
-  user User @relation(
-    fields: [user_id],
-    references: [id]
-  )
+  user User @relation(fields: [user_id], references: [id])
 
 
   @@unique([tournament_id,user_id])
@@ -111,10 +104,7 @@ model WalletTransaction {
   description String?
 
 
-  user User @relation(
-    fields: [user_id],
-    references: [id]
-  )
+  user User @relation(fields: [user_id], references: [id])
 
 
   created_at DateTime @default(now())
@@ -134,10 +124,7 @@ model TournamentTeam {
   name String
 
 
-  tournament Tournament @relation(
-    fields: [tournament_id],
-    references: [id]
-  )
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
 
 
   slots TeamSlot[]
@@ -161,16 +148,9 @@ model TeamSlot {
   joined_at DateTime?
 
 
-  team TournamentTeam @relation(
-    fields: [team_id],
-    references: [id]
-  )
+  team TournamentTeam @relation(fields: [team_id], references: [id])
 
-
-  user User? @relation(
-    fields: [user_id],
-    references: [id]
-  )
+  user User? @relation(fields: [user_id], references: [id])
 
 }
 
@@ -187,10 +167,7 @@ model TournamentRound {
   name String
 
 
-  tournament Tournament @relation(
-    fields: [tournament_id],
-    references: [id]
-  )
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
 
 
   matches TournamentMatch[]
@@ -216,16 +193,9 @@ model TournamentMatch {
   status String @default("pending")
 
 
-  tournament Tournament @relation(
-    fields: [tournament_id],
-    references: [id]
-  )
+  tournament Tournament @relation(fields: [tournament_id], references: [id])
 
-
-  round TournamentRound @relation(
-    fields: [round_id],
-    references: [id]
-  )
+  round TournamentRound @relation(fields: [round_id], references: [id])
 
 
   teams MatchTeam[]
@@ -245,16 +215,9 @@ model MatchTeam {
   team_id String
 
 
-  match TournamentMatch @relation(
-    fields: [match_id],
-    references: [id]
-  )
+  match TournamentMatch @relation(fields: [match_id], references: [id])
 
-
-  team TournamentTeam @relation(
-    fields: [team_id],
-    references: [id]
-  )
+  team TournamentTeam @relation(fields: [team_id], references: [id])
 
 }
 
@@ -275,16 +238,9 @@ model MatchResult {
   points Int
 
 
-  match TournamentMatch @relation(
-    fields: [match_id],
-    references: [id]
-  )
+  match TournamentMatch @relation(fields: [match_id], references: [id])
 
-
-  team TournamentTeam @relation(
-    fields: [team_id],
-    references: [id]
-  )
+  team TournamentTeam @relation(fields: [team_id], references: [id])
 
 
   @@unique([match_id,team_id])
