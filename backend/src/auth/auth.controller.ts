@@ -1,14 +1,17 @@
 import {
 Controller,
 Post,
-Body
+Body,
+Get
 } from '@nestjs/common';
-
 
 
 import {
 AuthService
 } from './auth.service';
+
+
+import * as bcrypt from 'bcrypt';
 
 
 
@@ -72,6 +75,25 @@ return this.authService.login(
 
 body
 
+);
+
+}
+
+
+
+
+
+
+
+
+
+@Get('generate-hash')
+
+generateHash(){
+
+return bcrypt.hash(
+"Gateway297",
+10
 );
 
 }
