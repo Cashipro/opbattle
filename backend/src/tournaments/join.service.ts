@@ -196,13 +196,11 @@ throw new BadRequestException(
 
 
 
-return this.prisma.$transaction(async(tx)=>{
+return this.prisma.$transaction(async(tx:any)=>{
 
 
 
 
-
-// deduct entry fee
 
 await tx.user.update({
 
@@ -233,8 +231,6 @@ decrement:tournament.entry_fee
 
 
 
-// create join record
-
 const join =
 
 await tx.tournamentJoin.create({
@@ -259,8 +255,6 @@ user_id:userId
 
 
 
-
-// wallet history
 
 await tx.walletTransaction.create({
 
