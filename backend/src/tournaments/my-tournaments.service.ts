@@ -1,52 +1,115 @@
 import {
-Injectable
+  Injectable
 } from '@nestjs/common';
 
+
 import {
-PrismaService
+  PrismaService
 } from '../prisma/prisma.service';
+
+
+
 
 
 @Injectable()
 export class MyTournamentsService {
 
 
-constructor(
-private prisma:PrismaService
-){}
+
+  constructor(
+    private prisma: PrismaService
+  ){}
 
 
 
-async getMyTournaments(
-userId:string
-){
 
 
-return this.prisma.tournamentJoin.findMany({
-
-where:{
-user_id:userId
-},
+  async getMyTournaments(
+    userId:string
+  ){
 
 
-orderBy:{
-joined_at:"desc"
-},
+    return this.prisma.tournamentJoin.findMany({
 
 
-include:{
+      where:{
 
 
-tournament:true
+        user_id:userId
 
 
-}
+      },
 
 
-});
+      orderBy:{
 
 
-}
+        joined_at:"desc"
+
+
+      },
+
+
+      include:{
+
+
+        tournament:{
+
+
+          select:{
+
+
+            id:true,
+
+
+            name:true,
+
+
+            entry_fee:true,
+
+
+            currency:true,
+
+
+            reward:true,
+
+
+            start_date:true,
+
+
+            start_time:true,
+
+
+            status:true,
+
+
+            max_teams:true,
+
+
+            players_per_team:true,
+
+
+            created_at:true
+
+
+          }
+
+
+        }
+
+
+      }
+
+
+
+    });
+
+
+
+  }
+
+
+
 
 
 }
