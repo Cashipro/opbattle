@@ -15,6 +15,8 @@ Strategy
 
 
 
+
+
 @Injectable()
 
 export class JwtStrategy extends PassportStrategy(Strategy){
@@ -24,31 +26,25 @@ export class JwtStrategy extends PassportStrategy(Strategy){
 constructor(){
 
 
-
 super({
 
 
 jwtFromRequest:
-
 ExtractJwt.fromAuthHeaderAsBearerToken(),
-
 
 
 ignoreExpiration:false,
 
 
-
 secretOrKey:
-
 "OPBATTLE_SECRET_KEY"
-
 
 
 });
 
 
-
 }
+
 
 
 
@@ -63,11 +59,12 @@ async validate(payload:any){
 return {
 
 
-id:payload.id,
+id:
+payload.sub || payload.id,
 
 
-email:payload.email
-
+email:
+payload.email
 
 
 };
@@ -75,7 +72,6 @@ email:payload.email
 
 
 }
-
 
 
 }
